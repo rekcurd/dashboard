@@ -24,7 +24,7 @@ import {
   syncKubernetesStatusReducer
 } from './reducers'
 import { App } from './components/App'
-import './assets/koromo-min.css'
+import './assets/koromo.css'
 import './assets/style'
 
 const store = compose(applyMiddleware(thunk))(createStore)(
