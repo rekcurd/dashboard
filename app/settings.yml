@@ -1,0 +1,15 @@
+# DB
+# You can specify "use.db" to sqlite or mysql.
+#   Priority is...
+#     DRUCKER_DB_MODE > use.db
+#     DRUCKER_DB_MYSQL_HOST > db.mysql.host
+#     DRUCKER_DB_MYSQL_PORT > db.mysql.port
+#     DRUCKER_DB_MYSQL_DBNAME > db.mysql.dbname
+#     DRUCKER_DB_MYSQL_USER > db.mysql.user
+#     DRUCKER_DB_MYSQL_PASSWORD > db.mysql.password
+use.db: sqlite
+db.mysql.host: localhost
+db.mysql.port: 3306
+db.mysql.dbname: management
+db.mysql.user: user
+db.mysql.password: pass

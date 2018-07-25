@@ -1,0 +1,4 @@
+[submodule "app/drucker-grpc-proto"]
+	path = app/drucker-grpc-proto
+	url = https://github.com/drucker/drucker-grpc-proto.git
+	branch = master

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+      "module": "commonjs",
+      "target": "es5",
+      "lib": [
+        "es2017",
+        "dom"
+      ],
+      "jsx": "react",
+      "baseUrl": ".",
+      "paths": {
+        "@components/*": ["./src/components/*"],
+        "@common/*": ["./src/components/Common/*"],
+        "@src/*": ["./src/*"],
+        "@base/*": ["./*"]
+      },
+      "noErrorTruncation": true
+  }
+}

@@ -1,0 +1,13 @@
+Flask==1.0.2
+Flask-Cors==3.0.4
+grpcio==1.13.0
+grpcio-tools==1.13.0
+python-json-logger==0.1.9
+fluent-logger==0.9.3
+PyYAML==3.12
+SQLAlchemy==1.2.7
+PyMySQL==0.8.0
+flask-sqlalchemy==2.3.2
+kubernetes==v5.0.0
+flask-restplus==0.11.0
+Flask-Testing==0.7.1

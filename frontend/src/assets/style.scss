@@ -1,0 +1,46 @@
+$heightHead: 52px;
+$linkHighlihgtColor: #00B900;
+
+header {
+    height: $heightHead;
+}
+
+.nav-link.text-info.active, .nav-link.text-info:hover {
+    color: $linkHighlihgtColor !important;
+}
+
+.nav-item.text-info.active, .nav-item.text-info:hover {
+    color: $linkHighlihgtColor !important;
+}
+
+#application-side-menu {
+    //background-color: #f9fbfb !important; // #F9F8F7
+    min-height: calc(100vh - #{$heightHead});
+}
+
+#top-navigation-bar {
+    background-color: #f9fbfb;
+    z-index: 3;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2);
+}
+
+#application-list, #navbrand {
+    a {
+        &:hover {
+            color: $linkHighlihgtColor !important;
+        }
+    }
+}
+
+.vertical-center {
+    vertical-align: middle !important;
+}
+
+label.required::after {
+    content:" *";
+    color:red;
+}
+
+div.tooltip-inner {
+    max-width: 500px;
+}

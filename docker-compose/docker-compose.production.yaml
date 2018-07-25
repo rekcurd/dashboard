@@ -1,0 +1,40 @@
+version: '3.3'
+
+services:
+  dashboard-frontend:
+    container_name: drucker-dashboard-frontend
+    build:
+      context: ..
+      dockerfile: ./frontend/Dockerfile
+    volumes:
+      - ../frontend:/root/drucker-dashboard
+    environment:
+      NODE_ENV: production
+      API_HOST: ${API_HOST:-http://localhost}
+      API_PORT: 18080
+      DRUCKER_DASHBOARD_FRONTEND_PORT: ${DRUCKER_DASHBOARD_FRONTEND_PORT:-8080}
+    command:
+      - /bin/bash
+      - -c
+      - "yarn install && yarn build && yarn run start:prod"
+    depends_on:
+      - dashboard-backend
+    ports:
+      - "${DRUCKER_DASHBOARD_FRONTEND_PORT:-8080}:${DRUCKER_DASHBOARD_FRONTEND_PORT:-8080}"
+    restart: always
+  dashboard-backend:
+    container_name: drucker-dashboard-backend
+    build:
+      context: ..
+      dockerfile: ./app/Dockerfile
+    volumes:
+      - ../app:/root/drucker-dashboard
+    environment:
+      FLASK_DEBUG: "False"
+    command:
+      - /bin/bash
+      - -c
+      - "sh start.sh"
+    ports:
+      - "18080:18080"
+    restart: always

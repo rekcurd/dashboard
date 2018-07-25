@@ -1,0 +1,11 @@
+{
+  "environments": [
+    "development", "beta", "staging", "production"
+  ],
+  "environmentsToName": {
+    "development": "Development",
+    "beta": "Beta",
+    "staging": "Staging",
+    "production": "Production"
+  }
+}
