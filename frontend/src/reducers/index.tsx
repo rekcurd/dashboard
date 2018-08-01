@@ -17,10 +17,14 @@ import {
   deleteKubernetesServicesActionCreators,
   syncKubernetesStatusActionCreators,
   fetchServiceByIdActionCreators,
-  fetchServiceDescriptionsActionCreators
+  fetchServiceDescriptionsActionCreators,
+  APIRequestUnauthorized,
+  loginActionCreators,
+  userInfoActionCreators,
+  settingsActionCreators
 } from '@src/actions'
 import { APIRequest, APIRequestStatusList} from '@src/apis/Core'
-import { Application, Model, Service, SwitchModelParam, ModelResponse, KubernetesHost, FetchServicesParam, fetchServiceById } from '@src/apis'
+import { Application, Model, Service, SwitchModelParam, ModelResponse, KubernetesHost, FetchServicesParam, LoginParam, AuthToken, UserInfo } from '@src/apis'
 
 export class AppState {
   constructor(
@@ -40,8 +44,12 @@ export class AppState {
     public kubernetesHostById: APIRequest<any> = { status: APIRequestStatusList.notStarted },
     public deleteKubernetesServices: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
     public syncKubernetesStatus: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public settings: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
+    public login: APIRequest<AuthToken> = { status: APIRequestStatusList.notStarted },
+    public userInfo: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
     // Notification status
-    public notification = { toasts: [], id: -1 }
+    public notification = { toasts: [], id: -1 },
+    public navigation = { login: false }
   ) { }
 }
 
@@ -61,6 +69,8 @@ function APIRequestReducerCreator<P = {}, S = {}, F = {}>(
       item.type === `${suffix}_FAILURE`
     const isSuccess = (item: any): item is APIRequestSuccessAction =>
       item.type === `${suffix}_SUCCESS`
+    const isUnauthorized = (item: any): item is APIRequestUnauthorized =>
+      item.type === `${suffix}_UNAUTHORIZED`
 
     if (isStarted(action)) {
       nextState[statePropertyName] = { status: APIRequestStatusList.fetching }
@@ -68,6 +78,8 @@ function APIRequestReducerCreator<P = {}, S = {}, F = {}>(
       nextState[statePropertyName] = { status: APIRequestStatusList.failue, error: action.error }
     } else if (isSuccess(action)) {
       nextState[statePropertyName] = { status: APIRequestStatusList.success, result: action.result }
+    } else if (isUnauthorized(action)) {
+      nextState[statePropertyName] = { status: APIRequestStatusList.unauhorized, error: action.error }
     } else {
       return state
     }
@@ -99,6 +111,9 @@ export const deleteKubernetesServicesReducer
   = APIRequestReducerCreator<any, boolean[]>(deleteKubernetesServicesActionCreators, 'deleteKubernetesServices')
 export const syncKubernetesStatusReducer
   = APIRequestReducerCreator<any, boolean[]>(syncKubernetesStatusActionCreators, 'syncKubernetesStatus')
+export const settingsReducer = APIRequestReducerCreator<{}, any>(settingsActionCreators, 'settings')
+export const loginReducer = APIRequestReducerCreator<LoginParam, AuthToken>(loginActionCreators, 'login')
+export const userInfoReducer = APIRequestReducerCreator<{}, UserInfo>(userInfoActionCreators, 'userInfo')
 
 /**
  * Notification with toasts
@@ -106,7 +121,7 @@ export const syncKubernetesStatusReducer
  * @param state
  * @param action
  */
-export function notificationReducer(state: AppState = initialState, action) {
+export function notificationReducer(state: AppState = initialState, action): AppState {
   const { type } = action
 
   switch (type) {

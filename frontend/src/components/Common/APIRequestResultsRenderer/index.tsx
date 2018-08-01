@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { isAPISucceeded, APIRequestStatusList } from '@src/apis/Core'
+import { withRouter, RouteComponentProps } from 'react-router-dom'
+import { isAPISucceeded, APIRequestStatusList, APIRequest } from '@src/apis/Core'
 
 /**
  * Render component with API requests
@@ -7,17 +8,35 @@ import { isAPISucceeded, APIRequestStatusList } from '@src/apis/Core'
  *
  */
 
+interface Props {
+  APIStatus: {}
+  render: (result: any) => JSX.Element
+  renderFailed?: () => JSX.Element
+}
+
 type RequestResultsPair = [APIRequestStatusList, any]
 
-export class APIRequestResultsRenderer extends React.Component<any, any> {
+class APIRequestResults extends React.Component<Props & RouteComponentProps<{}>, {}> {
+  componentDidUpdate() {
+    const { location } = this.props
+    const { push } = this.props.history
+    const currentStatus: RequestResultsPair = this.checkAllRequestResults()
+    if (location.pathname !== '/login' && currentStatus[0] === APIRequestStatusList.unauhorized) {
+      push(`/login`)
+    }
+  }
+
   render() {
-    const { render } = this.props
+    const { render, renderFailed } = this.props
     const currentStatus: RequestResultsPair = this.checkAllRequestResults()
 
     if (currentStatus[0] === APIRequestStatusList.success) {
       return render(currentStatus[1])
     } else if (currentStatus[0] === APIRequestStatusList.fetching) {
       return (<div>Loading...</div>)
+    }
+    if (renderFailed) {
+      return renderFailed()
     }
     return (<div>Something error happened. Please try again</div>)
   }
@@ -49,6 +68,12 @@ export class APIRequestResultsRenderer extends React.Component<any, any> {
     ) {
       return [APIRequestStatusList.failue, {}]
     }
+    if (
+      accumerator[0] === APIRequestStatusList.unauhorized ||
+      currentValue[0] === APIRequestStatusList.unauhorized
+    ) {
+      return [APIRequestStatusList.unauhorized, {}]
+    }
 
     const isLoading = (status: APIRequestStatusList) => (
       status === APIRequestStatusList.fetching
@@ -60,5 +85,6 @@ export class APIRequestResultsRenderer extends React.Component<any, any> {
 
     return [APIRequestStatusList.success, Object.assign(accumerator[1], currentValue[1])]
   }
-
 }
+
+export const APIRequestResultsRenderer = withRouter(APIRequestResults)

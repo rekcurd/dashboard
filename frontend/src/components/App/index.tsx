@@ -1,4 +1,6 @@
 import * as React from 'react'
+import { connect } from 'react-redux'
+import { Dispatch } from 'redux'
 import { Route, BrowserRouter, Redirect, Switch } from 'react-router-dom'
 
 import Layout from './Layout'
@@ -8,22 +10,69 @@ import Application from './Application'
 import Deploy from './Deploy'
 import Service from './Service'
 import Settings from './Settings'
-
+import Login from './Login'
 import * as Kubernetes from './Kubernetes'
+import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
+import { AppState } from '@src/reducers'
+import { settingsDispatcher } from '@src/actions'
 
-export const App = () => (
-  <BrowserRouter>
-    <Layout>
-      <Switch>
-        <Redirect exact from='/' to='/applications' />
-        <Route exact path='/applications' component={Applications} />
-        <Route exact path='/applications/add' component={SaveApplication} />
-        <Route path='/applications/:applicationId' component={ApplicationRoute} />
-        <Route path='/settings' component={SettingsRoute} />
-      </Switch>
-    </Layout>
-  </BrowserRouter>
-)
+interface AppStateProps {
+  settingsState: AppState
+}
+
+interface AppDispatchProps {
+  fetchSettings: () => Promise<void>
+}
+
+type AppProps = AppStateProps & AppDispatchProps
+
+class AppComponent extends React.Component<AppProps> {
+  componentDidMount() {
+    const { fetchSettings } = this.props
+    fetchSettings()
+  }
+  render() {
+    const { settingsState } = this.props
+    const app = (
+      <APIRequestResultsRenderer
+        APIStatus={{ settings: settingsState }}
+        render={this.renderApp.bind(this)}
+      />
+    )
+    return (
+      <BrowserRouter>
+        {app}
+      </BrowserRouter>
+    )
+  }
+  renderApp(results) {
+    const settings: any = results.settings
+    let login
+    if (settings.auth) {
+      login = <Route path='/login' component={Login} />
+    }
+    return (
+      <Layout auth={settings.auth}>
+        <Switch>
+          <Redirect exact from='/' to='/applications' />
+          <Route exact path='/applications' component={Applications} />
+          <Route exact path='/applications/add' component={SaveApplication} />
+          <Route path='/applications/:applicationId' component={ApplicationRoute} />
+          <Route path='/settings' component={SettingsRoute} />
+          {login}
+        </Switch>
+      </Layout>
+    )
+  }
+}
+export const App = connect<AppStateProps, AppDispatchProps>(
+  (state: any): AppStateProps => ({
+    settingsState: state.settingsReducer.settings
+  }),
+  (dispatch: Dispatch): AppDispatchProps => ({
+    fetchSettings: () => settingsDispatcher(dispatch)
+  }),
+)(AppComponent)
 
 const ApplicationRoute = () => (
   <Application>
