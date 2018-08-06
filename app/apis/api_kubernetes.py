@@ -1049,6 +1049,7 @@ class ApiKubernetesIdApplicationIdServiceId(Resource):
             raise Exception("No such data.")
         args["app_name"] = aobj.application_name
         args["service_level"] = sobj.service_level
+        args['commit_message'] = "Request a rolling-update at {0:%Y%m%d%H%M%S}".format(datetime.utcnow())
         create_or_update_drucker_on_kubernetes(kubernetes_id, args, sobj.service_name)
         applist = set((aobj.application_name,))
         update_dbs_kubernetes(kubernetes_id, applist)
