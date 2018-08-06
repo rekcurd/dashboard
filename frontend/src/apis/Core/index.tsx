@@ -2,6 +2,8 @@
  * Core implementations for handling external APIs
  */
 
+export const JWT_TOKEN_KEY = 'jwt_token'
+
 export enum APIErrorType {
   unknown,
   serverside
@@ -30,7 +32,8 @@ export enum APIRequestStatusList {
   notStarted,
   fetching,
   failue,
-  success
+  success,
+  unauhorized,
 }
 
 export interface APIStatusFailue {
@@ -51,6 +54,10 @@ export interface APIStatusSuccess<T> {
   result: T
 }
 
+export interface APIStatusUnauthorized<T> {
+  status: APIRequestStatusList.unauhorized
+}
+
 export function isAPISucceeded<T>(status: APIRequest<T>): status is APIStatusSuccess<T> {
   return status.status === APIRequestStatusList.success
 }
@@ -67,7 +74,11 @@ export function isAPINotStarted<T>(status: APIRequest<T>): status is APIStatusNo
   return status.status === APIRequestStatusList.notStarted
 }
 
-export type APIRequest<T> = APIStatusFailue | APIStatusFetching | APIStatusNotStarted | APIStatusSuccess<T>
+export function isAPIUnauthorized<T>(status: APIRequest<T>): status is APIStatusUnauthorized<T> {
+  return status.status === APIRequestStatusList.unauhorized
+}
+
+export type APIRequest<T> = APIStatusFailue | APIStatusFetching | APIStatusNotStarted | APIStatusUnauthorized<T> | APIStatusSuccess<T>
 
 export async function getRequest(
   entryPoint: string,
@@ -161,12 +172,25 @@ export async function rawRequest<T = any>(
   const fullOptions = {
     ...options
   }
+  const token = window.localStorage.getItem(JWT_TOKEN_KEY)
+  if (token) {
+    fullOptions.headers = {
+      ...fullOptions.headers,
+      Authorization: `Bearer ${token}`
+    }
+  }
 
   return fetch(entryPoint, fullOptions)
     .then((response) => {
       return _handleAPIResponse<T>(response, convert)
     })
-    .catch((error) => { throw new APIError(error.message) })
+    .catch((error) => {
+      if (error instanceof APIError) {
+        throw error
+      } else {
+        throw new APIError(error.message)
+      }
+    })
 }
 
 /**

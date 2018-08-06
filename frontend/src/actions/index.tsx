@@ -8,7 +8,8 @@ import {
   fetchAllKubernetesHosts,
   uploadModel, switchModels, syncKubernetesStatus,
   deleteKubernetesHost, deleteKubernetesServices,
-  SaveServiceParam, SwitchModelParam, ModelResponse, KubernetesHost
+  settings, login, userInfo,
+  SaveServiceParam, SwitchModelParam, ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo
 } from '@src/apis'
 import { Application, Model, Service } from '@src/apis'
 
@@ -30,10 +31,16 @@ export interface APIRequestFailueAction<F = APIError> extends Action {
   error: F
 }
 
+export interface APIRequestUnauthorized<F = APIError> extends Action {
+  type: string
+  error: F
+}
+
 export class APIRequestActionCreators<P = {}, S = {}, F = APIError> {
   request
   failure
   success
+  unauthorized
   apiType
 
   constructor(
@@ -50,7 +57,10 @@ export class APIRequestActionCreators<P = {}, S = {}, F = APIError> {
     this.success = (result: S): APIRequestSuccessAction<S> => {
       return {type: `${suffix}_SUCCESS`, result}
     }
-   }
+    this.unauthorized = (error: F): APIRequestUnauthorized<F> => {
+      return {type: `${suffix}_UNAUTHORIZED`, error}
+    }
+  }
 }
 
 function asyncAPIRequestDispatcherCreator<P = {}, S = {}, F = APIError>(
@@ -63,10 +73,14 @@ function asyncAPIRequestDispatcherCreator<P = {}, S = {}, F = APIError>(
       const results = await asyncApi(params)
       dispatch(actionCreators.success(results))
     } catch (e) {
-      dispatch(
-        actionCreators.failure(
-          e instanceof APIError ? e : new APIError(e.message, APIErrorType.unknown, -1))
-      )
+      if (e.status === 401) {
+        dispatch(actionCreators.unauthorized(e))
+      } else {
+        dispatch(
+          actionCreators.failure(
+            e instanceof APIError ? e : new APIError(e.message, APIErrorType.unknown, -1))
+        )
+      }
     }
   }
 }
@@ -166,6 +180,24 @@ export const syncKubernetesStatusActionCreators = new APIRequestActionCreators<a
 export const syncKubernetesStatusDispatcher = asyncAPIRequestDispatcherCreator<any, boolean>(
   syncKubernetesStatusActionCreators,
   syncKubernetesStatus
+)
+
+export const settingsActionCreators = new APIRequestActionCreators<{}, any>('SETTINGS')
+export const settingsDispatcher = asyncAPIRequestDispatcherCreator<{}, any>(
+  settingsActionCreators,
+  settings
+)
+
+export const loginActionCreators = new APIRequestActionCreators<LoginParam, AuthToken>('LOGIN')
+export const loginDispatcher = asyncAPIRequestDispatcherCreator<LoginParam, AuthToken>(
+  loginActionCreators,
+  login
+)
+
+export const userInfoActionCreators = new APIRequestActionCreators<{}, UserInfo>('USER_INFO')
+export const userInfoDispatcher = asyncAPIRequestDispatcherCreator<{}, UserInfo>(
+  userInfoActionCreators,
+  userInfo
 )
 
 // Notification actions

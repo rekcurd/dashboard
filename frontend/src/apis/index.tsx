@@ -19,6 +19,18 @@ export class Service {
   ) { }
 }
 
+export class AuthToken {
+  constructor(
+    public jwt: string = ''
+  ) { }
+}
+
+export class UserInfo {
+  constructor(
+    public user?: string
+  ) { }
+}
+
 export interface ServiceSimple {
   id: number
   name: string // Corresponds to `display_name`
@@ -448,4 +460,41 @@ export async function deleteKubernetesServices(params: any): Promise<Array<Promi
   )
 
   return APICore.rawMultiRequest<boolean>(entryPoints, convert, requestList)
+}
+
+// Login API
+export interface LoginParam {
+  username: string
+  password: string
+}
+
+export async function login(param: LoginParam) {
+  const convert = (result): AuthToken => {
+    return {
+      jwt: result.jwt
+    }
+  }
+  return APICore.postJsonRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/login`,
+    param,
+    convert
+  )
+}
+
+export async function settings(): Promise<any> {
+  return APICore.getRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/settings`
+  )
+}
+
+export async function userInfo(): Promise<UserInfo> {
+  const convert = (result): UserInfo => {
+    return {
+      user: result.user
+    }
+  }
+  return APICore.getRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/credential`,
+    convert
+  )
 }

@@ -21,7 +21,10 @@ import {
   fetchServiceByIdReducer,
   deleteKubernetesHostReducer,
   deleteKubernetesServicesReducer,
-  syncKubernetesStatusReducer
+  syncKubernetesStatusReducer,
+  settingsReducer,
+  loginReducer,
+  userInfoReducer
 } from './reducers'
 import { App } from './components/App'
 import './assets/koromo.css'
@@ -46,6 +49,9 @@ const store = compose(applyMiddleware(thunk))(createStore)(
     deleteKubernetesHostReducer,
     deleteKubernetesServicesReducer,
     syncKubernetesStatusReducer,
+    settingsReducer,
+    loginReducer,
+    userInfoReducer,
     form: reduxFormReducer
   }))
 

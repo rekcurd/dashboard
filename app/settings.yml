@@ -13,3 +13,13 @@ db.mysql.port: 3306
 db.mysql.dbname: management
 db.mysql.user: user
 db.mysql.password: pass
+# auth:
+#   secret: 'super-secret'
+#   ldap:
+#     host: 'ldap.example.com'
+#     port: 389
+#     bind_dn: 'CN=manager, DC=example, DC=com'
+#     bind_password: 'foobarbaz'
+#     search_filter: '(CN=%s)'
+#     search_base_dns:
+#       - 'OU=user, DC=example, DC=com'
