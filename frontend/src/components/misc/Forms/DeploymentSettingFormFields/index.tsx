@@ -260,7 +260,7 @@ class DeploymentSettingFormFields extends React.Component<FormProps> {
     const autoscaleCpuThresholdField = (
       <Field
         name={`${formNamePrefix}.autoscaleCpuThreshold`}
-        label='Maximum'
+        label='CPU Maximum'
         component={SingleFormField} type='number'
         className=''
         id='autoscaleCpuThreshold'
@@ -312,19 +312,19 @@ class DeploymentSettingFormFields extends React.Component<FormProps> {
     return (
       <React.Fragment>
         {this.renderFormCardTitleWithIcon(
-          'Scaling',
-          'scaling',
-          'Auto-scaling configurations for Kubernetes'
+          'Policy',
+          'policy',
+          'Deploy and monitoring policies for Kubernetes'
         )}
-        <h3 className='mt-2'>Replicas</h3>
+        <h3 className='mt-2'>Replica</h3>
         <div className='form-row'>
           {replicasDefaultField}
           {replicasMinimumField}
           {replicasMaximumField}
         </div>
-        <h3>Autoscale CPU Threshold</h3>
+        <h3>Autoscale Threshold</h3>
         {autoscaleCpuThresholdField}
-        <h3>Policy</h3>
+        <h3>Rolling Update</h3>
         <div className='form-row'>
           {policyMaxSurgeField}
           {policyMaxUnavailableField}
@@ -473,14 +473,15 @@ export const kubernetesDeploymentDefultSettings = {
   resourceLimitCpu: 1,
   resourceRequestMemory: '128Mi',
   resourceLimitMemory: '256Mi',
-  containerImage: 'centos:centos7',
+  containerImage: 'druckerorg/drucker:python-latest',
+  serviceGitUrl: 'https://github.com/drucker/drucker-example.git',
   serviceGitBranch: 'master',
   serviceBootScript: 'start.sh'
 }
 
 export default
-  connect(
-    (state: any, extraProps: CustomProps) => ({
-      ...extraProps,
-    })
-  )(DeploymentSettingFormFields)
+connect(
+  (state: any, extraProps: CustomProps) => ({
+    ...extraProps,
+  })
+)(DeploymentSettingFormFields)
