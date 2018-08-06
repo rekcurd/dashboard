@@ -43,14 +43,18 @@ def error_handling(error_response):
 
 
 class DruckerDashboardClient:
-    def __init__(self, logger:SystemLoggerInterface, host:str=None, domain:str=None, app:str=None, env:str=None):
+    def __init__(self, logger:SystemLoggerInterface, host:str=None, domain:str=None, app:str=None, env:str=None, version:int=0):
         self.logger = logger
         self.stub = None
         if host is None and (domain is None or app is None or env is None):
             raise RuntimeError("You must specify host or domain+app+env.")
 
+        if version == 0:
+            version = int(drucker_pb2.EnumVersionInfo.Name(version).replace('idx_',''))
+        v_str = drucker_pb2.EnumVersionInfo.Name(version)
+
         if host is None:
-            self.__change_domain_app_env(domain, app, env)
+            self.__change_domain_app_env(domain, app, env, v_str)
         else:
             self.__change_host(host)
 
@@ -67,8 +71,8 @@ class DruckerDashboardClient:
         self.logger.error(str(error))
         self.logger.error(traceback.format_exc())
 
-    def __change_domain_app_env(self, domain:str, app:str, env:str):
-        host = "{0}-{1}.{2}".format(app,env,domain)
+    def __change_domain_app_env(self, domain:str, app:str, env:str, version:str):
+        host = "{0}-{1}-{2}.{3}".format(app,version,env,domain)
         self.__change_host(host)
 
     def __change_host(self, host:str):
