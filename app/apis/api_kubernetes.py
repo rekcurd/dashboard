@@ -385,6 +385,8 @@ def create_or_update_drucker_on_kubernetes(
     volume_name = "host-volume"
     ssh_volume = "ssh-volume"
     ssh_dir = "/root/.ssh"
+    num_retry = 5
+    progress_deadline_seconds = int(num_retry*policy_wait_seconds*replicas_maximum/(policy_max_surge+policy_max_unavailable))
 
     kobj = db.session.query(Kubernetes).filter(
         Kubernetes.kubernetes_id == kubernetes_id).one_or_none()
@@ -428,6 +430,7 @@ def create_or_update_drucker_on_kubernetes(
         ),
         spec=client.V1DeploymentSpec(
             min_ready_seconds=policy_wait_seconds,
+            progress_deadline_seconds=progress_deadline_seconds,
             replicas=replicas_default,
             revision_history_limit=3,
             selector=client.V1LabelSelector(
