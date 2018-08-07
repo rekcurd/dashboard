@@ -13,6 +13,11 @@ db.mysql.port: 3306
 db.mysql.dbname: management
 db.mysql.user: user
 db.mysql.password: pass
+
+# Kubernetes
+kube.datadir: kube-config
+
+# LDAP
 # auth:
 #   secret: 'super-secret'
 #   ldap:

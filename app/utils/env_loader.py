@@ -10,7 +10,7 @@ config = yaml.load(open(os.path.join(BASE_PATH, "..", "settings.yml"), 'r'))
 
 DRUCKER_GRPC_VERSION = drucker_pb2.DESCRIPTOR.GetOptions().Extensions[drucker_pb2.drucker_grpc_proto_version]
 
-DIR_KUBE_CONFIG = "kube-config"
+DIR_KUBE_CONFIG = os.getenv('DRUCKER_KUBE_DATADIR', config.get('kube.datadir', 'kube-config'))
 
 DB_MODE = os.getenv('DRUCKER_DB_MODE', config.get('use.db',"sqlite"))
 DB_MYSQL_HOST = os.getenv('DRUCKER_DB_MYSQL_HOST', config.get('db.mysql.host',""))
