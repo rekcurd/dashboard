@@ -8,7 +8,7 @@ import drucker_pb2
 BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 config = yaml.load(open(os.path.join(BASE_PATH, "..", "settings.yml"), 'r'))
 
-DRUCKER_GRPC_VERSION = drucker_pb2.EnumVersionInfo.Name(int(drucker_pb2.EnumVersionInfo.Name(0).replace('idx_','')))
+DRUCKER_GRPC_VERSION = drucker_pb2.DESCRIPTOR.GetOptions().Extensions[drucker_pb2.drucker_grpc_proto_version]
 
 DIR_KUBE_CONFIG = "kube-config"
 

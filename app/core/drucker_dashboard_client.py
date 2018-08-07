@@ -43,15 +43,16 @@ def error_handling(error_response):
 
 
 class DruckerDashboardClient:
-    def __init__(self, logger:SystemLoggerInterface, host:str=None, domain:str=None, app:str=None, env:str=None, version:int=0):
+    def __init__(self, logger:SystemLoggerInterface, host:str=None, domain:str=None, app:str=None, env:str=None, version:int=None):
         self.logger = logger
         self.stub = None
         if host is None and (domain is None or app is None or env is None):
             raise RuntimeError("You must specify host or domain+app+env.")
 
-        if version == 0:
-            version = int(drucker_pb2.EnumVersionInfo.Name(version).replace('idx_',''))
-        v_str = drucker_pb2.EnumVersionInfo.Name(version)
+        if version is None:
+            v_str = drucker_pb2.DESCRIPTOR.GetOptions().Extensions[drucker_pb2.drucker_grpc_proto_version]
+        else:
+            v_str = drucker_pb2.EnumVersionInfo.Name(version)
 
         if host is None:
             self.__change_domain_app_env(domain, app, env, v_str)
