@@ -1,4 +1,4 @@
-import os, uuid, shutil
+import os, uuid, shutil, json, pathlib
 from datetime import datetime, timedelta
 
 from flask_restplus import Namespace, fields, Resource, reqparse
@@ -340,6 +340,7 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
         else:
             sobj.confirm_date = datetime.utcnow()
             db.session.flush()
+        dump_drucker_on_kubernetes(kobj.kubernetes_id, aobj.application_id, sobj.service_id)
     for application_name in applist:
         aobj = db.session.query(Application).filter(
             Application.application_name == application_name,
@@ -810,6 +811,97 @@ def switch_drucker_service_model_assignment(
             namespace=sobj.service_level
         )
     return response_body
+
+def dump_drucker_on_kubernetes(
+        kubernetes_id:int, application_id:int, service_id:int):
+    kobj = Kubernetes.query.filter_by(
+        kubernetes_id=kubernetes_id).one_or_none()
+    if kobj is None:
+        raise Exception("No such kubernetes_id.")
+    aobj = Application.query.filter_by(
+        application_id=application_id).one_or_none()
+    if aobj is None:
+        raise Exception("No such application_id.")
+    sobj = Service.query.filter_by(
+        service_id=service_id).one_or_none()
+    if sobj is None:
+        raise Exception("No such service_id.")
+
+    config_path = kobj.config_path
+    from kubernetes import client, config
+    config.load_kube_config(config_path)
+    save_dir = pathlib.Path(DIR_KUBE_CONFIG, aobj.application_name)
+    if not os.path.isdir(save_dir):
+        os.mkdir(save_dir)
+    api_client = client.ApiClient()
+
+    apps_v1 = client.AppsV1Api()
+    v1_deployment = apps_v1.read_namespaced_deployment(
+        name="{0}-deployment".format(sobj.service_name),
+        namespace=sobj.service_level,
+        exact=True,
+        export=True
+    )
+    json.dump(api_client.sanitize_for_serialization(v1_deployment),
+              pathlib.Path(
+                  DIR_KUBE_CONFIG,
+                  aobj.application_name,
+                  "{0}-deployment.json".format(sobj.service_name)).open("w"),
+              ensure_ascii = False, indent = 2)
+    core_vi = client.CoreV1Api()
+    v1_service = core_vi.read_namespaced_service(
+        name="{0}-service".format(sobj.service_name),
+        namespace=sobj.service_level,
+        exact=True,
+        export=True
+    )
+    json.dump(api_client.sanitize_for_serialization(v1_service),
+              pathlib.Path(
+                  DIR_KUBE_CONFIG,
+                  aobj.application_name,
+                  "{0}-service.json".format(sobj.service_name)).open("w"),
+              ensure_ascii = False, indent = 2)
+    extensions_v1_beta = client.ExtensionsV1beta1Api()
+    v1_beta1_ingress = extensions_v1_beta.read_namespaced_ingress(
+        name="{0}-ingress".format(sobj.service_name),
+        namespace=sobj.service_level,
+        exact=True,
+        export=True
+    )
+    json.dump(api_client.sanitize_for_serialization(v1_beta1_ingress),
+              pathlib.Path(
+                  DIR_KUBE_CONFIG,
+                  aobj.application_name,
+                  "{0}-ingress.json".format(sobj.service_name)).open("w"),
+              ensure_ascii = False, indent = 2)
+    autoscaling_v1 = client.AutoscalingV1Api()
+    v1_horizontal_pod_autoscaler = autoscaling_v1.read_namespaced_horizontal_pod_autoscaler(
+        name="{0}-autoscaling".format(sobj.service_name),
+        namespace=sobj.service_level,
+        exact=True,
+        export=True
+    )
+    json.dump(api_client.sanitize_for_serialization(v1_horizontal_pod_autoscaler),
+              pathlib.Path(
+                  DIR_KUBE_CONFIG,
+                  aobj.application_name,
+                  "{0}-autoscaling.json".format(sobj.service_name)).open("w"),
+              ensure_ascii = False, indent = 2)
+    """
+    autoscaling_v2_beta1 = client.AutoscalingV2beta1Api()
+    v2_beta1_horizontal_pod_autoscaler = autoscaling_v2_beta1.read_namespaced_horizontal_pod_autoscaler(
+        name="{0}-autoscaling".format(sobj.service_name),
+        namespace=sobj.service_level,
+        exact=True,
+        export=True
+    )
+    json.dump(api_client.sanitize_for_serialization(v2_beta1_horizontal_pod_autoscaler),
+              pathlib.Path(
+                  DIR_KUBE_CONFIG,
+                  aobj.application_name,
+                  "{0}-autoscaling.json".format(sobj.service_name)).open("w"),
+              ensure_ascii = False, indent = 2)
+    """
 
 
 @kube_info_namespace.route('/')
