@@ -11,8 +11,8 @@ from models.application import Application
 from models.service import Service
 from models.model import Model
 
-from utils.env_loader import DIR_KUBE_CONFIG, DRUCKER_GRPC_VERSION
-from apis.common import DatetimeToTimestamp
+from utils.env_loader import DIR_KUBE_CONFIG
+from apis.common import DatetimeToTimestamp, kubernetes_cpu_to_float
 
 
 kube_info_namespace = Namespace('kubernetes', description='Kubernetes Endpoint.')
@@ -647,7 +647,7 @@ def create_or_update_drucker_on_kubernetes(
         spec=client.V1beta1IngressSpec(
             rules=[
                 client.V1beta1IngressRule(
-                    host="{0}-{1}-{2}.{3}".format(app_name,DRUCKER_GRPC_VERSION,service_level,app_dns_name),
+                    host="{0}-{1}.{2}".format(app_name,service_level,app_dns_name),
                     http=client.V1beta1HTTPIngressRuleValue(
                         paths=[
                             client.V1beta1HTTPIngressPath(
@@ -1024,7 +1024,7 @@ class ApiKubernetesIdApplicationIdServiceId(Resource):
         response_body["policy_max_unavailable"] = v1_deployment.spec.strategy.rolling_update.max_unavailable
         response_body["policy_wait_seconds"] = v1_deployment.spec.min_ready_seconds
         response_body["container_image"] = v1_deployment.spec.template.spec.containers[0].image
-        response_body["resource_request_cpu"] = v1_deployment.spec.template.spec.containers[0].resources.requests["cpu"]
+        response_body["resource_request_cpu"] = kubernetes_cpu_to_float(v1_deployment.spec.template.spec.containers[0].resources.requests["cpu"])
         response_body["resource_request_memory"] = v1_deployment.spec.template.spec.containers[0].resources.requests["memory"]
         response_body["resource_limit_cpu"] = v1_deployment.spec.template.spec.containers[0].resources.limits["cpu"]
         response_body["resource_limit_memory"] = v1_deployment.spec.template.spec.containers[0].resources.limits["memory"]
