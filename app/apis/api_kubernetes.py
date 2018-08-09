@@ -11,7 +11,7 @@ from models.application import Application
 from models.service import Service
 from models.model import Model
 
-from utils.env_loader import DIR_KUBE_CONFIG
+from utils.env_loader import DIR_KUBE_CONFIG, DRUCKER_GRPC_VERSION
 from apis.common import DatetimeToTimestamp, kubernetes_cpu_to_float
 
 
@@ -647,7 +647,7 @@ def create_or_update_drucker_on_kubernetes(
         spec=client.V1beta1IngressSpec(
             rules=[
                 client.V1beta1IngressRule(
-                    host="{0}-{1}.{2}".format(app_name,service_level,app_dns_name),
+                    host="{0}-{1}-{2}.{3}".format(app_name,DRUCKER_GRPC_VERSION,service_level,app_dns_name),
                     http=client.V1beta1HTTPIngressRuleValue(
                         paths=[
                             client.V1beta1HTTPIngressPath(
