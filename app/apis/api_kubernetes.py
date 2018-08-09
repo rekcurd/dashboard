@@ -12,7 +12,7 @@ from models.service import Service
 from models.model import Model
 
 from utils.env_loader import DIR_KUBE_CONFIG, DRUCKER_GRPC_VERSION
-from apis.common import DatetimeToTimestamp
+from apis.common import DatetimeToTimestamp, kubernetes_cpu_to_float
 
 
 kube_info_namespace = Namespace('kubernetes', description='Kubernetes Endpoint.')
@@ -1024,9 +1024,9 @@ class ApiKubernetesIdApplicationIdServiceId(Resource):
         response_body["policy_max_unavailable"] = v1_deployment.spec.strategy.rolling_update.max_unavailable
         response_body["policy_wait_seconds"] = v1_deployment.spec.min_ready_seconds
         response_body["container_image"] = v1_deployment.spec.template.spec.containers[0].image
-        response_body["resource_request_cpu"] = v1_deployment.spec.template.spec.containers[0].resources.requests["cpu"]
+        response_body["resource_request_cpu"] = kubernetes_cpu_to_float(v1_deployment.spec.template.spec.containers[0].resources.requests["cpu"])
         response_body["resource_request_memory"] = v1_deployment.spec.template.spec.containers[0].resources.requests["memory"]
-        response_body["resource_limit_cpu"] = v1_deployment.spec.template.spec.containers[0].resources.limits["cpu"]
+        response_body["resource_limit_cpu"] = kubernetes_cpu_to_float(v1_deployment.spec.template.spec.containers[0].resources.limits["cpu"])
         response_body["resource_limit_memory"] = v1_deployment.spec.template.spec.containers[0].resources.limits["memory"]
         response_body["host_model_dir"] = v1_deployment.spec.template.spec.volumes[0].host_path.path
         response_body["pod_model_dir"] = v1_deployment.spec.template.spec.containers[0].volume_mounts[0].mount_path
