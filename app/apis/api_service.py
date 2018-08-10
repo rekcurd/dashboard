@@ -6,11 +6,9 @@ from models import db
 from models.kubernetes import Kubernetes
 from models.application import Application
 from models.service import Service
-from models.model import Model
 
-from core.drucker_dashboard_client import DruckerDashboardClient
-from apis.common import logger, DatetimeToTimestamp
-from apis.api_kubernetes import update_dbs_kubernetes
+from apis.common import DatetimeToTimestamp
+from apis.api_kubernetes import update_dbs_kubernetes, switch_drucker_service_model_assignment
 
 
 srv_info_namespace = Namespace('services', description='Service Endpoint.')
@@ -104,42 +102,8 @@ class ApiApplicationIdServiceId(Resource):
         """switch_service_model_assignment"""
         args = self.switch_model_parser.parse_args()
         model_id = args['model_id']
-
-        mobj = db.session.query(Model).filter(
-            Model.application_id==application_id,Model.model_id==model_id).one()
-        model_path = mobj.model_path
-        sobj = db.session.query(Service).filter(
-            Service.application_id == application_id, Service.service_id==service_id).one()
-        host = sobj.host
-        drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=host)
-        response_body = drucker_dashboard_application.run_switch_service_model_assignment(model_path)
-        if not response_body.get("status", True):
-            raise Exception(response_body.get("message", "Error."))
-        sobj.model_id = model_id
-        db.session.flush()
-
-        aobj = db.session.query(Application).filter(Application.application_id == application_id).one()
-        kubernetes_id = aobj.kubernetes_id
-        if kubernetes_id is not None:
-            kobj = db.session.query(Kubernetes).filter(Kubernetes.kubernetes_id == kubernetes_id).one()
-            config_path = kobj.config_path
-            from kubernetes import client, config
-            config.load_kube_config(config_path)
-
-            apps_v1 = client.AppsV1Api()
-            v1_deployment = apps_v1.read_namespaced_deployment(
-                name="{0}-deployment".format(sobj.service_name),
-                namespace=sobj.service_level
-            )
-            for env_ent in v1_deployment.spec.template.spec.containers[0].env:
-                if env_ent.name == "DRUCKER_SERVICE_UPDATE_FLAG":
-                    env_ent.value = "Model switched to model_id={0} at {1:%Y%m%d%H%M%S}".format(model_id, datetime.datetime.utcnow())
-                    break
-            api_response = apps_v1.patch_namespaced_deployment(
-                body=v1_deployment,
-                name="{0}-deployment".format(sobj.service_name),
-                namespace=sobj.service_level
-            )
+        response_body = switch_drucker_service_model_assignment(
+            application_id, service_id, model_id)
         db.session.commit()
         db.session.close()
         return response_body

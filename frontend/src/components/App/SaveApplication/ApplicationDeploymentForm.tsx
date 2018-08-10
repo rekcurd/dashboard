@@ -49,6 +49,7 @@ class ApplicationDeploymentFormImpl extends React.Component<AddApplicationFormPr
             applicationType={applicationType}
             onChangeApplicationType={this.props.onChangeApplicationType}
             mode='add'
+            models={[]}
           />
         </CardBody>
       </Card>

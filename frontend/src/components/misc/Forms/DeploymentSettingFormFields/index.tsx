@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { Field } from 'redux-form'
 import { CardTitle, UncontrolledTooltip } from 'reactstrap'
 
-import { KubernetesHost } from '@src/apis'
+import { KubernetesHost, Model } from '@src/apis'
 import { SingleFormField } from '@common/Field/SingleFormField'
 import { required, applicationNameFormat } from '@common/Field/Validateors'
 
@@ -118,11 +118,15 @@ class DeploymentSettingFormFields extends React.Component<FormProps> {
 
   renderBasicKubernetesConfigFields(): JSX.Element {
     const { environmentsToName } = REACT_APP_CONFIG
-    const { formNamePrefix, resource } = this.props
+    const { formNamePrefix, resource, mode } = this.props
 
     const serviceLevels =
       Object.keys(environmentsToName).map(
         (env) => ({ label: environmentsToName[env], value: env }))
+
+    const serviceModelAssignments =
+      this.props.models.map(
+        (model: Model) => ({ label: model.name, value: model.id.toString() }))
 
     const serviceLevelSelectBox = (
       <Field
@@ -202,6 +206,17 @@ class DeploymentSettingFormFields extends React.Component<FormProps> {
       />
     )
 
+    const modelAssignmentSelectBox = (
+      <Field
+        label='Model assignment'
+        name={`${formNamePrefix}.serviceModelAssignment`}
+        component={SingleFormField} type='select'
+        className='form-control' id='serviceModelAssignment'
+        formText={`Model assignment when service boots`}
+        options={serviceModelAssignments}
+      />
+    )
+
     return (
       <React.Fragment>
         {serviceLevelSelectBox}
@@ -210,6 +225,7 @@ class DeploymentSettingFormFields extends React.Component<FormProps> {
         {serviceGitUrlField}
         {serviceGitBranchField}
         {serviceBootScriptField}
+        {resource === 'service' && mode === 'add' ? modelAssignmentSelectBox : null}
         {this.renderResourceConfigFields()}
       </React.Fragment>
     )
@@ -456,6 +472,7 @@ interface CustomProps {
   resource: string
   onChangeApplicationType?
   mode
+  models: Model[]
 }
 
 type FormProps =

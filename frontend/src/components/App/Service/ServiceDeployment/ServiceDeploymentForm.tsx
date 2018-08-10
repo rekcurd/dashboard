@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { reduxForm, InjectedFormProps } from 'redux-form'
 import { Card, CardBody, Form, Button } from 'reactstrap'
 
-import { KubernetesHost, Service } from '@src/apis'
+import { KubernetesHost, Model, Service } from '@src/apis'
 import DeploymentSettingFormFields, { kubernetesDeploymentDefultSettings } from '@components/misc/Forms/DeploymentSettingFormFields'
 
 class ServiceDeploymentFormImpl extends React.Component<ServiceDeploymentFormProps> {
@@ -33,7 +33,7 @@ class ServiceDeploymentFormImpl extends React.Component<ServiceDeploymentFormPro
    * @returns {JSX.Element} Config fields
    */
   renderServiceSpecificForm(): JSX.Element {
-    const { applicationType, mode, kubernetesHost } = this.props
+    const { applicationType, mode, models, kubernetesHost } = this.props
 
     return (
       <CardBody>
@@ -43,6 +43,7 @@ class ServiceDeploymentFormImpl extends React.Component<ServiceDeploymentFormPro
           applicationType={applicationType}
           resource='service'
           mode={mode}
+          models={models}
         />
       </CardBody>
     )
@@ -83,6 +84,7 @@ class ServiceDeploymentFormImpl extends React.Component<ServiceDeploymentFormPro
 
 interface CustomProps {
   mode: string
+  models: Model[]
   onCancel
   onSubmit
   applicationType: string

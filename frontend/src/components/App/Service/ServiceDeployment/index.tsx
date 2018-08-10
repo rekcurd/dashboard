@@ -4,10 +4,11 @@ import { withRouter, RouteComponentProps, Link } from 'react-router-dom'
 import { Alert } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { KubernetesHost, Service, Application } from '@src/apis'
+import { KubernetesHost, Model, Service, Application } from '@src/apis'
 import {
   fetchKubernetesHostByIdDispatcher,
   fetchServiceByIdDispatcher,
+  fetchAllModelsDispatcher,
   saveServiceDispatcher,
   addNotification
 } from '@src/actions'
@@ -56,6 +57,7 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
 
   componentWillMount() {
     this.props.fetchKubernetesHostById({id: this.props.kubernetesId})
+    this.props.fetchAllModels({application_id: this.props.match.params.applicationId})
     if (this.props.mode === 'edit') {
       this.props.fetchServiceById(
         {
@@ -73,13 +75,14 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
       kubernetesId,
       fetchKubernetesHostStatus,
       fetchServiceByIdStatus,
+      fetchAllModelsStatus,
       mode
     } = this.props
 
     const targetStatus =
       mode === 'edit'
-      ? { hosts: fetchKubernetesHostStatus, service: fetchServiceByIdStatus }
-      : { hosts: fetchKubernetesHostStatus }
+      ? { hosts: fetchKubernetesHostStatus, service: fetchServiceByIdStatus, models: fetchAllModelsStatus }
+      : { hosts: fetchKubernetesHostStatus, models: fetchAllModelsStatus }
 
     if (!kubernetesId && mode === 'edit') {
       // TODO: Check whether this is fine
@@ -102,6 +105,7 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
         {this.hostsNotFoundAlert()}
         <ServiceDeploymentForm
           mode={mode}
+          models={params.models}
           onSubmit={this.onSubmit}
           onCancel={this.onCancel}
           applicationType='kubernetes'
@@ -177,6 +181,7 @@ interface StateProps {
   saveServiceStatus: APIRequest<boolean>
   fetchKubernetesHostStatus: APIRequest<KubernetesHost>
   fetchServiceByIdStatus: APIRequest<Service>
+  fetchAllModelsStatus: APIRequest<Model[]>
 }
 
 interface CustomProps {
@@ -190,6 +195,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     saveServiceStatus: state.saveServiceReducer.saveService,
     fetchKubernetesHostStatus: state.fetchKubernetesHostByIdReducer.kubernetesHostById,
     fetchServiceByIdStatus: state.fetchServiceByIdReducer.serviceById,
+    fetchAllModelsStatus: state.fetchAllModelsReducer.models,
     ...state.form,
     ...extraProps
   }
@@ -199,6 +205,7 @@ export interface DispatchProps {
   saveServiceDeployment: (params) => Promise<void>
   fetchKubernetesHostById: (params) => Promise<void>
   fetchServiceById: (params) => Promise<void>
+  fetchAllModels: (params) => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
@@ -206,6 +213,7 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     fetchKubernetesHostById: (params) => fetchKubernetesHostByIdDispatcher(dispatch, params),
     fetchServiceById: (params) => fetchServiceByIdDispatcher(dispatch, params),
+    fetchAllModels: (params) => fetchAllModelsDispatcher(dispatch, params),
     saveServiceDeployment: (params) => saveServiceDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }

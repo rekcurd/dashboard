@@ -11,8 +11,9 @@ from models.application import Application
 from models.service import Service
 from models.model import Model
 
+from core.drucker_dashboard_client import DruckerDashboardClient
 from utils.env_loader import DIR_KUBE_CONFIG, DRUCKER_GRPC_VERSION
-from apis.common import DatetimeToTimestamp, kubernetes_cpu_to_float
+from apis.common import logger, DatetimeToTimestamp, kubernetes_cpu_to_float
 
 
 kube_info_namespace = Namespace('kubernetes', description='Kubernetes Endpoint.')
@@ -266,6 +267,9 @@ kube_deploy_parser.add_argument('service_git_url', type=str, default='git@github
 kube_deploy_parser.add_argument('service_git_branch', type=str, default='master', required=True, help='Git branch.', location='form')
 kube_deploy_parser.add_argument('service_boot_script', type=str, default='start.sh', required=True, help='Boot shellscript for your service.', location='form')
 
+kube_deploy_parser.add_argument('service_model_assignment', type=int, required=False, help='Model assignment when service boots.', location='form')
+
+
 def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=None):
     """
     Update dbs of kubernetes entry.
@@ -305,7 +309,7 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
         else:
             aobj.confirm_date = datetime.utcnow()
             db.session.flush()
-    """Servuce"""
+    """Service"""
     for i in ret.items:
         if i.metadata.labels.get("drucker-worker", "False") == "False":
             continue
@@ -351,8 +355,6 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
             Application.confirm_date <= process_date,
             Application.kubernetes_id == kubernetes_id).delete()
         db.session.flush()
-    db.session.commit()
-    db.session.close()
 
 
 def create_or_update_drucker_on_kubernetes(
@@ -376,6 +378,7 @@ def create_or_update_drucker_on_kubernetes(
     service_git_url = args['service_git_url']
     service_git_branch = args['service_git_branch']
     service_boot_script = args['service_boot_script']
+    service_model_assignment = args['service_model_assignment']
 
     mode_create = False
     if service_name is None:
@@ -401,6 +404,82 @@ def create_or_update_drucker_on_kubernetes(
     config_path = kobj.config_path
     from kubernetes import client, config
     config.load_kube_config(config_path)
+
+    pod_env = [
+        client.V1EnvVar(
+            name="DRUCKER_SERVICE_UPDATE_FLAG",
+            value=commit_message
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_APPLICATION_NAME",
+            value=app_name
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_SERVICE_LEVEL",
+            value=service_level
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_SERVICE_NAME",
+            value=service_name
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_SERVICE_PORT",
+            value="{0}".format(service_port)
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_SERVICE_INFRA",
+            value="kubernetes"
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_SERVICE_GIT_URL",
+            value=service_git_url
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_SERVICE_GIT_BRANCH",
+            value=service_git_branch
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_SERVICE_BOOT_SHELL",
+            value=service_boot_script
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_SERVICE_MODEL_DIR",
+            value=pod_model_dir
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_DB_MODE",
+            value="mysql"
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_DB_MYSQL_HOST",
+            value=db_mysql_host
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_DB_MYSQL_PORT",
+            value=db_mysql_port
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_DB_MYSQL_DBNAME",
+            value=db_mysql_dbname
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_DB_MYSQL_USER",
+            value=db_mysql_user
+        ),
+        client.V1EnvVar(
+            name="DRUCKER_DB_MYSQL_PASSWORD",
+            value=db_mysql_password
+        ),
+    ]
+    if service_model_assignment is not None:
+        mobj = Model.query.filter_by(
+            model_id=service_model_assignment).one()
+        pod_env.append(
+            client.V1EnvVar(
+                name="DRUCKER_SERVICE_MODEL_FILE",
+                value=mobj.model_path
+            )
+        )
 
     """Namespace"""
     core_vi = client.CoreV1Api()
@@ -468,72 +547,7 @@ def create_or_update_drucker_on_kubernetes(
                     containers=[
                         client.V1Container(
                             command=["sh","/usr/local/src/entrypoint.sh"],
-                            env=[
-                                client.V1EnvVar(
-                                    name="DRUCKER_SERVICE_UPDATE_FLAG",
-                                    value=commit_message
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_APPLICATION_NAME",
-                                    value=app_name
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_SERVICE_LEVEL",
-                                    value=service_level
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_SERVICE_NAME",
-                                    value=service_name
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_SERVICE_PORT",
-                                    value="{0}".format(service_port)
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_SERVICE_INFRA",
-                                    value="kubernetes"
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_SERVICE_GIT_URL",
-                                    value=service_git_url
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_SERVICE_GIT_BRANCH",
-                                    value=service_git_branch
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_SERVICE_BOOT_SHELL",
-                                    value=service_boot_script
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_SERVICE_MODEL_DIR",
-                                    value=pod_model_dir
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_DB_MODE",
-                                    value="mysql"
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_DB_MYSQL_HOST",
-                                    value=db_mysql_host
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_DB_MYSQL_PORT",
-                                    value=db_mysql_port
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_DB_MYSQL_DBNAME",
-                                    value=db_mysql_dbname
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_DB_MYSQL_USER",
-                                    value=db_mysql_user
-                                ),
-                                client.V1EnvVar(
-                                    name="DRUCKER_DB_MYSQL_PASSWORD",
-                                    value=db_mysql_password
-                                ),
-                            ],
+                            env=pod_env,
                             image=container_image,
                             image_pull_policy="Always",
                             name=service_name,
@@ -747,6 +761,54 @@ def create_or_update_drucker_on_kubernetes(
             body=v2_beta1_horizontal_pod_autoscaler
         )
     """
+    return service_name
+
+def switch_drucker_service_model_assignment(
+        application_id:int, service_id:int, model_id:int):
+    """
+    Switch model assignment.
+    :param application_id:
+    :param service_id:
+    :param model_id:
+    :return:
+    """
+    mobj = db.session.query(Model).filter(
+        Model.application_id==application_id,Model.model_id==model_id).one()
+    model_path = mobj.model_path
+    sobj = db.session.query(Service).filter(
+        Service.application_id == application_id, Service.service_id==service_id).one()
+    host = sobj.host
+    drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=host)
+    response_body = drucker_dashboard_application. \
+        run_switch_service_model_assignment(model_path=model_path)
+    if not response_body.get("status", True):
+        raise Exception(response_body.get("message", "Error."))
+    sobj.model_id = model_id
+    db.session.flush()
+
+    aobj = db.session.query(Application).filter(Application.application_id == application_id).one()
+    kubernetes_id = aobj.kubernetes_id
+    if kubernetes_id is not None:
+        kobj = db.session.query(Kubernetes).filter(Kubernetes.kubernetes_id == kubernetes_id).one()
+        config_path = kobj.config_path
+        from kubernetes import client, config
+        config.load_kube_config(config_path)
+
+        apps_v1 = client.AppsV1Api()
+        v1_deployment = apps_v1.read_namespaced_deployment(
+            name="{0}-deployment".format(sobj.service_name),
+            namespace=sobj.service_level
+        )
+        for env_ent in v1_deployment.spec.template.spec.containers[0].env:
+            if env_ent.name == "DRUCKER_SERVICE_UPDATE_FLAG":
+                env_ent.value = "Model switched to model_id={0} at {1:%Y%m%d%H%M%S}".format(model_id, datetime.datetime.utcnow())
+                break
+        api_response = apps_v1.patch_namespaced_deployment(
+            body=v1_deployment,
+            name="{0}-deployment".format(sobj.service_name),
+            namespace=sobj.service_level
+        )
+    return response_body
 
 
 @kube_info_namespace.route('/')
@@ -761,6 +823,8 @@ class ApiKubernetes(Resource):
         """update_dbs_of_all_kubernetes_app"""
         for kobj in Kubernetes.query.all():
             update_dbs_kubernetes(kobj.kubernetes_id)
+        db.session.commit()
+        db.session.close()
         response_body = {"status": True, "message": "Success."}
         return response_body
 
@@ -804,9 +868,9 @@ class ApiKubernetes(Resource):
             v1 = client.ExtensionsV1beta1Api()
             v1.list_ingress_for_all_namespaces(watch=False)
             update_dbs_kubernetes(newkube.kubernetes_id)
-            response_body = {"status": True, "message": "Success."}
             db.session.commit()
             db.session.close()
+            response_body = {"status": True, "message": "Success."}
         except Exception as error:
             os.remove(newkube.config_path)
             raise error
@@ -824,6 +888,8 @@ class ApiKubernetesId(Resource):
     def put(self, kubernetes_id:int):
         """update_dbs_of_kubernetes_app"""
         update_dbs_kubernetes(kubernetes_id)
+        db.session.commit()
+        db.session.close()
         response_body = {"status": True, "message": "Success."}
         return response_body
 
@@ -893,6 +959,9 @@ class ApiKubernetesId(Resource):
 
 @kube_info_namespace.route('/<int:kubernetes_id>/applications')
 class ApiKubernetesIdApplication(Resource):
+    kube_app_deploy = kube_deploy_parser.copy()
+    kube_app_deploy.remove_argument('service_model_assignment')
+
     from apis.api_application import app_info
     @kube_info_namespace.marshal_list_with(app_info)
     def get(self, kubernetes_id:int):
@@ -900,13 +969,16 @@ class ApiKubernetesIdApplication(Resource):
         return Application.query.filter_by(
             kubernetes_id=kubernetes_id).all()
 
-    @kube_info_namespace.expect(kube_deploy_parser)
+    @kube_info_namespace.expect(kube_app_deploy)
     @kube_info_namespace.marshal_with(success_or_not)
     def post(self, kubernetes_id:int):
         """add_kubernetes_application"""
-        args = kube_deploy_parser.parse_args()
-        create_or_update_drucker_on_kubernetes(kubernetes_id, args)
+        args = self.kube_app_deploy.parse_args()
+        args["service_model_assignment"] = None
+        service_name = create_or_update_drucker_on_kubernetes(kubernetes_id, args)
         update_dbs_kubernetes(kubernetes_id, description=args['commit_message'])
+        db.session.commit()
+        db.session.close()
         response_body = {"status": True, "message": "Success."}
         return response_body
 
@@ -933,6 +1005,8 @@ class ApiKubernetesIdApplicationIdServices(Resource):
             Application.kubernetes_id == kubernetes_id).one_or_none()
         applist = set((aobj.application_name,))
         update_dbs_kubernetes(kubernetes_id, applist)
+        db.session.commit()
+        db.session.close()
         response_body = {"status": True, "message": "Success."}
         return response_body
 
@@ -945,9 +1019,24 @@ class ApiKubernetesIdApplicationIdServices(Resource):
             Application.kubernetes_id == kubernetes_id,
             Application.application_id == application_id).one_or_none()
         args["app_name"] = aobj.application_name
-        create_or_update_drucker_on_kubernetes(kubernetes_id, args)
+        if args["service_model_assignment"] is not None:
+            mobj = Model.query.filter_by(
+                application_id=application_id,
+                model_id=args["service_model_assignment"]).one_or_none()
+            if mobj is None:
+                args["service_model_assignment"] = None
+        service_name = create_or_update_drucker_on_kubernetes(kubernetes_id, args)
         applist = set((aobj.application_name,))
         update_dbs_kubernetes(kubernetes_id, applist, description=args['commit_message'])
+
+        sobj = db.session.query(Service).filter(
+            Service.application_id == aobj.application_id,
+            Service.service_name == service_name).one_or_none()
+        if sobj is not None and sobj.model_id != args["service_model_assignment"]:
+            sobj.model_id = args["service_model_assignment"]
+            db.session.flush()
+        db.session.commit()
+        db.session.close()
         response_body = {"status": True, "message": "Success."}
         return response_body
 
@@ -956,11 +1045,14 @@ class ApiKubernetesIdApplicationIdServiceId(Resource):
     kube_srv_update = kube_deploy_parser.copy()
     kube_srv_update.remove_argument('app_name')
     kube_srv_update.remove_argument('service_level')
+    kube_srv_update.remove_argument('service_model_assignment')
 
     @kube_info_namespace.marshal_with(kube_service_config_info)
     def get(self, kubernetes_id:int, application_id:int, service_id:int):
         """get kubernetes service info"""
-        sobj = Service.query.filter_by(service_id=service_id).one_or_none()
+        sobj = Service.query.filter_by(
+            application_id=application_id,
+            service_id=service_id).one_or_none()
         if sobj is None:
             raise Exception("No such data.")
         kobj = Kubernetes.query.filter_by(kubernetes_id=kubernetes_id).one_or_none()
@@ -1050,8 +1142,11 @@ class ApiKubernetesIdApplicationIdServiceId(Resource):
         args["app_name"] = aobj.application_name
         args["service_level"] = sobj.service_level
         args['commit_message'] = "Request a rolling-update at {0:%Y%m%d%H%M%S}".format(datetime.utcnow())
+        args["service_model_assignment"] = None
         create_or_update_drucker_on_kubernetes(kubernetes_id, args, sobj.service_name)
         applist = set((aobj.application_name,))
         update_dbs_kubernetes(kubernetes_id, applist)
+        db.session.commit()
+        db.session.close()
         response_body = {"status": True, "message": "Success."}
         return response_body
