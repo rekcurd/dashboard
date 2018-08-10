@@ -15,7 +15,9 @@ export class Service {
     public id: string = '',
     public name: string = '',
     public serviceLevel: string = '',
-    public modelId: string = null
+    public modelId: string = null,
+    public host: string = '',
+    public description: string = '',
   ) { }
 }
 
@@ -323,6 +325,8 @@ export async function fetchAllServices(params: FetchServicesParam) {
         name: variable.display_name,
         serviceLevel: variable.service_level,
         modelId: variable.model_id,
+        host: variable.host,
+        description: variable.description,
       }
     })
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/services`, convert)

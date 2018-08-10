@@ -12,6 +12,16 @@ class SideMenu extends React.Component<any> {
             path: 'dashboard',
             icon: 'ship'
           },
+          {
+            text: 'Services',
+            path: 'services',
+            icon: 'server'
+          },
+          {
+            text: 'Models',
+            path: 'models',
+            icon: 'database'
+          },
         ]
       },
     ]

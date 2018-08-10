@@ -8,6 +8,7 @@ import Applications from './Applications'
 import SaveApplication from './SaveApplication'
 import Application from './Application'
 import Deploy from './Deploy'
+import Services from './Services'
 import Service from './Service'
 import Settings from './Settings'
 import Login from './Login'
@@ -78,6 +79,8 @@ const ApplicationRoute = () => (
   <Application>
     <Switch>
       <Route path='/applications/:applicationId/dashboard' component={Deploy} />
+      <Route exact path='/applications/:applicationId/services' component={Services} />
+      <Route exact path='/applications/:applicationId/models' component={Deploy} />
       <Route path='/applications/:applicationId/services/add'
         render={(props) => <Service {...props} mode='add'/>} />
       <Route path='/applications/:applicationId/services/:serviceId/edit'
