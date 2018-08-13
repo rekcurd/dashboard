@@ -1,16 +1,18 @@
 import { Action } from 'redux'
 import { APIError, APIErrorType } from '@src/apis/Core'
 import {
-  addApplication, saveService, saveKubernetesHost,
+  addApplication, saveService, saveModel, saveKubernetesHost,
   fetchAllApplications, fetchAllModels, fetchAllServices,
   fetchApplicationById, fetchKubernetesHostById,
-  fetchServiceById, FetchServicesParam, fetchServiceDescriptions,
-  fetchAllKubernetesHosts,
+  fetchServiceById, fetchModelById, FetchServicesParam,
+  FetchModelsParam, fetchServiceDescriptions,
+  fetchModelDescriptions, fetchAllKubernetesHosts,
   uploadModel, switchModels, syncKubernetesStatus,
   deleteKubernetesHost, deleteKubernetesServices,
   deleteKubernetesModels,
   settings, login, userInfo,
-  SaveServiceParam, SwitchModelParam, ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo
+  SaveServiceParam, SaveModelParam, SwitchModelParam,
+  ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo
 } from '@src/apis'
 import { Application, Model, Service } from '@src/apis'
 
@@ -111,6 +113,12 @@ export const saveServiceDispatcher = asyncAPIRequestDispatcherCreator<SaveServic
   saveService
 )
 
+export const saveModelActionCreators = new APIRequestActionCreators<SaveModelParam, boolean>('SAVE_MODEL')
+export const saveModelDispatcher = asyncAPIRequestDispatcherCreator<SaveModelParam, boolean>(
+  saveModelActionCreators,
+  saveModel
+)
+
 export const fetchAllKubernetesHostsActionCreators = new APIRequestActionCreators<{}, KubernetesHost[]>('FETCH_ALL_CONNECTIONS')
 export const fetchAllKubernetesHostsDispatcher = asyncAPIRequestDispatcherCreator<{}, KubernetesHost[]>(
   fetchAllKubernetesHostsActionCreators,
@@ -135,8 +143,8 @@ export const fetchKubernetesHostByIdDispatcher = asyncAPIRequestDispatcherCreato
   fetchKubernetesHostById
 )
 
-export const fetchAllModelsActionCreators = new APIRequestActionCreators<{application_id: string}, Model[]>('FETCH_ALL_MODELS')
-export const fetchAllModelsDispatcher = asyncAPIRequestDispatcherCreator<{application_id: string}, Model[]>(
+export const fetchAllModelsActionCreators = new APIRequestActionCreators<{applicationId: string}, Model[]>('FETCH_ALL_MODELS')
+export const fetchAllModelsDispatcher = asyncAPIRequestDispatcherCreator<{applicationId: string}, Model[]>(
   fetchAllModelsActionCreators,
   fetchAllModels
 )
@@ -153,10 +161,22 @@ export const fetchServiceByIdDispatcher = asyncAPIRequestDispatcherCreator<Fetch
   fetchServiceById
 )
 
+export const fetchModelByIdActionCreators = new APIRequestActionCreators<FetchModelsParam, Model>('FETCH_MODEL')
+export const fetchModelByIdDispatcher = asyncAPIRequestDispatcherCreator<FetchModelsParam, Model>(
+  fetchModelByIdActionCreators,
+  fetchModelById
+)
+
 export const fetchServiceDescriptionsActionCreators = new APIRequestActionCreators<FetchServicesParam, Service[]>('FETCH_SERVICE_DESCRIPTIONS')
 export const fetchServiceDescriptionsDispatcher = asyncAPIRequestDispatcherCreator<FetchServicesParam, Service[]>(
   fetchServiceDescriptionsActionCreators,
   fetchServiceDescriptions
+)
+
+export const fetchModelDescriptionsActionCreators = new APIRequestActionCreators<FetchModelsParam, Model[]>('FETCH_MODEL_DESCRIPTIONS')
+export const fetchModelDescriptionsDispatcher = asyncAPIRequestDispatcherCreator<FetchModelsParam, Model[]>(
+  fetchModelDescriptionsActionCreators,
+  fetchModelDescriptions
 )
 
 export const switchModelsActionCreators = new APIRequestActionCreators<SwitchModelParam[], boolean[]>('SWITCH_MODELS')

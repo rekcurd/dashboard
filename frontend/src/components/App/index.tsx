@@ -11,6 +11,7 @@ import Deploy from './Deploy'
 import Services from './Services'
 import Models from './Models'
 import Service from './Service'
+import Model from './Model'
 import Settings from './Settings'
 import Login from './Login'
 import * as Kubernetes from './Kubernetes'
@@ -86,6 +87,8 @@ const ApplicationRoute = () => (
         render={(props) => <Service {...props} mode='add'/>} />
       <Route path='/applications/:applicationId/services/:serviceId/edit'
         render={(props) => <Service {...props} mode='edit'/>} />
+      <Route path='/applications/:applicationId/models/:modelId/edit'
+             render={(props) => <Model {...props} mode='edit'/>} />
       <Redirect exact from='/applications/:applicationId' to='/applications/:applicationId/dashboard' />
     </Switch>
   </Application>

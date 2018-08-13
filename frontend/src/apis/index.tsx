@@ -220,6 +220,26 @@ export async function saveService(params: SaveServiceParam): Promise<boolean> {
   throw new RangeError(`You specified wrong parameter type ${params.applicationType}`)
 }
 
+export interface SaveModelParam {
+  id?: string
+  applicationId: string
+  description: string
+}
+export async function saveModel(params: SaveModelParam): Promise<boolean> {
+  const requestBody = Object.keys(params)
+    .map((value) => ({ [snakelize(value)]: params[value] }))
+    .reduce((l, r) => Object.assign(l, r), {})
+  const convert = (result) => result.status as boolean
+  const idUrlString = params.id ? `/${params.id}` : ''
+
+  return APICore.formDataRequest<boolean>(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/models${idUrlString}`,
+    requestBody,
+    convert,
+    'PATCH'
+  )
+}
+
 export interface UploadModelParam {
   applicationId: string
   name: string
@@ -298,8 +318,9 @@ export async function fetchKubernetesHostById(params: any): Promise<any> {
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/kubernetes/${params.id}`, convert)
 }
 
-interface FetchModelsParam {
-  application_id: string
+export interface FetchModelsParam {
+  id?: string
+  applicationId: string
 }
 export async function fetchAllModels(params: FetchModelsParam): Promise<Model[]> {
   const convert =
@@ -310,7 +331,7 @@ export async function fetchAllModels(params: FetchModelsParam): Promise<Model[]>
         registeredDate: new Date(variable.register_date * 1000),
       }
     })
-  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.application_id}/models`, convert)
+  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/models`, convert)
 }
 
 export interface FetchServicesParam {
@@ -356,6 +377,22 @@ export async function fetchServiceById(params: FetchServicesParam) {
   }
 }
 
+export async function fetchModelById(params: FetchModelsParam) {
+  const convertDetail =
+    (result) => (
+      {
+        id: result.model_id,
+        description: result.description,
+        ...convertKeys(result, camelize)
+      }
+    )
+
+  return APICore.getRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/models/${params.id}`,
+    convertDetail
+  )
+}
+
 export async function fetchServiceDescriptions(params: FetchServicesParam): Promise<Service[]> {
   const convert =
     (result) => (
@@ -375,6 +412,29 @@ export async function fetchServiceDescriptions(params: FetchServicesParam): Prom
     // Fetch all descriptions
     return APICore.getRequest(
       `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/services`,
+      convert
+    )
+  }
+}
+
+export async function fetchModelDescriptions(params: FetchModelsParam): Promise<Model[]> {
+  const convert =
+    (result) => (
+      {
+        id: result.model_id,
+        description: result.description
+      }
+    )
+
+  if (params.id) {
+    return APICore.getRequest(
+      `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/models/${params.id}`,
+      (result) => [convert(result)]
+    )
+  } else {
+    // Fetch all descriptions
+    return APICore.getRequest(
+      `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/models`,
       convert
     )
   }

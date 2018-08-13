@@ -281,7 +281,7 @@ class Deploy extends React.Component<DeployStatusProps, any> {
 
     return (
       <Modal isOpen={isDeleteServicesModalOpen} toggle={cancel} size='sm'>
-        <ModalHeader toggle={cancel}>Delete Kubernetes Services</ModalHeader>
+        <ModalHeader toggle={cancel}>Delete Services/Models</ModalHeader>
         <ModalBody>
           Are you sure to delete?
         </ModalBody>
@@ -360,7 +360,7 @@ class Deploy extends React.Component<DeployStatusProps, any> {
       isDeleteServicesModalOpen: true,
       selectedData: {
         services: params.delete.services,
-        models: []
+        models: params.delete.models
       }
     })
   }
@@ -463,7 +463,7 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
     fetchApplicationById: (id: string) => fetchApplicationByIdDispatcher(dispatch, { id }),
-    fetchAllModels: (applicationId: string) => fetchAllModelsDispatcher(dispatch, { application_id: applicationId }),
+    fetchAllModels: (applicationId: string) => fetchAllModelsDispatcher(dispatch, { applicationId }),
     fetchAllServices: (applicationId: string) => fetchAllServicesDispatcher(dispatch, { applicationId }),
     switchModels: (params: SwitchModelParam[]) => switchModelsDispatcher(dispatch, params),
     deleteKubernetesServices: (params) => deleteKubernetesServicesDispatcher(dispatch, params),

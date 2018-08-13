@@ -227,7 +227,7 @@ class Services extends React.Component<ServicesStatusProps, any> {
 
     return (
       <Modal isOpen={isDeleteServicesModalOpen} toggle={cancel} size='sm'>
-        <ModalHeader toggle={cancel}>Delete Kubernetes Services</ModalHeader>
+        <ModalHeader toggle={cancel}>Delete Services</ModalHeader>
         <ModalBody>
           Are you sure to delete?
         </ModalBody>

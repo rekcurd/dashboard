@@ -89,8 +89,8 @@ class ServicesStatusTable extends React.Component<ServicesStatusProps, {tooltipO
     return (
       <tbody>
       {services.map(
-        (service) => (
-          <tr>
+        (service, index: number) => (
+          <tr key={index}>
             <td key={service.name} scope='col'>
               {deleteCheckButton(service.name, service.id)}
             </td>

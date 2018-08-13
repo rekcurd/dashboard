@@ -89,8 +89,8 @@ class ModelsStatusTable extends React.Component<ModelsStatusProps, {tooltipOpen}
     return (
       <tbody>
       {models.map(
-        (model) => (
-          <tr>
+        (model, index: number) => (
+          <tr key={index}>
             <td key={model.name} scope='col'>
               {deleteCheckButton(model.name, model.id)}
             </td>

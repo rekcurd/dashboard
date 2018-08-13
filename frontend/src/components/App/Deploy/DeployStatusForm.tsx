@@ -91,7 +91,7 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
     }
 
     const paramsMap = {
-      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services' },
+      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services/Models' },
       [ControlMode.EDIT_DEPLOY_STATUS]: { color: 'success', icon: 'save', text: 'Save Changes' }
     }
 
@@ -128,7 +128,7 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
     } = this.props
 
     const paramsMap = {
-      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services' },
+      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services/Models' },
       [ControlMode.EDIT_DEPLOY_STATUS]: { color: 'success', icon: 'save', text: 'Save Changes' }
     }
 
@@ -156,7 +156,7 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
           disabled={pristine || submitting}
         >
           <i className='fas fa-trash fa-fw mr-2'></i>
-          Delete Services
+          Delete Services/Models
       </Button>
       </div>
     )

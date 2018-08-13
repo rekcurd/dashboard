@@ -187,7 +187,7 @@ class Models extends React.Component<ModelsStatusProps, any> {
 
     return (
       <Modal isOpen={isDeleteModelsModalOpen} toggle={cancel} size='sm'>
-        <ModalHeader toggle={cancel}>Delete Kubernetes Models</ModalHeader>
+        <ModalHeader toggle={cancel}>Delete Models</ModalHeader>
         <ModalBody>
           Are you sure to delete?
         </ModalBody>
@@ -312,7 +312,7 @@ const mapStateToProps = (state): StateProps => {
 export interface DispatchProps {
   addNotification
   fetchApplicationById: (id: string) => Promise<void>
-  fetchAllModels: (application_id: string) => Promise<void>
+  fetchAllModels: (applicationId: string) => Promise<void>
   deleteKubernetesModels: (params) => Promise<void>
 }
 
@@ -320,7 +320,7 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
     fetchApplicationById: (id: string) => fetchApplicationByIdDispatcher(dispatch, { id }),
-    fetchAllModels: (application_id: string) => fetchAllModelsDispatcher(dispatch, { application_id }),
+    fetchAllModels: (applicationId: string) => fetchAllModelsDispatcher(dispatch, { applicationId }),
     deleteKubernetesModels: (params) => deleteKubernetesModelsDispatcher(dispatch, params),
   }
 }
