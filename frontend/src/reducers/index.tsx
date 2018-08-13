@@ -15,6 +15,7 @@ import {
   fetchKubernetesHostByIdActionCreators,
   deleteKubernetesHostActionCreators,
   deleteKubernetesServicesActionCreators,
+  deleteKubernetesModelsActionCreators,
   syncKubernetesStatusActionCreators,
   fetchServiceByIdActionCreators,
   fetchServiceDescriptionsActionCreators,
@@ -43,6 +44,7 @@ export class AppState {
     public kubernetesHosts: APIRequest<KubernetesHost[]> = { status: APIRequestStatusList.notStarted },
     public kubernetesHostById: APIRequest<any> = { status: APIRequestStatusList.notStarted },
     public deleteKubernetesServices: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
+    public deleteKubernetesModels: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
     public syncKubernetesStatus: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     public settings: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
     public login: APIRequest<AuthToken> = { status: APIRequestStatusList.notStarted },
@@ -109,6 +111,8 @@ export const deleteKubernetesHostReducer
   = APIRequestReducerCreator<{id: number}, boolean>(deleteKubernetesHostActionCreators, 'deleteKubernetesHost')
 export const deleteKubernetesServicesReducer
   = APIRequestReducerCreator<any, boolean[]>(deleteKubernetesServicesActionCreators, 'deleteKubernetesServices')
+export const deleteKubernetesModelsReducer
+  = APIRequestReducerCreator<any, boolean[]>(deleteKubernetesModelsActionCreators, 'deleteKubernetesModels')
 export const syncKubernetesStatusReducer
   = APIRequestReducerCreator<any, boolean[]>(syncKubernetesStatusActionCreators, 'syncKubernetesStatus')
 export const settingsReducer = APIRequestReducerCreator<{}, any>(settingsActionCreators, 'settings')

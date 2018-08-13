@@ -15,7 +15,7 @@ import {
   syncKubernetesStatusDispatcher
 } from '@src/actions'
 import DeployStatusForm from './DeployStatusForm'
-import { AddModelFileModal } from './Modals/AddModelFileModal'
+import { AddModelFileModal } from '@components/App/Model/Modals/AddModelFileModal'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 
 export enum ControlMode {

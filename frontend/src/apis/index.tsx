@@ -88,6 +88,7 @@ export class Model {
   constructor(
     public name: string = '',
     public id: string = '',
+    public registeredDate: Date = null,
   ) { }
 }
 
@@ -306,6 +307,7 @@ export async function fetchAllModels(params: FetchModelsParam): Promise<Model[]>
       return {
         name: variable.description,
         id: variable.model_id,
+        registeredDate: new Date(variable.register_date * 1000),
       }
     })
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.application_id}/models`, convert)
@@ -458,6 +460,20 @@ export async function deleteKubernetesServices(params: any): Promise<Array<Promi
   const entryPoints = params.map(
     (param) =>
       `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${param.applicationId}/services/${param.serviceId}`
+  )
+  const requestList = params.map(
+    (param) => ({ options: { method: 'DELETE' } })
+  )
+
+  return APICore.rawMultiRequest<boolean>(entryPoints, convert, requestList)
+}
+
+export async function deleteKubernetesModels(params: any): Promise<Array<Promise<boolean>>> {
+  const convert = (result) => result.status
+
+  const entryPoints = params.map(
+    (param) =>
+      `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${param.applicationId}/models/${param.modelId}`
   )
   const requestList = params.map(
     (param) => ({ options: { method: 'DELETE' } })

@@ -246,14 +246,13 @@ function _handleAPIResponse<T = any>(
   }
 
   // Throw API error exception
-  return new Promise((_, reject) => {
-    response.json()
-      .then((resultJSON) => {
-        reject(new APIError(
-          resultJSON.message,
-          APIErrorType.serverside,
-          response.status
-        ))
-      })
-  })
+  response.json().then(
+    (resultJSON) => {
+      throw new APIError(
+        resultJSON.message,
+        APIErrorType.serverside,
+        response.status
+      )
+    }
+  )
 }

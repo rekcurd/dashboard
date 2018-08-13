@@ -8,6 +8,7 @@ import {
   fetchAllKubernetesHosts,
   uploadModel, switchModels, syncKubernetesStatus,
   deleteKubernetesHost, deleteKubernetesServices,
+  deleteKubernetesModels,
   settings, login, userInfo,
   SaveServiceParam, SwitchModelParam, ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo
 } from '@src/apis'
@@ -174,6 +175,12 @@ export const deleteKubernetesServicesActionCreators = new APIRequestActionCreato
 export const deleteKubernetesServicesDispatcher = asyncAPIRequestDispatcherCreator<any, boolean[]>(
   deleteKubernetesServicesActionCreators,
   deleteKubernetesServices
+)
+
+export const deleteKubernetesModelsActionCreators = new APIRequestActionCreators<any, boolean[]>('DELETE_KUBERNETES_MODEL')
+export const deleteKubernetesModelsDispatcher = asyncAPIRequestDispatcherCreator<any, boolean[]>(
+  deleteKubernetesModelsActionCreators,
+  deleteKubernetesModels
 )
 
 export const syncKubernetesStatusActionCreators = new APIRequestActionCreators<any, boolean>('SYNC_KUBERNETES_STATUS')

@@ -3,24 +3,24 @@ import { connect } from 'react-redux'
 import { Button } from 'reactstrap'
 import { reduxForm, InjectedFormProps } from 'redux-form'
 
-import { Service } from '@src/apis'
-import ServicesStatusTable from './ServicesStatusTable'
+import { Model } from '@src/apis'
+import ModelsStatusTable from './ModelsStatusTable'
 import { ControlMode } from './index'
 
-class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
+class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, {}> {
   constructor(props, context) {
     super(props, context)
 
     this.handleDiscardChanges = this.handleDiscardChanges.bind(this)
   }
 
-  componentWillReceiveProps(nextProps: ServicesDeleteFormProps) {
+  componentWillReceiveProps(nextProps: ModelsDeleteFormProps) {
     const { mode, pristine, changeMode } = nextProps
 
-    if (mode === ControlMode.VIEW_SERVICES_STATUS && !pristine) {
+    if (mode === ControlMode.VIEW_MODELS_STATUS && !pristine) {
       changeMode(ControlMode.SELECT_TARGETS)
     } else if (mode === ControlMode.SELECT_TARGETS && pristine) {
-      changeMode(ControlMode.VIEW_SERVICES_STATUS)
+      changeMode(ControlMode.VIEW_MODELS_STATUS)
     }
   }
 
@@ -35,7 +35,7 @@ class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
         <div className='mb-2'>
           {this.renderDiscardButton()}
         </div>
-        <ServicesStatusTable
+        <ModelsStatusTable
           {...this.props}
         />
         <hr />
@@ -73,14 +73,14 @@ class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
       pristine
     } = this.props
 
-    const showSubmitButton: boolean = mode !== ControlMode.VIEW_SERVICES_STATUS
+    const showSubmitButton: boolean = mode !== ControlMode.VIEW_MODELS_STATUS
 
     if (!showSubmitButton) {
       return null
     }
 
     const paramsMap = {
-      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services' },
+      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Models' },
     }
 
     // Submit button element(s)
@@ -115,7 +115,7 @@ class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
     } = this.props
 
     const paramsMap = {
-      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services' },
+      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Models' },
     }
 
     return (
@@ -126,7 +126,7 @@ class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
           disabled={pristine || submitting}
         >
           <i className='fas fa-trash fa-fw mr-2'></i>
-          Delete Services
+          Delete Models
       </Button>
       </div>
     )
@@ -137,15 +137,15 @@ class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
   handleDiscardChanges(event): void {
     const { changeMode, reset } = this.props
     reset()
-    changeMode(ControlMode.VIEW_SERVICES_STATUS)
+    changeMode(ControlMode.VIEW_MODELS_STATUS)
   }
 }
 
-interface ServicesDeleteFormCustomProps {
+interface ModelsDeleteFormCustomProps {
   applicationType: string
   applicationId
   mode: ControlMode
-  services: Service[]
+  models: Model[]
   onSubmit: (e) => Promise<void>
   changeMode: (mode: ControlMode) => void
 }
@@ -157,18 +157,18 @@ interface StateProps {
   }
 }
 
-const mapStateToProps = (state: any, extraProps: ServicesDeleteFormCustomProps) => {
-  // Map of service ID to delete flag
+const mapStateToProps = (state: any, extraProps: ModelsDeleteFormCustomProps) => {
+  // Map of model ID to delete flag
   const initialDeleteStatus: { [x: string]: boolean } =
-    extraProps.services
-    .map((service) => ({[service.id]: false}))
+    extraProps.models
+    .map((model) => ({[model.id]: false}))
     .reduce((l, r) => Object.assign(l, r), {})
 
   return {
     ...state.form,
     initialValues: {
       delete: {
-        services: initialDeleteStatus
+        models: initialDeleteStatus
       }
     }
   }
@@ -178,13 +178,13 @@ const mapDispatchToProps = (dispatch): {} => {
   return { }
 }
 
-type ServicesDeleteFormProps
-  = StateProps & ServicesDeleteFormCustomProps & InjectedFormProps<{}, ServicesDeleteFormCustomProps>
+type ModelsDeleteFormProps
+  = StateProps & ModelsDeleteFormCustomProps & InjectedFormProps<{}, ModelsDeleteFormCustomProps>
 
 export default connect(mapStateToProps, mapDispatchToProps)(
-  reduxForm<{}, ServicesDeleteFormCustomProps>(
+  reduxForm<{}, ModelsDeleteFormCustomProps>(
     {
       form: 'deployStatusForm'
     }
-  )(ServicesDeleteForm)
+  )(ModelsDeleteForm)
 )
