@@ -57,10 +57,7 @@ class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
           </Button>
         )
       default:
-        return (
-          <div>
-          </div>
-        )
+        return null
     }
   }
 

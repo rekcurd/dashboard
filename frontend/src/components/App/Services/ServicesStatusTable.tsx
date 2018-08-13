@@ -86,21 +86,13 @@ class ServicesStatusTable extends React.Component<ServicesStatusProps, {tooltipO
       )
     }
 
-    const renderButton = (serviceName, serviceId) => {
-      const renderMap = {
-        [ControlMode.VIEW_SERVICES_STATUS] : deleteCheckButton(serviceName, serviceId),
-        [ControlMode.SELECT_TARGETS] : deleteCheckButton(serviceName, serviceId),
-      }
-      return renderMap[mode]
-    }
-
     return (
       <tbody>
       {services.map(
         (service) => (
           <tr>
             <td key={service.name} scope='col'>
-              {renderButton(service.name, service.id)}
+              {deleteCheckButton(service.name, service.id)}
             </td>
             <td>
               {service.serviceLevel}
