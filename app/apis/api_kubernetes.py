@@ -804,7 +804,7 @@ def switch_drucker_service_model_assignment(
         )
         for env_ent in v1_deployment.spec.template.spec.containers[0].env:
             if env_ent.name == "DRUCKER_SERVICE_UPDATE_FLAG":
-                env_ent.value = "Model switched to model_id={0} at {1:%Y%m%d%H%M%S}".format(model_id, datetime.datetime.utcnow())
+                env_ent.value = "Model switched to model_id={0} at {1:%Y%m%d%H%M%S}".format(model_id, datetime.utcnow())
                 break
         api_response = apps_v1.patch_namespaced_deployment(
             body=v1_deployment,
