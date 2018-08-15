@@ -1,5 +1,15 @@
 # Change Log
 
+## [v0.3.1](https://github.com/drucker/drucker-dashboard/tree/v0.3.1) (2018-08-15)
+[Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.0...v0.3.1)
+
+**Merged pull requests:**
+
+- Add a function that allows you to select a model when booting a new service [\#10](https://github.com/drucker/drucker-dashboard/pull/10) ([keigohtr](https://github.com/keigohtr))
+- Add convert function and fix wrong cpu values [\#9](https://github.com/drucker/drucker-dashboard/pull/9) ([jkw552403](https://github.com/jkw552403))
+- \[Hotfix\] Change code generator [\#8](https://github.com/drucker/drucker-dashboard/pull/8) ([keigohtr](https://github.com/keigohtr))
+- Add `progress\_deadline\_seconds` option [\#6](https://github.com/drucker/drucker-dashboard/pull/6) ([keigohtr](https://github.com/keigohtr))
+
 ## [v0.3.0](https://github.com/drucker/drucker-dashboard/tree/v0.3.0) (2018-08-08)
 [Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.2.0...v0.3.0)
 
