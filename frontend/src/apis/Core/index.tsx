@@ -213,7 +213,16 @@ export async function rawMultiRequest<T = any>(
     }
   )
   const fullOptionsList = requestList.map(generateRawRequest)
-
+  const token = window.localStorage.getItem(JWT_TOKEN_KEY)
+  if (token) {
+    fullOptionsList.map(
+      (fullOptions) =>
+        fullOptions.headers = {
+          ...fullOptions.headers,
+          Authorization: `Bearer ${token}`
+        }
+    )
+  }
   return Promise.all(
     entryPoints.map(
       (entryPoint, i) =>
