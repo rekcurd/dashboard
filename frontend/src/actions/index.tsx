@@ -6,7 +6,7 @@ import {
   fetchApplicationById, fetchKubernetesHostById,
   fetchServiceById, fetchModelById, FetchServicesParam,
   FetchModelsParam, fetchServiceDescriptions,
-  fetchModelDescriptions, fetchAllKubernetesHosts,
+  fetchAllKubernetesHosts,
   uploadModel, switchModels, syncKubernetesStatus,
   deleteKubernetesHost, deleteKubernetesServices,
   deleteKubernetesModels,
@@ -171,12 +171,6 @@ export const fetchServiceDescriptionsActionCreators = new APIRequestActionCreato
 export const fetchServiceDescriptionsDispatcher = asyncAPIRequestDispatcherCreator<FetchServicesParam, Service[]>(
   fetchServiceDescriptionsActionCreators,
   fetchServiceDescriptions
-)
-
-export const fetchModelDescriptionsActionCreators = new APIRequestActionCreators<FetchModelsParam, Model[]>('FETCH_MODEL_DESCRIPTIONS')
-export const fetchModelDescriptionsDispatcher = asyncAPIRequestDispatcherCreator<FetchModelsParam, Model[]>(
-  fetchModelDescriptionsActionCreators,
-  fetchModelDescriptions
 )
 
 export const switchModelsActionCreators = new APIRequestActionCreators<SwitchModelParam[], boolean[]>('SWITCH_MODELS')

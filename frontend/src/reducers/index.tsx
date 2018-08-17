@@ -21,7 +21,6 @@ import {
   fetchServiceByIdActionCreators,
   fetchModelByIdActionCreators,
   fetchServiceDescriptionsActionCreators,
-  fetchModelDescriptionsActionCreators,
   APIRequestUnauthorized,
   loginActionCreators,
   userInfoActionCreators,
@@ -47,7 +46,7 @@ export class AppState {
     public applicationById: APIRequest<Application> = { status: APIRequestStatusList.notStarted },
     public services: APIRequest<Service[]> = { status: APIRequestStatusList.notStarted },
     public serviceDescriptions: APIRequest<Service[]> = { status: APIRequestStatusList.notStarted },
-    public modelDescriptions: APIRequest<Model[]> = { status: APIRequestStatusList.notStarted },
+    public modelById: APIRequest<Model> = { status: APIRequestStatusList.notStarted },
     public serviceById: APIRequest<Service> = { status: APIRequestStatusList.notStarted },
     public models: APIRequest<Model[]> = { status: APIRequestStatusList.notStarted },
     public kubernetesHosts: APIRequest<KubernetesHost[]> = { status: APIRequestStatusList.notStarted },
@@ -118,8 +117,6 @@ export const fetchServiceByIdReducer = APIRequestReducerCreator<FetchServicesPar
 export const fetchModelByIdReducer = APIRequestReducerCreator<FetchModelsParam, any>(fetchModelByIdActionCreators, 'modelById')
 export const fetchServiceDescriptionsReducer
   = APIRequestReducerCreator<FetchServicesParam, any>(fetchServiceDescriptionsActionCreators, 'serviceDescriptions')
-export const fetchModelDescriptionsReducer
-  = APIRequestReducerCreator<FetchModelsParam, any>(fetchModelDescriptionsActionCreators, 'modelDescriptions')
 export const deleteKubernetesHostReducer
   = APIRequestReducerCreator<{id: number}, boolean>(deleteKubernetesHostActionCreators, 'deleteKubernetesHost')
 export const deleteKubernetesServicesReducer

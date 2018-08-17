@@ -417,29 +417,6 @@ export async function fetchServiceDescriptions(params: FetchServicesParam): Prom
   }
 }
 
-export async function fetchModelDescriptions(params: FetchModelsParam): Promise<Model[]> {
-  const convert =
-    (result) => (
-      {
-        id: result.model_id,
-        description: result.description
-      }
-    )
-
-  if (params.id) {
-    return APICore.getRequest(
-      `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/models/${params.id}`,
-      (result) => [convert(result)]
-    )
-  } else {
-    // Fetch all descriptions
-    return APICore.getRequest(
-      `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/models`,
-      convert
-    )
-  }
-}
-
 // PUT APIs
 export interface SwitchModelParam {
   applicationId: string,

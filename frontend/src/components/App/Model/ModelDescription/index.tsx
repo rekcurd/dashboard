@@ -7,7 +7,7 @@ import { Model, Application, } from '@src/apis'
 import {
   saveModelDispatcher,
   addNotification,
-  fetchModelDescriptionsDispatcher
+  fetchModelByIdDispatcher
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import { ModelDescriptionForm } from './ModelDescriptionForm'
@@ -57,7 +57,7 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
     const { modelId, applicationId } = this.props.match.params
 
     if (mode === 'edit') {
-      this.props.fetchModelDescriptionById(
+      this.props.fetchModelById(
         {
           id: modelId,
           applicationId
@@ -67,8 +67,8 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
   }
 
   render() {
-    const { fetchModelDescriptionByIdStatus, mode } = this.props
-    const targetStatus = { model: fetchModelDescriptionByIdStatus }
+    const { fetchModelByIdStatus, mode } = this.props
+    const targetStatus = { model: fetchModelByIdStatus }
 
     if (mode === 'edit') {
       return(
@@ -88,7 +88,7 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
       <ModelDescriptionForm
         onSubmit={onSubmit}
         onCancel={onCancel}
-        model={params.model[0]}
+        model={params.model}
       />
     )
   }
@@ -135,7 +135,7 @@ interface ModelDescriptionState {
 interface StateProps {
   application: APIRequest<Application>
   saveModelStatus: APIRequest<boolean>
-  fetchModelDescriptionByIdStatus: APIRequest<Model>
+  fetchModelByIdStatus: APIRequest<Model>
 }
 
 interface CustomProps {
@@ -146,7 +146,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
     application: state.fetchApplicationByIdReducer.applicationById,
     saveModelStatus: state.saveModelReducer.saveModel,
-    fetchModelDescriptionByIdStatus: state.fetchModelDescriptionsReducer.modelDescriptions,
+    fetchModelByIdStatus: state.fetchModelByIdReducer.modelById,
     ...state.form,
     ...extraProps
   }
@@ -154,13 +154,13 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
 
 export interface DispatchProps {
   saveModelDescription: (params) => Promise<void>
-  fetchModelDescriptionById: (params) => Promise<void>
+  fetchModelById: (params) => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    fetchModelDescriptionById: (params) => fetchModelDescriptionsDispatcher(dispatch, params),
+    fetchModelById: (params) => fetchModelByIdDispatcher(dispatch, params),
     saveModelDescription: (params) => saveModelDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
