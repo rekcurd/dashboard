@@ -111,7 +111,7 @@ app/drucker_pb2_grpc.py
 app/db.sqlite3
 
 # DB migration
-app/migration/versions/
+app/migrations/
 
 # Kube config
 app/kube-config/
