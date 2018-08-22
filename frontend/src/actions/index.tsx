@@ -1,15 +1,18 @@
 import { Action } from 'redux'
 import { APIError, APIErrorType } from '@src/apis/Core'
 import {
-  addApplication, saveService, saveKubernetesHost,
+  addApplication, saveService, saveModel, saveKubernetesHost,
   fetchAllApplications, fetchAllModels, fetchAllServices,
   fetchApplicationById, fetchKubernetesHostById,
-  fetchServiceById, FetchServicesParam, fetchServiceDescriptions,
+  fetchServiceById, fetchModelById, FetchServicesParam,
+  FetchModelsParam, fetchServiceDescriptions,
   fetchAllKubernetesHosts,
   uploadModel, switchModels, syncKubernetesStatus,
   deleteKubernetesHost, deleteKubernetesServices,
+  deleteKubernetesModels,
   settings, login, userInfo,
-  SaveServiceParam, SwitchModelParam, ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo
+  SaveServiceParam, SaveModelParam, SwitchModelParam,
+  ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo
 } from '@src/apis'
 import { Application, Model, Service } from '@src/apis'
 
@@ -110,6 +113,12 @@ export const saveServiceDispatcher = asyncAPIRequestDispatcherCreator<SaveServic
   saveService
 )
 
+export const saveModelActionCreators = new APIRequestActionCreators<SaveModelParam, boolean>('SAVE_MODEL')
+export const saveModelDispatcher = asyncAPIRequestDispatcherCreator<SaveModelParam, boolean>(
+  saveModelActionCreators,
+  saveModel
+)
+
 export const fetchAllKubernetesHostsActionCreators = new APIRequestActionCreators<{}, KubernetesHost[]>('FETCH_ALL_CONNECTIONS')
 export const fetchAllKubernetesHostsDispatcher = asyncAPIRequestDispatcherCreator<{}, KubernetesHost[]>(
   fetchAllKubernetesHostsActionCreators,
@@ -134,8 +143,8 @@ export const fetchKubernetesHostByIdDispatcher = asyncAPIRequestDispatcherCreato
   fetchKubernetesHostById
 )
 
-export const fetchAllModelsActionCreators = new APIRequestActionCreators<{application_id: string}, Model[]>('FETCH_ALL_MODELS')
-export const fetchAllModelsDispatcher = asyncAPIRequestDispatcherCreator<{application_id: string}, Model[]>(
+export const fetchAllModelsActionCreators = new APIRequestActionCreators<{applicationId: string}, Model[]>('FETCH_ALL_MODELS')
+export const fetchAllModelsDispatcher = asyncAPIRequestDispatcherCreator<{applicationId: string}, Model[]>(
   fetchAllModelsActionCreators,
   fetchAllModels
 )
@@ -150,6 +159,12 @@ export const fetchServiceByIdActionCreators = new APIRequestActionCreators<Fetch
 export const fetchServiceByIdDispatcher = asyncAPIRequestDispatcherCreator<FetchServicesParam, Service>(
   fetchServiceByIdActionCreators,
   fetchServiceById
+)
+
+export const fetchModelByIdActionCreators = new APIRequestActionCreators<FetchModelsParam, Model>('FETCH_MODEL')
+export const fetchModelByIdDispatcher = asyncAPIRequestDispatcherCreator<FetchModelsParam, Model>(
+  fetchModelByIdActionCreators,
+  fetchModelById
 )
 
 export const fetchServiceDescriptionsActionCreators = new APIRequestActionCreators<FetchServicesParam, Service[]>('FETCH_SERVICE_DESCRIPTIONS')
@@ -174,6 +189,12 @@ export const deleteKubernetesServicesActionCreators = new APIRequestActionCreato
 export const deleteKubernetesServicesDispatcher = asyncAPIRequestDispatcherCreator<any, boolean[]>(
   deleteKubernetesServicesActionCreators,
   deleteKubernetesServices
+)
+
+export const deleteKubernetesModelsActionCreators = new APIRequestActionCreators<any, boolean[]>('DELETE_KUBERNETES_MODEL')
+export const deleteKubernetesModelsDispatcher = asyncAPIRequestDispatcherCreator<any, boolean[]>(
+  deleteKubernetesModelsActionCreators,
+  deleteKubernetesModels
 )
 
 export const syncKubernetesStatusActionCreators = new APIRequestActionCreators<any, boolean>('SYNC_KUBERNETES_STATUS')

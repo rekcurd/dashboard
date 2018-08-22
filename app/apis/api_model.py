@@ -109,3 +109,19 @@ class ApiApplicationIdModelId(Resource):
         db.session.commit()
         db.session.close()
         return response_body
+
+    @mdl_info_namespace.marshal_with(success_or_not)
+    def delete(self, application_id:int, model_id:int):
+        """delete_model"""
+        mobj = db.session.query(Model).filter(
+            Model.application_id==application_id,
+            Model.model_id==model_id).one_or_none()
+        if mobj is None:
+            raise Exception("No such model_id.")
+        db.session.query(Model).filter(
+            Model.application_id==application_id,
+            Model.model_id==model_id).delete()
+        response_body = {"status": True, "message": "Success."}
+        db.session.commit()
+        db.session.close()
+        return response_body

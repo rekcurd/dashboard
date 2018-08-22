@@ -15,7 +15,9 @@ export class Service {
     public id: string = '',
     public name: string = '',
     public serviceLevel: string = '',
-    public modelId: string = null
+    public modelId: string = null,
+    public host: string = '',
+    public description: string = '',
   ) { }
 }
 
@@ -86,6 +88,7 @@ export class Model {
   constructor(
     public name: string = '',
     public id: string = '',
+    public registeredDate: Date = null,
   ) { }
 }
 
@@ -217,6 +220,26 @@ export async function saveService(params: SaveServiceParam): Promise<boolean> {
   throw new RangeError(`You specified wrong parameter type ${params.applicationType}`)
 }
 
+export interface SaveModelParam {
+  id?: string
+  applicationId: string
+  description: string
+}
+export async function saveModel(params: SaveModelParam): Promise<boolean> {
+  const requestBody = Object.keys(params)
+    .map((value) => ({ [snakelize(value)]: params[value] }))
+    .reduce((l, r) => Object.assign(l, r), {})
+  const convert = (result) => result.status as boolean
+  const idUrlString = params.id ? `/${params.id}` : ''
+
+  return APICore.formDataRequest<boolean>(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/models${idUrlString}`,
+    requestBody,
+    convert,
+    'PATCH'
+  )
+}
+
 export interface UploadModelParam {
   applicationId: string
   name: string
@@ -295,8 +318,9 @@ export async function fetchKubernetesHostById(params: any): Promise<any> {
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/kubernetes/${params.id}`, convert)
 }
 
-interface FetchModelsParam {
-  application_id: string
+export interface FetchModelsParam {
+  id?: string
+  applicationId: string
 }
 export async function fetchAllModels(params: FetchModelsParam): Promise<Model[]> {
   const convert =
@@ -304,9 +328,10 @@ export async function fetchAllModels(params: FetchModelsParam): Promise<Model[]>
       return {
         name: variable.description,
         id: variable.model_id,
+        registeredDate: new Date(variable.register_date * 1000),
       }
     })
-  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.application_id}/models`, convert)
+  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/models`, convert)
 }
 
 export interface FetchServicesParam {
@@ -323,6 +348,8 @@ export async function fetchAllServices(params: FetchServicesParam) {
         name: variable.display_name,
         serviceLevel: variable.service_level,
         modelId: variable.model_id,
+        host: variable.host,
+        description: variable.description,
       }
     })
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/services`, convert)
@@ -348,6 +375,22 @@ export async function fetchServiceById(params: FetchServicesParam) {
       convertDetail
     )
   }
+}
+
+export async function fetchModelById(params: FetchModelsParam) {
+  const convertDetail =
+    (result) => (
+      {
+        id: result.model_id,
+        description: result.description,
+        ...convertKeys(result, camelize)
+      }
+    )
+
+  return APICore.getRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/models/${params.id}`,
+    convertDetail
+  )
 }
 
 export async function fetchServiceDescriptions(params: FetchServicesParam): Promise<Service[]> {
@@ -454,6 +497,20 @@ export async function deleteKubernetesServices(params: any): Promise<Array<Promi
   const entryPoints = params.map(
     (param) =>
       `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${param.applicationId}/services/${param.serviceId}`
+  )
+  const requestList = params.map(
+    (param) => ({ options: { method: 'DELETE' } })
+  )
+
+  return APICore.rawMultiRequest<boolean>(entryPoints, convert, requestList)
+}
+
+export async function deleteKubernetesModels(params: any): Promise<Array<Promise<boolean>>> {
+  const convert = (result) => result.status
+
+  const entryPoints = params.map(
+    (param) =>
+      `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${param.applicationId}/models/${param.modelId}`
   )
   const requestList = params.map(
     (param) => ({ options: { method: 'DELETE' } })

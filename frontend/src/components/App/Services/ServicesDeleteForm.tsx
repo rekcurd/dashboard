@@ -3,25 +3,24 @@ import { connect } from 'react-redux'
 import { Button } from 'reactstrap'
 import { reduxForm, InjectedFormProps } from 'redux-form'
 
-import { APIRequest } from '@src/apis/Core'
 import { Service } from '@src/apis'
-import DeployStatusTable from './DeployStatusTable'
+import ServicesStatusTable from './ServicesStatusTable'
 import { ControlMode } from './index'
 
-class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
+class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
   constructor(props, context) {
     super(props, context)
 
     this.handleDiscardChanges = this.handleDiscardChanges.bind(this)
   }
 
-  componentWillReceiveProps(nextProps: DeployStatusFormProps) {
+  componentWillReceiveProps(nextProps: ServicesDeleteFormProps) {
     const { mode, pristine, changeMode } = nextProps
 
-    if (mode === ControlMode.VIEW_DEPLOY_STATUS && !pristine) {
+    if (mode === ControlMode.VIEW_SERVICES_STATUS && !pristine) {
       changeMode(ControlMode.SELECT_TARGETS)
     } else if (mode === ControlMode.SELECT_TARGETS && pristine) {
-      changeMode(ControlMode.VIEW_DEPLOY_STATUS)
+      changeMode(ControlMode.VIEW_SERVICES_STATUS)
     }
   }
 
@@ -34,9 +33,9 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
     return (
       <form onSubmit={handleSubmit(onSubmit)} >
         <div className='mb-2'>
-          {this.renderSwitchModelsButton()}
+          {this.renderDiscardButton()}
         </div>
-        <DeployStatusTable
+        <ServicesStatusTable
           {...this.props}
         />
         <hr />
@@ -45,11 +44,10 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
     )
   }
 
-  renderSwitchModelsButton = () => {
-    const { mode, changeMode } = this.props
+  renderDiscardButton = () => {
+    const { mode } = this.props
 
     switch (mode) {
-      case ControlMode.EDIT_DEPLOY_STATUS:
       case ControlMode.SELECT_TARGETS:
         return (
           <Button outline color='danger' onClick={this.handleDiscardChanges}>
@@ -58,16 +56,7 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
           </Button>
         )
       default:
-        return (
-          <div>
-            <Button color='success'
-              onClick={(event) => {changeMode(ControlMode.EDIT_DEPLOY_STATUS)}}
-            >
-              <i className={`fas fa-screwdriver fa-fw mr-2`}></i>
-              Switch models
-            </Button>
-          </div>
-        )
+        return null
     }
   }
 
@@ -84,15 +73,14 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
       pristine
     } = this.props
 
-    const showSubmitButton: boolean = mode !== ControlMode.VIEW_DEPLOY_STATUS
+    const showSubmitButton: boolean = mode !== ControlMode.VIEW_SERVICES_STATUS
 
     if (!showSubmitButton) {
       return null
     }
 
     const paramsMap = {
-      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services/Models' },
-      [ControlMode.EDIT_DEPLOY_STATUS]: { color: 'success', icon: 'save', text: 'Save Changes' }
+      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services' },
     }
 
     // Submit button element(s)
@@ -122,32 +110,14 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
 
   renderSubmitButtonElements() {
     const {
-      mode,
       submitting,
       pristine
     } = this.props
 
     const paramsMap = {
-      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services/Models' },
-      [ControlMode.EDIT_DEPLOY_STATUS]: { color: 'success', icon: 'save', text: 'Save Changes' }
+      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services' },
     }
 
-    // Submit button element(s)
-    if (mode === ControlMode.EDIT_DEPLOY_STATUS) {
-      return (
-        <div className='mb-2'>
-          <Button
-            color='success'
-            className='mr-2'
-            disabled={pristine || submitting}
-            type='submit'
-          >
-            <i className='fas fa-save fa-fw mr-2'></i>
-            Save Changes
-          </Button>
-        </div>
-      )
-    }
     return (
       <div className='mb-2'>
         <Button
@@ -156,7 +126,7 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
           disabled={pristine || submitting}
         >
           <i className='fas fa-trash fa-fw mr-2'></i>
-          Delete Services/Models
+          Delete Services
       </Button>
       </div>
     )
@@ -167,30 +137,27 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
   handleDiscardChanges(event): void {
     const { changeMode, reset } = this.props
     reset()
-    changeMode(ControlMode.VIEW_DEPLOY_STATUS)
+    changeMode(ControlMode.VIEW_SERVICES_STATUS)
   }
 }
 
-interface DeployStatusFormCustomProps {
+interface ServicesDeleteFormCustomProps {
   applicationType: string
   applicationId
   mode: ControlMode
-  models
   services: Service[]
-  deployStatus
   onSubmit: (e) => Promise<void>
   changeMode: (mode: ControlMode) => void
 }
 
 interface StateProps {
-  switchModelsStatus: APIRequest<boolean[]>
   initialValues: {
     status
     delete
   }
 }
 
-const mapStateToProps = (state: any, extraProps: DeployStatusFormCustomProps) => {
+const mapStateToProps = (state: any, extraProps: ServicesDeleteFormCustomProps) => {
   // Map of service ID to delete flag
   const initialDeleteStatus: { [x: string]: boolean } =
     extraProps.services
@@ -200,7 +167,6 @@ const mapStateToProps = (state: any, extraProps: DeployStatusFormCustomProps) =>
   return {
     ...state.form,
     initialValues: {
-      status: extraProps.deployStatus,
       delete: {
         services: initialDeleteStatus
       }
@@ -212,13 +178,13 @@ const mapDispatchToProps = (dispatch): {} => {
   return { }
 }
 
-type DeployStatusFormProps
-  = StateProps & DeployStatusFormCustomProps & InjectedFormProps<{}, DeployStatusFormCustomProps>
+type ServicesDeleteFormProps
+  = StateProps & ServicesDeleteFormCustomProps & InjectedFormProps<{}, ServicesDeleteFormCustomProps>
 
 export default connect(mapStateToProps, mapDispatchToProps)(
-  reduxForm<{}, DeployStatusFormCustomProps>(
+  reduxForm<{}, ServicesDeleteFormCustomProps>(
     {
       form: 'deployStatusForm'
     }
-  )(DeployStatusForm)
+  )(ServicesDeleteForm)
 )

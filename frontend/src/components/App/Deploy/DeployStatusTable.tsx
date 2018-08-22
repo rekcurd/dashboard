@@ -107,7 +107,7 @@ class DeployStatusTable extends React.Component<DeployStatusProps, {tooltipOpen}
    */
   renderTableBody = () => {
     const {
-      selectModelMode, models
+      selectModelMode, models, applicationId, mode
     } = this.props
 
     const modelSelectCheckBox = (model: Model) => (
@@ -119,6 +119,32 @@ class DeployStatusTable extends React.Component<DeployStatusProps, {tooltipOpen}
       />
     )
 
+    const deleteCheckButton = (modelName: string, modelId: string) => {
+      return (
+        <Row>
+          <Field
+            name={`delete.models.${modelId}`}
+            component={CustomCheckBox}
+            id={`model-${modelId}`}
+            label=''
+            className='mr-1'
+          />
+          <Link className='text-info' to={`/applications/${applicationId}/models/${modelId}/edit`}>
+            {modelName}
+          </Link>
+        </Row>
+      )
+    }
+
+    const renderButton = (modelName, modelId) => {
+      const renderMap = {
+        [ControlMode.VIEW_DEPLOY_STATUS] : deleteCheckButton(modelName, modelId),
+        [ControlMode.SELECT_TARGETS] : deleteCheckButton(modelName, modelId),
+        [ControlMode.EDIT_DEPLOY_STATUS]: <span>{modelName}</span>
+      }
+      return renderMap[mode]
+    }
+
     return (
       <tbody>
         {
@@ -126,7 +152,7 @@ class DeployStatusTable extends React.Component<DeployStatusProps, {tooltipOpen}
             (model: Model, index: number) => (
               <tr key={index}>
                 <td>
-                  {selectModelMode ? modelSelectCheckBox(model) : model.name}
+                  {selectModelMode ? modelSelectCheckBox(model) : renderButton(model.name, model.id)}
                 </td>
                 {this.renderStatusRow(model)}
               </tr>
