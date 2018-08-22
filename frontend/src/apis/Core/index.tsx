@@ -182,7 +182,7 @@ export async function rawRequest<T = any>(
 
   return fetch(entryPoint, fullOptions)
     .then((response) => {
-      return _handleAPIResponse<T>(response, convert)
+      return _handleAPIResponse<T>(entryPoint, response, convert)
     })
     .catch((error) => {
       if (error instanceof APIError) {
@@ -231,8 +231,8 @@ export async function rawMultiRequest<T = any>(
   )
   .then((responses) => {
     return responses.map(
-      (response) => {
-        return _handleAPIResponse<T>(response, convert)
+      (response, i) => {
+        return _handleAPIResponse<T>(entryPoints[i], response, convert)
       })
   })
   .catch((error) => { throw new APIError(error.message) })
@@ -246,6 +246,7 @@ function generateFormData(params) {
 }
 
 function _handleAPIResponse<T = any>(
+  entryPoint: string,
   response: Response,
   convert: (response) => T = (r) => r
 ): Promise<any> {
@@ -255,6 +256,18 @@ function _handleAPIResponse<T = any>(
   }
 
   // Throw API error exception
+  if (entryPoint.endsWith('/credential')) {
+    return new Promise((_, reject) => {
+      response.json()
+        .then((resultJSON) => {
+          reject(new APIError(
+            resultJSON.message,
+            APIErrorType.serverside,
+            response.status
+          ))
+        })
+    })
+  }
   response.json().then(
     (resultJSON) => {
       throw new APIError(
