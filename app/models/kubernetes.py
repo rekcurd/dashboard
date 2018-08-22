@@ -16,6 +16,7 @@ class Kubernetes(db.Model):
     __table_args__ = (
         UniqueConstraint('kubernetes_id'),
         UniqueConstraint('config_path'),
+        UniqueConstraint('dns_name'),
         UniqueConstraint('display_name'),
         {'mysql_engine': 'InnoDB'}
     )

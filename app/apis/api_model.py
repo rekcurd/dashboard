@@ -4,12 +4,12 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 
 from werkzeug.datastructures import FileStorage
 
+from app import logger
 from models import db
 from models.service import Service
 from models.model import Model
-
 from core.drucker_dashboard_client import DruckerDashboardClient
-from apis.common import logger, DatetimeToTimestamp
+from apis.common import DatetimeToTimestamp
 
 
 mdl_info_namespace = Namespace('models', description='Model Endpoint.')
