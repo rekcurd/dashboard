@@ -948,8 +948,8 @@ class ApiKubernetesId(Resource):
     @kube_info_namespace.marshal_with(success_or_not)
     def delete(self, kubernetes_id:int):
         """delete_kubernetes_id"""
-        res = db.session.query(Application).filter(Application.kubernetes_id == kubernetes_id).one_or_none()
-        if res is not None:
+        aobj = db.session.query(Application).filter(Application.kubernetes_id == kubernetes_id).all()
+        for res in aobj:
             application_id = res.application_id
             db.session.query(Model).filter(Model.application_id == application_id).delete()
             db.session.query(Service).filter(Service.application_id == application_id).delete()
