@@ -1,11 +1,12 @@
 {
   "environments": [
-    "development", "beta", "staging", "production"
+    "development", "beta", "staging", "sandbox", "production"
   ],
   "environmentsToName": {
     "development": "Development",
     "beta": "Beta",
     "staging": "Staging",
+    "sandbox": "Sandbox",
     "production": "Production"
   }
 }
