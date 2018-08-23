@@ -45,7 +45,7 @@ srv_info = srv_info_namespace.model('Service', {
     ),
     'service_level': fields.String(
         required=True,
-        description='Service level. [development/beta/staging/production]',
+        description='Service level. [development/beta/staging/sandbox/production]',
         example='development'
     ),
     'register_date': DatetimeToTimestamp(

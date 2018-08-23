@@ -98,7 +98,7 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     ),
     'service_level': fields.String(
         required=True,
-        description='Service level. Choose from [development/beta/staging/production].',
+        description='Service level. Choose from [development/beta/staging/sandbox/production].',
         example='development'
     ),
     'service_name': fields.String(
@@ -243,7 +243,7 @@ kube_file_parser.add_argument('description', type=str, required=False, location=
 
 kube_deploy_parser = reqparse.RequestParser()
 kube_deploy_parser.add_argument('app_name', type=str, default='drucker-sample', required=True, help='Application name. This must be unique.', location='form')
-kube_deploy_parser.add_argument('service_level', type=str, required=True, choices=('development','beta','staging','production'), help='Service level. Choose from [development/beta/staging/production].', location='form')
+kube_deploy_parser.add_argument('service_level', type=str, required=True, choices=('development','beta','staging','sandbox','production'), help='Service level. Choose from [development/beta/staging/sandbox/production].', location='form')
 kube_deploy_parser.add_argument('service_port', type=int, default=5000, required=True, help='Service port.', location='form')
 
 kube_deploy_parser.add_argument('replicas_default', type=int, default=1, required=True, help='Number of first replica.', location='form')
