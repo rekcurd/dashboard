@@ -112,7 +112,7 @@ app/db.sqlite3
 app/db.test.sqlite3
 
 # DB migration
-app/migration/versions/
+app/migrations/
 
 # Kube config
 app/kube-config/
