@@ -5,15 +5,15 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 
 from werkzeug.datastructures import FileStorage
 
+from app import logger
 from models import db
 from models.kubernetes import Kubernetes
 from models.application import Application
 from models.service import Service
 from models.model import Model
-
 from core.drucker_dashboard_client import DruckerDashboardClient
 from utils.env_loader import DIR_KUBE_CONFIG, DRUCKER_GRPC_VERSION
-from apis.common import logger, DatetimeToTimestamp, kubernetes_cpu_to_float
+from apis.common import DatetimeToTimestamp, kubernetes_cpu_to_float
 
 
 kube_info_namespace = Namespace('kubernetes', description='Kubernetes Endpoint.')
@@ -324,9 +324,7 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
             continue
 
         sobj = db.session.query(Service).filter(
-            Service.application_id == aobj.application_id,
-            Service.service_name == service_name,
-            Service.service_level == service_level).one_or_none()
+            Service.service_name == service_name).one_or_none()
         if sobj is None:
             display_name = uuid.uuid4().hex
             sobj = Service(application_id=aobj.application_id,

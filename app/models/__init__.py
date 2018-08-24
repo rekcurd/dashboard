@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from utils.env_loader import (
+    TEST_MODE,
     DB_MODE,
     DB_MYSQL_HOST,
     DB_MYSQL_PORT,
@@ -23,11 +24,12 @@ def db_url():
     :TODO: Use an appropriate "Exception"
     """
     if DB_MODE == "sqlite":
-        url = f'sqlite:///db.sqlite3'
+        db_name = "db.test.sqlite3" if TEST_MODE else "db.sqlite3"
+        url = f'sqlite:///{db_name}'
     elif DB_MODE == "mysql":
         host = DB_MYSQL_HOST
         port = DB_MYSQL_PORT
-        db_name = DB_MYSQL_DBNAME
+        db_name = "test_"+DB_MYSQL_DBNAME if TEST_MODE else DB_MYSQL_DBNAME
         user = DB_MYSQL_USER
         password = DB_MYSQL_PASSWORD
         url = f'mysql+pymysql://{user}:{password}@{host}:{port}/{db_name}?charset=utf8'

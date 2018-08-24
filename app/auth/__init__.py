@@ -4,8 +4,8 @@ from flask import jsonify, request
 from flask_jwt_simple import JWTManager, create_jwt, get_jwt_identity, jwt_required
 from jwt.exceptions import PyJWTError
 from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
-from apis import logger
 from auth.ldap import LdapAuthenticator
+from app import logger
 from utils.env_loader import config
 
 
@@ -37,7 +37,7 @@ class Auth(object):
             authenticator = LdapAuthenticator(auth_conf['ldap'])
 
         # Add endpoints
-        @app.route('/login', methods=['POST'])
+        @app.route('/api/login', methods=['POST'])
         def login():
             params = request.get_json()
             username = params.get('username', None)
@@ -49,7 +49,7 @@ class Auth(object):
             else:
                 return jsonify({'message': 'Authentication failed'}), 401
 
-        @app.route('/credential', methods=['GET'])
+        @app.route('/api/credential', methods=['GET'])
         @jwt_required
         def credential():
             user = get_jwt_identity()

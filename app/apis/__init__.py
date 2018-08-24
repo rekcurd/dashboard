@@ -1,12 +1,12 @@
 import traceback
-from flask_restplus import Api, Resource
+from flask_restplus import Api
+from app import logger
 from apis.api_kubernetes import kube_info_namespace
 from apis.api_application import app_info_namespace
 from apis.api_service import srv_info_namespace
 from apis.api_model import mdl_info_namespace
-from apis.common import logger
+from apis.api_misc import misc_info_namespace
 from auth import Auth
-from utils.env_loader import config
 from kubernetes.client.rest import ApiException
 from models import db
 
@@ -17,15 +17,6 @@ api = Api(
     description='Drucker dashboard API',
     decorators=[Auth.auth_required]
 )
-
-
-@api.route('/settings')
-class Settings(Resource):
-    def get(self):
-        result = {
-            'auth': 'auth' in config
-        }
-        return result
 
 
 @api.errorhandler(ApiException)
@@ -49,3 +40,4 @@ api.add_namespace(kube_info_namespace, path='/api/kubernetes')
 api.add_namespace(app_info_namespace, path='/api/applications')
 api.add_namespace(srv_info_namespace, path='/api/applications')
 api.add_namespace(mdl_info_namespace, path='/api/applications')
+api.add_namespace(misc_info_namespace, path='/api')
