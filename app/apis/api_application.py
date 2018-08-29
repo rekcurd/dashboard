@@ -4,12 +4,12 @@ from werkzeug.datastructures import FileStorage
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 
+from app import logger
 from models import db
 from models.application import Application
 from models.service import Service
-
 from core.drucker_dashboard_client import DruckerDashboardClient
-from apis.common import logger, DatetimeToTimestamp
+from apis.common import DatetimeToTimestamp
 
 
 app_info_namespace = Namespace('applications', description='Application Endpoint.')
@@ -102,13 +102,17 @@ class ApiApplications(Resource):
                                description=description)
             db.session.add(aobj)
             db.session.flush()
-        sobj = Service(application_id=aobj.application_id,
-                       service_name=service_name,
-                       display_name=display_name,
-                       service_level=service_level,
-                       host=host,
-                       description=description)
-        db.session.add(sobj)
+        sobj = db.session.query(Service).filter(
+            Service.service_name == service_name).one_or_none()
+        if sobj is None:
+            sobj = Service(application_id=aobj.application_id,
+                           service_name=service_name,
+                           display_name=display_name,
+                           service_level=service_level,
+                           host=host,
+                           description=description)
+            db.session.add(sobj)
+            db.session.flush()
         response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()

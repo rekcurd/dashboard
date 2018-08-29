@@ -225,16 +225,13 @@ export async function rawMultiRequest<T = any>(
   }
   return Promise.all(
     entryPoints.map(
-      (entryPoint, i) =>
-        fetch(entryPoint, fullOptionsList[i])
+      (entryPoint, i) => {
+        return fetch(entryPoint, fullOptionsList[i]).then((response) => {
+          return _handleAPIResponse<T>(response, convert)
+        })
+      }
     )
   )
-  .then((responses) => {
-    return responses.map(
-      (response) => {
-        return _handleAPIResponse<T>(response, convert)
-      })
-  })
   .catch((error) => { throw new APIError(error.message) })
 }
 
@@ -253,15 +250,14 @@ function _handleAPIResponse<T = any>(
     return response.json()
       .then((resultJSON) => convert(resultJSON))
   }
-
-  // Throw API error exception
-  response.json().then(
-    (resultJSON) => {
-      throw new APIError(
-        resultJSON.message,
-        APIErrorType.serverside,
-        response.status
-      )
-    }
-  )
+  return new Promise((_, reject) => {
+    response.json()
+      .then((resultJSON) => {
+        reject(new APIError(
+          resultJSON.message,
+          APIErrorType.serverside,
+          response.status
+        ))
+      })
+  })
 }

@@ -532,7 +532,7 @@ export async function login(param: LoginParam) {
     }
   }
   return APICore.postJsonRequest(
-    `${process.env.API_HOST}:${process.env.API_PORT}/login`,
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/login`,
     param,
     convert
   )
@@ -540,7 +540,7 @@ export async function login(param: LoginParam) {
 
 export async function settings(): Promise<any> {
   return APICore.getRequest(
-    `${process.env.API_HOST}:${process.env.API_PORT}/settings`
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/settings`
   )
 }
 
@@ -551,7 +551,7 @@ export async function userInfo(): Promise<UserInfo> {
     }
   }
   return APICore.getRequest(
-    `${process.env.API_HOST}:${process.env.API_PORT}/credential`,
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/credential`,
     convert
   )
 }

@@ -1,5 +1,15 @@
 # Change Log
 
+## [v0.3.2](https://github.com/drucker/drucker-dashboard/tree/v0.3.2) (2018-08-22)
+[Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.1...v0.3.2)
+
+**Merged pull requests:**
+
+- Fix MultipleResultsFound error [\#15](https://github.com/drucker/drucker-dashboard/pull/15) ([keigohtr](https://github.com/keigohtr))
+- \[Hotfix\] Add `JWT\_TOKEN\_KEY` when fetch `rawMultiRequest` [\#13](https://github.com/drucker/drucker-dashboard/pull/13) ([keigohtr](https://github.com/keigohtr))
+- fix invalid datetime [\#12](https://github.com/drucker/drucker-dashboard/pull/12) ([yuki-mt](https://github.com/yuki-mt))
+- Add Service/Model list view [\#11](https://github.com/drucker/drucker-dashboard/pull/11) ([keigohtr](https://github.com/keigohtr))
+
 ## [v0.3.1](https://github.com/drucker/drucker-dashboard/tree/v0.3.1) (2018-08-15)
 [Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.0...v0.3.1)
 

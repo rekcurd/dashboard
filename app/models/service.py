@@ -15,7 +15,7 @@ class Service(db.Model):
     __tablename__ = 'services'
     __table_args__ = (
         UniqueConstraint('service_id'),
-        UniqueConstraint('service_name', 'service_level'),
+        UniqueConstraint('service_name'),
         UniqueConstraint('application_id','display_name'),
         {'mysql_engine': 'InnoDB'}
     )

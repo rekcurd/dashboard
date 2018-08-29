@@ -13,3 +13,5 @@ flask-restplus==0.11.0
 Flask-Testing==0.7.1
 Flask-JWT-Simple==0.0.3
 python-ldap==3.1.0
+Flask-Migrate==2.2.1
+Flask-Script==2.0.6

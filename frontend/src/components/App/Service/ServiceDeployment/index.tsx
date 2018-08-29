@@ -57,7 +57,7 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
 
   componentWillMount() {
     this.props.fetchKubernetesHostById({id: this.props.kubernetesId})
-    this.props.fetchAllModels({application_id: this.props.match.params.applicationId})
+    this.props.fetchAllModels({applicationId: this.props.match.params.applicationId})
     if (this.props.mode === 'edit') {
       this.props.fetchServiceById(
         {

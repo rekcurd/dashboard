@@ -1,5 +1,5 @@
 import ldap
-from apis import logger
+from app import logger
 
 
 class LdapAuthenticator(object):

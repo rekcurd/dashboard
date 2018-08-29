@@ -1,19 +1,19 @@
-import os, uuid, shutil
+import os, uuid, shutil, json, pathlib
 from datetime import datetime, timedelta
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 
 from werkzeug.datastructures import FileStorage
 
+from app import logger
 from models import db
 from models.kubernetes import Kubernetes
 from models.application import Application
 from models.service import Service
 from models.model import Model
-
 from core.drucker_dashboard_client import DruckerDashboardClient
 from utils.env_loader import DIR_KUBE_CONFIG, DRUCKER_GRPC_VERSION
-from apis.common import logger, DatetimeToTimestamp, kubernetes_cpu_to_float
+from apis.common import DatetimeToTimestamp, kubernetes_cpu_to_float
 
 
 kube_info_namespace = Namespace('kubernetes', description='Kubernetes Endpoint.')
@@ -98,7 +98,7 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     ),
     'service_level': fields.String(
         required=True,
-        description='Service level. Choose from [development/beta/staging/production].',
+        description='Service level. Choose from [development/beta/staging/sandbox/production].',
         example='development'
     ),
     'service_name': fields.String(
@@ -243,7 +243,7 @@ kube_file_parser.add_argument('description', type=str, required=False, location=
 
 kube_deploy_parser = reqparse.RequestParser()
 kube_deploy_parser.add_argument('app_name', type=str, default='drucker-sample', required=True, help='Application name. This must be unique.', location='form')
-kube_deploy_parser.add_argument('service_level', type=str, required=True, choices=('development','beta','staging','production'), help='Service level. Choose from [development/beta/staging/production].', location='form')
+kube_deploy_parser.add_argument('service_level', type=str, required=True, choices=('development','beta','staging','sandbox','production'), help='Service level. Choose from [development/beta/staging/sandbox/production].', location='form')
 kube_deploy_parser.add_argument('service_port', type=int, default=5000, required=True, help='Service port.', location='form')
 
 kube_deploy_parser.add_argument('replicas_default', type=int, default=1, required=True, help='Number of first replica.', location='form')
@@ -324,9 +324,7 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
             continue
 
         sobj = db.session.query(Service).filter(
-            Service.application_id == aobj.application_id,
-            Service.service_name == service_name,
-            Service.service_level == service_level).one_or_none()
+            Service.service_name == service_name).one_or_none()
         if sobj is None:
             display_name = uuid.uuid4().hex
             sobj = Service(application_id=aobj.application_id,
@@ -342,6 +340,7 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
         else:
             sobj.confirm_date = datetime.utcnow()
             db.session.flush()
+        dump_drucker_on_kubernetes(kobj.kubernetes_id, aobj.application_id, sobj.service_id)
     for application_name in applist:
         aobj = db.session.query(Application).filter(
             Application.application_name == application_name,
@@ -812,6 +811,97 @@ def switch_drucker_service_model_assignment(
             namespace=sobj.service_level
         )
     return response_body
+
+def dump_drucker_on_kubernetes(
+        kubernetes_id:int, application_id:int, service_id:int):
+    kobj = Kubernetes.query.filter_by(
+        kubernetes_id=kubernetes_id).one_or_none()
+    if kobj is None:
+        raise Exception("No such kubernetes_id.")
+    aobj = Application.query.filter_by(
+        application_id=application_id).one_or_none()
+    if aobj is None:
+        raise Exception("No such application_id.")
+    sobj = Service.query.filter_by(
+        service_id=service_id).one_or_none()
+    if sobj is None:
+        raise Exception("No such service_id.")
+
+    config_path = kobj.config_path
+    from kubernetes import client, config
+    config.load_kube_config(config_path)
+    save_dir = pathlib.Path(DIR_KUBE_CONFIG, aobj.application_name)
+    if not os.path.isdir(save_dir):
+        os.mkdir(save_dir)
+    api_client = client.ApiClient()
+
+    apps_v1 = client.AppsV1Api()
+    v1_deployment = apps_v1.read_namespaced_deployment(
+        name="{0}-deployment".format(sobj.service_name),
+        namespace=sobj.service_level,
+        exact=True,
+        export=True
+    )
+    json.dump(api_client.sanitize_for_serialization(v1_deployment),
+              pathlib.Path(
+                  DIR_KUBE_CONFIG,
+                  aobj.application_name,
+                  "{0}-deployment.json".format(sobj.service_name)).open("w"),
+              ensure_ascii = False, indent = 2)
+    core_vi = client.CoreV1Api()
+    v1_service = core_vi.read_namespaced_service(
+        name="{0}-service".format(sobj.service_name),
+        namespace=sobj.service_level,
+        exact=True,
+        export=True
+    )
+    json.dump(api_client.sanitize_for_serialization(v1_service),
+              pathlib.Path(
+                  DIR_KUBE_CONFIG,
+                  aobj.application_name,
+                  "{0}-service.json".format(sobj.service_name)).open("w"),
+              ensure_ascii = False, indent = 2)
+    extensions_v1_beta = client.ExtensionsV1beta1Api()
+    v1_beta1_ingress = extensions_v1_beta.read_namespaced_ingress(
+        name="{0}-ingress".format(sobj.service_name),
+        namespace=sobj.service_level,
+        exact=True,
+        export=True
+    )
+    json.dump(api_client.sanitize_for_serialization(v1_beta1_ingress),
+              pathlib.Path(
+                  DIR_KUBE_CONFIG,
+                  aobj.application_name,
+                  "{0}-ingress.json".format(sobj.service_name)).open("w"),
+              ensure_ascii = False, indent = 2)
+    autoscaling_v1 = client.AutoscalingV1Api()
+    v1_horizontal_pod_autoscaler = autoscaling_v1.read_namespaced_horizontal_pod_autoscaler(
+        name="{0}-autoscaling".format(sobj.service_name),
+        namespace=sobj.service_level,
+        exact=True,
+        export=True
+    )
+    json.dump(api_client.sanitize_for_serialization(v1_horizontal_pod_autoscaler),
+              pathlib.Path(
+                  DIR_KUBE_CONFIG,
+                  aobj.application_name,
+                  "{0}-autoscaling.json".format(sobj.service_name)).open("w"),
+              ensure_ascii = False, indent = 2)
+    """
+    autoscaling_v2_beta1 = client.AutoscalingV2beta1Api()
+    v2_beta1_horizontal_pod_autoscaler = autoscaling_v2_beta1.read_namespaced_horizontal_pod_autoscaler(
+        name="{0}-autoscaling".format(sobj.service_name),
+        namespace=sobj.service_level,
+        exact=True,
+        export=True
+    )
+    json.dump(api_client.sanitize_for_serialization(v2_beta1_horizontal_pod_autoscaler),
+              pathlib.Path(
+                  DIR_KUBE_CONFIG,
+                  aobj.application_name,
+                  "{0}-autoscaling.json".format(sobj.service_name)).open("w"),
+              ensure_ascii = False, indent = 2)
+    """
 
 
 @kube_info_namespace.route('/')
