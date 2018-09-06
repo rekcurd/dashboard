@@ -4,8 +4,11 @@ from flask import jsonify, request
 from flask_jwt_simple import JWTManager, create_jwt, get_jwt_identity, jwt_required
 from jwt.exceptions import PyJWTError
 from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
-from auth.ldap import LdapAuthenticator
+
 from app import logger
+from auth.ldap import LdapAuthenticator
+from models import db
+from models.user import User
 from utils.env_loader import config
 
 
@@ -42,9 +45,10 @@ class Auth(object):
             params = request.get_json()
             username = params.get('username', None)
             password = params.get('password', None)
-            user = authenticator.auth_user(username, password)
-            if user is not None:
-                ret = {'jwt': create_jwt(identity=user)}
+            user_info = authenticator.auth_user(username, password)
+            if user_info is not None:
+                user = self.user(user_info)
+                ret = {'jwt': create_jwt(identity=user.user_id)}
                 return jsonify(ret), 200
             else:
                 return jsonify({'message': 'Authentication failed'}), 401
@@ -52,8 +56,11 @@ class Auth(object):
         @app.route('/api/credential', methods=['GET'])
         @jwt_required
         def credential():
-            user = get_jwt_identity()
-            return jsonify({'user': user}), 200
+            user_id = get_jwt_identity()
+            uobj = db.session.query(User).filter(User.user_id == user_id).one_or_none()
+            if uobj is None:
+                return 404
+            return jsonify(uobj.serialize), 200
 
         # Add error handlers
         @api.errorhandler(NoAuthorizationError)
@@ -63,6 +70,16 @@ class Auth(object):
             logger.error(error)
             logger.error(traceback.format_exc())
             return {'message': 'Authorization failed'}, 401
+
+    def user(self, user_info):
+        uobj = db.session.query(User).filter(User.user_uid == user_info['uid']).one_or_none()
+        if uobj is None:
+            uobj = User(user_uid=user_info['uid'],
+                        user_name=user_info['name'])
+            db.session.add(uobj)
+            db.session.commit()
+            db.session.close()
+        return uobj
 
 
 auth = Auth()

@@ -29,7 +29,9 @@ export class AuthToken {
 
 export class UserInfo {
   constructor(
-    public user?: string
+    public userId: string,
+    public userUid: string,
+    public userName: string,
   ) { }
 }
 
@@ -546,9 +548,7 @@ export async function settings(): Promise<any> {
 
 export async function userInfo(): Promise<UserInfo> {
   const convert = (result): UserInfo => {
-    return {
-      user: result.user
-    }
+    return result
   }
   return APICore.getRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/credential`,

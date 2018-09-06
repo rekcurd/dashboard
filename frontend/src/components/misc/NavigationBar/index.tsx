@@ -8,7 +8,7 @@ import {
   Navbar, NavbarBrand, Nav, NavItem,
   Dropdown, DropdownToggle, DropdownMenu, DropdownItem
 } from 'reactstrap'
-import { settingsDispatcher, userInfoDispatcher } from '@src/actions'
+import { userInfoDispatcher } from '@src/actions'
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
 import { JWT_TOKEN_KEY } from '@src/apis/Core'
 
@@ -77,7 +77,7 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
   }
   renderUserInfo(result) {
     const { dropdownOpen } = this.state
-    const userName: string = result.userInfo.user
+    const userName: string = result.userInfo.user_name
     return (
       <Dropdown isOpen={dropdownOpen} toggle={this.toggle.bind(this)}>
         <DropdownToggle className='btn btn-sm btn-outline-secondary' caret>
