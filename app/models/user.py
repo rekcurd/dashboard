@@ -3,12 +3,13 @@ from sqlalchemy import (
     Column, Integer, String, DateTime,
     UniqueConstraint
 )
+from sqlalchemy.orm import relationship
 from models import db
 
 
 class User(db.Model):
     """
-    Applications
+    Users
     """
     __tablename__ = 'users'
     __table_args__ = (
@@ -21,6 +22,7 @@ class User(db.Model):
     user_uid = Column(String(512), nullable=True)
     user_name = Column(String(512), nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    applications = relationship('ApplicationUserRole', lazy='joined', innerjoin=True)
 
     @property
     def serialize(self):

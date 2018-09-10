@@ -3,11 +3,13 @@ import uuid
 from werkzeug.datastructures import FileStorage
 
 from flask_restplus import Namespace, fields, Resource, reqparse
+from flask_jwt_simple import get_jwt_identity
 
 from app import logger
 from models import db
 from models.application import Application
 from models.service import Service
+from models.user import User
 from core.drucker_dashboard_client import DruckerDashboardClient
 from apis.common import DatetimeToTimestamp
 
@@ -68,6 +70,7 @@ class ApiEvaluate(Resource):
         response_body = drucker_dashboard_application.run_evaluate_model(file.read())
         return response_body
 
+
 @app_info_namespace.route('/')
 class ApiApplications(Resource):
     add_worker_parser = reqparse.RequestParser()
@@ -77,6 +80,10 @@ class ApiApplications(Resource):
     @app_info_namespace.marshal_list_with(app_info)
     def get(self):
         """get_applications"""
+        user_id = get_jwt_identity()
+        if user_id is not None:
+            uobj = db.session.query(User).filter(User.user_id == user_id).one()
+            return [assoc.application for assoc in uobj.applications]
         return Application.query.all()
 
     @app_info_namespace.marshal_with(success_or_not)

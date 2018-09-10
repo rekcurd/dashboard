@@ -24,7 +24,10 @@ class Auth(object):
         @wraps(fn)
         def wrapper(*args, **kwargs):
             if Auth.enabled and request.path.startswith('/api/') and not request.path.startswith('/api/settings'):
-                return jwt_required(fn(*args, **kwargs))
+                @jwt_required
+                def run():
+                    return fn(*args, **kwargs)
+                return run()
             else:
                 return fn(*args, **kwargs)
         return wrapper

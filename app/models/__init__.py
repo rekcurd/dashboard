@@ -42,3 +42,4 @@ from models.application import Application
 from models.service import Service
 from models.model import Model
 from models.user import User
+from models.application_user_role import ApplicationUserRole
