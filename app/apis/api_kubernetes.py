@@ -94,7 +94,8 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     'app_name': fields.String(
         required=True,
         description='Application name.',
-        example='drucker-sample'
+        example='drucker-sample',
+        max_length=20
     ),
     'service_level': fields.String(
         required=True,
@@ -104,7 +105,8 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     'service_name': fields.String(
         readOnly=True,
         description='Service tag.',
-        example='dev-123456789'
+        example='dev-123456789',
+        max_length=20
     ),
     'service_port': fields.Integer(
         required=True,
@@ -359,6 +361,8 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
 def create_or_update_drucker_on_kubernetes(
         kubernetes_id:int, args:dict, service_name:str=None):
     app_name = args['app_name']
+    if len(app_name) >= 20:
+        raise Exception("Application Name is too long. Up to 20.")
     service_level = args['service_level']
     service_port = args['service_port']
     replicas_default = args['replicas_default']
