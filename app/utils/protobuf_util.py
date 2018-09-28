@@ -19,6 +19,6 @@ class ProtobufUtil:
             return result
 
     @staticmethod
-    def stream_file(f:FileStorage, size:int=100*1024*1024) -> bytes:
+    def stream_file(f:FileStorage, size:int=4190000) -> bytes:
         for byte in iter(lambda: f.read(size), b''):
             yield byte
