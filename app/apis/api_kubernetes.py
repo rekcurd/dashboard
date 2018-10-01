@@ -361,7 +361,7 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
 def create_or_update_drucker_on_kubernetes(
         kubernetes_id:int, args:dict, service_name:str=None):
     app_name = args['app_name']
-    if len(app_name) >= 20:
+    if len(app_name) > 20:
         raise Exception("Application Name is too long. Up to 20.")
     service_level = args['service_level']
     service_port = args['service_port']
