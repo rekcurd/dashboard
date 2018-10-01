@@ -846,7 +846,7 @@ def dump_drucker_on_kubernetes(
               pathlib.Path(
                   DIR_KUBE_CONFIG,
                   aobj.application_name,
-                  "{0}-deployment.json".format(sobj.service_name)).open("w"),
+                  "{0}-deployment.json".format(sobj.service_name)).open("w", encoding='utf-8'),
               ensure_ascii = False, indent = 2)
     core_vi = client.CoreV1Api()
     v1_service = core_vi.read_namespaced_service(
@@ -859,7 +859,7 @@ def dump_drucker_on_kubernetes(
               pathlib.Path(
                   DIR_KUBE_CONFIG,
                   aobj.application_name,
-                  "{0}-service.json".format(sobj.service_name)).open("w"),
+                  "{0}-service.json".format(sobj.service_name)).open("w", encoding='utf-8'),
               ensure_ascii = False, indent = 2)
     extensions_v1_beta = client.ExtensionsV1beta1Api()
     v1_beta1_ingress = extensions_v1_beta.read_namespaced_ingress(
@@ -872,7 +872,7 @@ def dump_drucker_on_kubernetes(
               pathlib.Path(
                   DIR_KUBE_CONFIG,
                   aobj.application_name,
-                  "{0}-ingress.json".format(sobj.service_name)).open("w"),
+                  "{0}-ingress.json".format(sobj.service_name)).open("w", encoding='utf-8'),
               ensure_ascii = False, indent = 2)
     autoscaling_v1 = client.AutoscalingV1Api()
     v1_horizontal_pod_autoscaler = autoscaling_v1.read_namespaced_horizontal_pod_autoscaler(
@@ -885,7 +885,7 @@ def dump_drucker_on_kubernetes(
               pathlib.Path(
                   DIR_KUBE_CONFIG,
                   aobj.application_name,
-                  "{0}-autoscaling.json".format(sobj.service_name)).open("w"),
+                  "{0}-autoscaling.json".format(sobj.service_name)).open("w", encoding='utf-8'),
               ensure_ascii = False, indent = 2)
     """
     autoscaling_v2_beta1 = client.AutoscalingV2beta1Api()
@@ -899,7 +899,7 @@ def dump_drucker_on_kubernetes(
               pathlib.Path(
                   DIR_KUBE_CONFIG,
                   aobj.application_name,
-                  "{0}-autoscaling.json".format(sobj.service_name)).open("w"),
+                  "{0}-autoscaling.json".format(sobj.service_name)).open("w", encoding='utf-8'),
               ensure_ascii = False, indent = 2)
     """
 

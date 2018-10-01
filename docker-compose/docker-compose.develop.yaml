@@ -28,6 +28,7 @@ services:
       - ../app:/root/drucker-dashboard
     environment:
       FLASK_DEBUG: "True"
+      PYTHONIOENCODING: "utf-8"
     command:
       - /bin/bash
       - -c
