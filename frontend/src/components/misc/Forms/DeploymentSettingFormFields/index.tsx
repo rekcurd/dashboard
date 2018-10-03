@@ -5,7 +5,7 @@ import { CardTitle, UncontrolledTooltip } from 'reactstrap'
 
 import { KubernetesHost, Model } from '@src/apis'
 import { SingleFormField } from '@common/Field/SingleFormField'
-import { required, applicationNameFormat } from '@common/Field/Validateors'
+import { required, applicationNameFormat, maxLength20 } from '@common/Field/Validateors'
 
 declare var REACT_APP_CONFIG: any
 
@@ -68,7 +68,7 @@ class DeploymentSettingFormFields extends React.Component<FormProps> {
         component={SingleFormField} type='text'
         className='form-control' id='applicationlName'
         formText={`Name of ${resource}, must be unique`}
-        validate={[required, applicationNameFormat]}
+        validate={[required, applicationNameFormat, maxLength20]}
         required
       />
     )
