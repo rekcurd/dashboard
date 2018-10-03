@@ -14,6 +14,7 @@ import Service from './Service'
 import Model from './Model'
 import Settings from './Settings'
 import Login from './Login'
+import Admin from './Admin'
 import * as Kubernetes from './Kubernetes'
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
 import { AppState } from '@src/reducers'
@@ -60,7 +61,7 @@ class AppComponent extends React.Component<AppProps> {
           <Redirect exact from='/' to='/applications' />
           <Route exact path='/applications' component={Applications} />
           <Route exact path='/applications/add' component={SaveApplication} />
-          <Route path='/applications/:applicationId' component={ApplicationRoute} />
+          <Route path='/applications/:applicationId' render={() => <ApplicationRoute settings={settings} />} />
           <Route path='/settings' component={SettingsRoute} />
           {login}
         </Switch>
@@ -77,22 +78,37 @@ export const App = connect<AppStateProps, AppDispatchProps>(
   }),
 )(AppComponent)
 
-const ApplicationRoute = () => (
-  <Application>
-    <Switch>
-      <Route path='/applications/:applicationId/dashboard' component={Deploy} />
-      <Route exact path='/applications/:applicationId/services' component={Services} />
-      <Route exact path='/applications/:applicationId/models' component={Models} />
-      <Route path='/applications/:applicationId/services/add'
-        render={(props) => <Service {...props} mode='add'/>} />
-      <Route path='/applications/:applicationId/services/:serviceId/edit'
-        render={(props) => <Service {...props} mode='edit'/>} />
-      <Route path='/applications/:applicationId/models/:modelId/edit'
-             render={(props) => <Model {...props} mode='edit'/>} />
-      <Redirect exact from='/applications/:applicationId' to='/applications/:applicationId/dashboard' />
-    </Switch>
-  </Application>
-)
+interface ApplicationRouteProps {
+  settings: any
+}
+class ApplicationRoute extends React.Component<ApplicationRouteProps> {
+  render() {
+    const { settings } = this.props
+    let admin
+    if (settings.auth) {
+      admin = <Route path='/applications/:applicationId/admin' component={Admin} />
+    } else {
+      admin = <Redirect from='/applications/:applicationId/admin' to='/applications/:applicationId' />
+    }
+    return (
+      <Application>
+        <Switch>
+          <Route path='/applications/:applicationId/dashboard' component={Deploy} />
+          <Route exact path='/applications/:applicationId/services' component={Services} />
+          <Route exact path='/applications/:applicationId/models' component={Models} />
+          <Route path='/applications/:applicationId/services/add'
+            render={(props) => <Service {...props} mode='add'/>} />
+          <Route path='/applications/:applicationId/services/:serviceId/edit'
+            render={(props) => <Service {...props} mode='edit'/>} />
+          <Route path='/applications/:applicationId/models/:modelId/edit'
+                render={(props) => <Model {...props} mode='edit'/>} />
+          <Redirect exact from='/applications/:applicationId' to='/applications/:applicationId/dashboard' />
+          {admin}
+        </Switch>
+      </Application>
+    )
+  }
+}
 
 const SettingsRoute = () => (
   <Settings>
