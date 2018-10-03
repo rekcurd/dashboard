@@ -94,7 +94,8 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     'app_name': fields.String(
         required=True,
         description='Application name.',
-        example='drucker-sample'
+        example='drucker-sample',
+        max_length=20
     ),
     'service_level': fields.String(
         required=True,
@@ -104,7 +105,8 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     'service_name': fields.String(
         readOnly=True,
         description='Service tag.',
-        example='dev-123456789'
+        example='dev-123456789',
+        max_length=20
     ),
     'service_port': fields.Integer(
         required=True,
@@ -359,6 +361,8 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
 def create_or_update_drucker_on_kubernetes(
         kubernetes_id:int, args:dict, service_name:str=None):
     app_name = args['app_name']
+    if len(app_name) > 20:
+        raise Exception("Application Name is too long. Up to 20.")
     service_level = args['service_level']
     service_port = args['service_port']
     replicas_default = args['replicas_default']
@@ -846,7 +850,7 @@ def dump_drucker_on_kubernetes(
               pathlib.Path(
                   DIR_KUBE_CONFIG,
                   aobj.application_name,
-                  "{0}-deployment.json".format(sobj.service_name)).open("w"),
+                  "{0}-deployment.json".format(sobj.service_name)).open("w", encoding='utf-8'),
               ensure_ascii = False, indent = 2)
     core_vi = client.CoreV1Api()
     v1_service = core_vi.read_namespaced_service(
@@ -859,7 +863,7 @@ def dump_drucker_on_kubernetes(
               pathlib.Path(
                   DIR_KUBE_CONFIG,
                   aobj.application_name,
-                  "{0}-service.json".format(sobj.service_name)).open("w"),
+                  "{0}-service.json".format(sobj.service_name)).open("w", encoding='utf-8'),
               ensure_ascii = False, indent = 2)
     extensions_v1_beta = client.ExtensionsV1beta1Api()
     v1_beta1_ingress = extensions_v1_beta.read_namespaced_ingress(
@@ -872,7 +876,7 @@ def dump_drucker_on_kubernetes(
               pathlib.Path(
                   DIR_KUBE_CONFIG,
                   aobj.application_name,
-                  "{0}-ingress.json".format(sobj.service_name)).open("w"),
+                  "{0}-ingress.json".format(sobj.service_name)).open("w", encoding='utf-8'),
               ensure_ascii = False, indent = 2)
     autoscaling_v1 = client.AutoscalingV1Api()
     v1_horizontal_pod_autoscaler = autoscaling_v1.read_namespaced_horizontal_pod_autoscaler(
@@ -885,7 +889,7 @@ def dump_drucker_on_kubernetes(
               pathlib.Path(
                   DIR_KUBE_CONFIG,
                   aobj.application_name,
-                  "{0}-autoscaling.json".format(sobj.service_name)).open("w"),
+                  "{0}-autoscaling.json".format(sobj.service_name)).open("w", encoding='utf-8'),
               ensure_ascii = False, indent = 2)
     """
     autoscaling_v2_beta1 = client.AutoscalingV2beta1Api()
@@ -899,7 +903,7 @@ def dump_drucker_on_kubernetes(
               pathlib.Path(
                   DIR_KUBE_CONFIG,
                   aobj.application_name,
-                  "{0}-autoscaling.json".format(sobj.service_name)).open("w"),
+                  "{0}-autoscaling.json".format(sobj.service_name)).open("w", encoding='utf-8'),
               ensure_ascii = False, indent = 2)
     """
 

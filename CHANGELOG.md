@@ -1,5 +1,20 @@
 # Change Log
 
+## [v0.3.3](https://github.com/drucker/drucker-dashboard/tree/v0.3.3) (2018-08-29)
+[Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.2...v0.3.3)
+
+**Merged pull requests:**
+
+- \[Hotfix\] Specify non-auth endpoint [\#29](https://github.com/drucker/drucker-dashboard/pull/29) ([keigohtr](https://github.com/keigohtr))
+- \[Hotfix\] Modify key name [\#28](https://github.com/drucker/drucker-dashboard/pull/28) ([keigohtr](https://github.com/keigohtr))
+- \[Hotfix\] Fix error handling for frontend [\#27](https://github.com/drucker/drucker-dashboard/pull/27) ([sugyan](https://github.com/sugyan))
+- \[Hotfix\] Allow `/api/settings` in auth module [\#26](https://github.com/drucker/drucker-dashboard/pull/26) ([sugyan](https://github.com/sugyan))
+- Add sandbox env [\#24](https://github.com/drucker/drucker-dashboard/pull/24) ([keigohtr](https://github.com/keigohtr))
+- \[Hotfix\] Avoid throwing when credential request comes [\#18](https://github.com/drucker/drucker-dashboard/pull/18) ([keigohtr](https://github.com/keigohtr))
+- Refactor flask app [\#17](https://github.com/drucker/drucker-dashboard/pull/17) ([keigohtr](https://github.com/keigohtr))
+- Add DB migration [\#14](https://github.com/drucker/drucker-dashboard/pull/14) ([keigohtr](https://github.com/keigohtr))
+- Dump running Drucker service configurations for backup [\#7](https://github.com/drucker/drucker-dashboard/pull/7) ([keigohtr](https://github.com/keigohtr))
+
 ## [v0.3.2](https://github.com/drucker/drucker-dashboard/tree/v0.3.2) (2018-08-22)
 [Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.1...v0.3.2)
 
