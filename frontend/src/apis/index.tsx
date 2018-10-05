@@ -35,6 +35,14 @@ export class UserInfo {
   ) { }
 }
 
+export class AccessControlList {
+  constructor(
+    public userUid: string,
+    public userName: string,
+    public role: string,
+  ) { }
+}
+
 export interface ServiceSimple {
   id: number
   name: string // Corresponds to `display_name`
@@ -552,6 +560,20 @@ export async function userInfo(): Promise<UserInfo> {
   }
   return APICore.getRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/credential`,
+    convert
+  )
+}
+
+export async function fetchAccessControlList(param: { applicationId: string }): Promise<AccessControlList[]> {
+  const convert = (results: any): AccessControlList[] => {
+    return results.map((result: any) => new AccessControlList(
+      result.user.user_uid,
+      result.user.user_name,
+      result.role
+    ))
+  }
+  return APICore.getRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${param.applicationId}/acl`,
     convert
   )
 }

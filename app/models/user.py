@@ -22,7 +22,7 @@ class User(db.Model):
     user_uid = Column(String(512), nullable=True)
     user_name = Column(String(512), nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
-    applications = relationship('ApplicationUserRole', lazy='joined', innerjoin=True)
+    applications = relationship('ApplicationUserRole', lazy='select', innerjoin=True)
 
     @property
     def serialize(self):

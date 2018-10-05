@@ -28,3 +28,4 @@ class ApplicationUserRole(db.Model):
     role = Column(Enum(Role), nullable=False, default=Role.view)
 
     application = relationship('Application', lazy='joined', innerjoin=True)
+    user = relationship('User')

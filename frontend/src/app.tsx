@@ -27,6 +27,7 @@ import {
   syncKubernetesStatusReducer,
   settingsReducer,
   loginReducer,
+  fetchAccessControlListReducer,
   userInfoReducer
 } from './reducers'
 import { App } from './components/App'
@@ -58,6 +59,7 @@ const store = compose(applyMiddleware(thunk))(createStore)(
     settingsReducer,
     loginReducer,
     userInfoReducer,
+    fetchAccessControlListReducer,
     form: reduxFormReducer
   }))
 

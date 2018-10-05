@@ -1,6 +1,6 @@
 import traceback
 from functools import wraps
-from flask import jsonify, request
+from flask import jsonify, request, abort
 from flask_jwt_simple import JWTManager, create_jwt, get_jwt_identity, jwt_required
 from jwt.exceptions import PyJWTError
 from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
@@ -50,8 +50,8 @@ class Auth(object):
             password = params.get('password', None)
             user_info = authenticator.auth_user(username, password)
             if user_info is not None:
-                user = self.user(user_info)
-                ret = {'jwt': create_jwt(identity=user.user_id)}
+                user_id = self.user(user_info)
+                ret = {'jwt': create_jwt(identity=user_id)}
                 return jsonify(ret), 200
             else:
                 return jsonify({'message': 'Authentication failed'}), 401
@@ -62,7 +62,7 @@ class Auth(object):
             user_id = get_jwt_identity()
             uobj = db.session.query(User).filter(User.user_id == user_id).one_or_none()
             if uobj is None:
-                return 404
+                abort(404)
             return jsonify(uobj.serialize), 200
 
         # Add error handlers
@@ -76,13 +76,17 @@ class Auth(object):
 
     def user(self, user_info):
         uobj = db.session.query(User).filter(User.user_uid == user_info['uid']).one_or_none()
-        if uobj is None:
-            uobj = User(user_uid=user_info['uid'],
-                        user_name=user_info['name'])
-            db.session.add(uobj)
-            db.session.commit()
-            db.session.close()
-        return uobj
+        if uobj is not None:
+            return uobj.user_id
+
+        uobj = User(user_uid=user_info['uid'],
+                    user_name=user_info['name'])
+        db.session.add(uobj)
+        db.session.flush()
+        db.session.commit()
+        user_id = uobj.user_id
+        db.session.close()
+        return user_id
 
 
 auth = Auth()
