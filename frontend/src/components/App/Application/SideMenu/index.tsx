@@ -1,8 +1,17 @@
 import * as React from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, withRouter, RouteComponentProps } from 'react-router-dom'
+import { connect } from 'react-redux'
+import { APIRequest, APIRequestStatusList } from '@src/apis/Core'
+import { UserInfo, UserRole } from '@src/apis'
 
-class SideMenu extends React.Component<any> {
+interface Props {
+  applicationId: string
+}
+
+class SideMenu extends React.Component<SideMenuProps> {
   render() {
+    const { userInfoStatus　} = this.props
+    const { applicationId } = this.props.match.params
     const menuContents = [
       {
         title: 'Orchestration',
@@ -23,20 +32,37 @@ class SideMenu extends React.Component<any> {
             icon: 'database'
           },
         ]
-      },
+      }
     ]
+    if (userInfoStatus.status === APIRequestStatusList.success) {
+      userInfoStatus.result.roles.forEach((e: UserRole) => {
+        if (String(e.applicationId) === applicationId && e.role === 'admin') {
+          menuContents.push({
+            title: '',
+            items: [
+              {
+                text: 'Admin',
+                path: 'admin',
+                icon: 'user'
+              }
+            ]
+          })
+        }
+      })
+    }
 
-    const { applicationId　} = this.props
     const fullPath = (menuPath) => `/applications/${applicationId}/${menuPath}`
 
-    const renderSubmenuItem = (subMenuItem) => (
-      <li className='navbar-item mb-1' key={subMenuItem.path}>
-        <NavLink exact className='nav-link text-info' to={fullPath(subMenuItem.path)}>
-          <i className={`fas fa-${subMenuItem.icon} fa-fw mr-2`}></i>
-          {subMenuItem.text}
-        </NavLink>
-      </li>
-    )
+    const renderSubmenuItem = (subMenuItem) => {
+      return (
+        <li className='navbar-item mb-1' key={subMenuItem.path}>
+          <NavLink exact className='nav-link text-info' to={fullPath(subMenuItem.path)}>
+            <i className={`fas fa-${subMenuItem.icon} fa-fw mr-2`}></i>
+            {subMenuItem.text}
+          </NavLink>
+        </li>
+      )
+    }
 
     const generatedMenu = menuContents.map(
       (subMenu) => (
@@ -63,4 +89,16 @@ class SideMenu extends React.Component<any> {
   }
 }
 
-export default SideMenu
+interface StateProps {
+  userInfoStatus: APIRequest<UserInfo>,
+}
+
+type SideMenuProps = StateProps & Props & RouteComponentProps<any>
+
+export default withRouter(connect(
+  (state: any): StateProps => {
+    return {
+      userInfoStatus: state.userInfoReducer.userInfo
+    }
+  }
+)(SideMenu))

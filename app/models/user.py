@@ -27,7 +27,6 @@ class User(db.Model):
     @property
     def serialize(self):
         return {
-            'user_id': self.user_id,
             'user_uid': self.user_uid,
             'user_name': self.user_name,
             'register_date': self.register_date.strftime('%Y-%m-%d %H:%M:%S')

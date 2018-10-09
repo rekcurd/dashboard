@@ -27,11 +27,20 @@ export class AuthToken {
   ) { }
 }
 
+export class UserRole {
+  constructor(
+    public applicationId: number,
+    public role: string = ''
+  ) { }
+}
+
 export class UserInfo {
   constructor(
-    public userId: string,
-    public userUid: string,
-    public userName: string,
+    public user: {
+      userUid: string
+      userName: string
+    },
+    public roles: UserRole[],
   ) { }
 }
 
@@ -556,7 +565,11 @@ export async function settings(): Promise<any> {
 
 export async function userInfo(): Promise<UserInfo> {
   const convert = (result): UserInfo => {
-    return result
+    const roles: UserRole[] = result.applications.map((e) => new UserRole(e.application_id, e.role))
+    return new UserInfo({
+      userUid: result.user.user_uid,
+      userName: result.user.user_name,
+    }, roles)
   }
   return APICore.getRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/credential`,

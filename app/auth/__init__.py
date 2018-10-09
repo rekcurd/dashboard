@@ -63,7 +63,9 @@ class Auth(object):
             uobj = db.session.query(User).filter(User.user_id == user_id).one_or_none()
             if uobj is None:
                 abort(404)
-            return jsonify(uobj.serialize), 200
+            application_roles = uobj.applications
+            applications = [{'application_id': ar.application_id, 'role': ar.role.name} for ar in application_roles]
+            return jsonify({'user': uobj.serialize, 'applications': applications}), 200
 
         # Add error handlers
         @api.errorhandler(NoAuthorizationError)
