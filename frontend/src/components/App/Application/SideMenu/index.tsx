@@ -43,7 +43,7 @@ class SideMenu extends React.Component<SideMenuProps> {
               {
                 text: 'Admin',
                 path: 'admin',
-                icon: 'user'
+                icon: 'user-lock'
               }
             ]
           })
