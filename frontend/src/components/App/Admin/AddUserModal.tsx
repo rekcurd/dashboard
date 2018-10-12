@@ -35,13 +35,29 @@ class AddUserModal extends React.Component<AddUserFormProps> {
     )
   }
   private renderBodyForm() {
+    const roles = [
+      { label: 'view',  value: 'view'  },
+      { label: 'edit',  value: 'edit'  },
+      { label: 'admin', value: 'admin' }
+    ]
     return (
       <ModalBody>
         <Field
           label='User ID'
           name='add.user.uid'
           component={SingleFormField} type='text'
-          className='form-control' id='modelDescription'
+          className='form-control' id='userId'
+          validate={required}
+          required
+        />
+        <Field
+          label='Role'
+          name='add.user.role'
+          component={SingleFormField} type='select'
+          options={roles}
+          className='form-control' id='userRole'
+          validate={required}
+          required
         />
       </ModalBody>
     )
@@ -65,7 +81,7 @@ class AddUserModal extends React.Component<AddUserFormProps> {
     const { toggle } = this.props
     toggle()
   }
-  private onSubmit() {
+  private onSubmit(params) {
     // TODO
   }
 }
