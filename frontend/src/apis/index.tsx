@@ -590,3 +590,15 @@ export async function fetchAccessControlList(param: { applicationId: string }): 
     convert
   )
 }
+
+export async function saveAccessControl(params): Promise<any> {
+  const convert = () => {
+    // TODO
+  }
+  console.log(params)
+  return APICore.formDataRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/acl`,
+    {},
+    convert
+  )
+}

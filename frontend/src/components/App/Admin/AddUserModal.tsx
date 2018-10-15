@@ -1,23 +1,37 @@
 import * as React from 'react'
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
-import { Field, InjectedFormProps, reduxForm } from 'redux-form'
 import { connect } from 'react-redux'
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
+import { Dispatch } from 'redux'
+import { Field, InjectedFormProps, reduxForm } from 'redux-form'
 
 import { SingleFormField } from '@components/Common/Field/SingleFormField'
 import { required } from '@components/Common/Field/Validateors'
+import { saveAccessControlDispatcher } from '@src/actions'
 
 interface AddUserFormCustomProps {
+  applicationId: string
   isModalOpen: boolean
   toggle: () => void
 }
 
-type AddUserFormProps = AddUserFormCustomProps & InjectedFormProps<{}, AddUserFormCustomProps>
+interface DispathProps {
+  saveAccessControl: (params) => Promise<void>
+}
 
-class AddUserModal extends React.Component<AddUserFormProps> {
+type AddUserModalProps = AddUserFormCustomProps & DispathProps & InjectedFormProps<{}, AddUserFormCustomProps>
+
+interface AddUserModalState {
+  submitting: boolean
+}
+
+class AddUserModal extends React.Component<AddUserModalProps, AddUserModalState> {
   constructor(props) {
     super(props)
     this.onCancel = this.onCancel.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
+    this.state = {
+      submitting: false
+    }
   }
   render() {
     const { isModalOpen, handleSubmit } = this.props
@@ -44,7 +58,7 @@ class AddUserModal extends React.Component<AddUserFormProps> {
       <ModalBody>
         <Field
           label='User ID'
-          name='add.user.uid'
+          name='save.user.uid'
           component={SingleFormField} type='text'
           className='form-control' id='userId'
           validate={required}
@@ -52,7 +66,7 @@ class AddUserModal extends React.Component<AddUserFormProps> {
         />
         <Field
           label='Role'
-          name='add.user.role'
+          name='save.user.role'
           component={SingleFormField} type='select'
           options={roles}
           className='form-control' id='userRole'
@@ -63,9 +77,10 @@ class AddUserModal extends React.Component<AddUserFormProps> {
     )
   }
   private renderFooterButtons() {
+    const { submitting } = this.state
     return (
       <ModalFooter>
-        <Button color='success' type='submit'>
+        <Button color='success' type='submit' disabled={submitting} >
           <i className='fas fa-check fa-fw mr-2'></i>
           Submit
         </Button>
@@ -82,12 +97,28 @@ class AddUserModal extends React.Component<AddUserFormProps> {
     toggle()
   }
   private onSubmit(params) {
-    // TODO
+    const { saveAccessControl, applicationId } = this.props
+    this.setState({ submitting: true })
+    saveAccessControl({
+      applicationId,
+      ...params.save.user,
+    })
   }
 }
 
-export default connect()(
+export default connect(
+  (state: any) => {
+    return {
+      ...state.form,
+    }
+  },
+  (dispatch: Dispatch): DispathProps => {
+    return {
+      saveAccessControl: (params) => saveAccessControlDispatcher(dispatch, params)
+    }
+  }
+)(
   reduxForm<{}, AddUserFormCustomProps>({
-    form: 'addUserForm'
+    form: 'saveUserForm'
   })(AddUserModal)
 )

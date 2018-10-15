@@ -59,6 +59,7 @@ class Admin extends React.Component<AdminProps, AdminState> {
     return this.renderContent(application.name, acl, isAdmin)
   }
   renderContent(applicationName: string, acl: AccessControlList[], isAdmin: boolean) {
+    const { applicationId } = this.props.match.params
     const { isAddUserModalOpen } = this.state
     const tableBody = acl.map((e: AccessControlList, i: number) => {
       return (
@@ -96,6 +97,7 @@ class Admin extends React.Component<AdminProps, AdminState> {
           {addUserButton}
         </Row>
         <AddUserModal
+          applicationId={applicationId}
           isModalOpen={isAddUserModalOpen}
           toggle={this.toggleAddUserModalOpen}
         />
