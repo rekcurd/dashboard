@@ -1,36 +1,50 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
+import { withRouter, RouteComponentProps } from 'react-router'
 import { Dispatch } from 'redux'
 import { Field, InjectedFormProps, reduxForm } from 'redux-form'
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
 import { SingleFormField } from '@components/Common/Field/SingleFormField'
 import { required } from '@components/Common/Field/Validateors'
 import { saveAccessControlDispatcher } from '@src/actions'
+import { APIRequest, isAPISucceeded } from '@src/apis/Core'
 
-interface AddUserFormCustomProps {
-  applicationId: string
+interface Props extends RouteComponentProps<{ applicationId: string }> {
   isModalOpen: boolean
   toggle: () => void
+  reload: () => void
+}
+
+interface StateProps {
+  saveAccessControlStatus: APIRequest<boolean>
 }
 
 interface DispathProps {
   saveAccessControl: (params) => Promise<void>
 }
 
-type AddUserModalProps = AddUserFormCustomProps & DispathProps & InjectedFormProps<{}, AddUserFormCustomProps>
+type AddUserModalProps = Props & StateProps & DispathProps & InjectedFormProps<any, any>
 
-interface AddUserModalState {
-  submitting: boolean
-}
-
-class AddUserModal extends React.Component<AddUserModalProps, AddUserModalState> {
+class AddUserModal extends React.Component<AddUserModalProps> {
   constructor(props) {
     super(props)
     this.onCancel = this.onCancel.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
     this.state = {
       submitting: false
+    }
+  }
+  componentWillReceiveProps(nextProps: AddUserModalProps) {
+    const { isModalOpen } = this.props
+    const { saveAccessControlStatus, reset, toggle, reload, submitting } = nextProps
+    if (isModalOpen && submitting) {
+      const succeeded: boolean = isAPISucceeded<boolean>(saveAccessControlStatus)
+      if (succeeded) {
+        reset()
+        toggle()
+        reload()
+      }
     }
   }
   render() {
@@ -77,7 +91,7 @@ class AddUserModal extends React.Component<AddUserModalProps, AddUserModalState>
     )
   }
   private renderFooterButtons() {
-    const { submitting } = this.state
+    const { submitting } = this.props
     return (
       <ModalFooter>
         <Button color='success' type='submit' disabled={submitting} >
@@ -97,28 +111,30 @@ class AddUserModal extends React.Component<AddUserModalProps, AddUserModalState>
     toggle()
   }
   private onSubmit(params) {
-    const { saveAccessControl, applicationId } = this.props
+    const { saveAccessControl, match } = this.props
+    const applicationId = match.params.applicationId
     this.setState({ submitting: true })
-    saveAccessControl({
+    return saveAccessControl({
       applicationId,
       ...params.save.user,
     })
   }
 }
 
-export default connect(
-  (state: any) => {
-    return {
-      ...state.form,
+export default withRouter(
+  connect(
+    (state: any): StateProps => {
+      return {
+        ...state.form,
+        saveAccessControlStatus: state.saveAccessControlReducer.saveAccessControl
+      }
+    },
+    (dispatch: Dispatch): DispathProps => {
+      return {
+        saveAccessControl: (params) => saveAccessControlDispatcher(dispatch, params)
+      }
     }
-  },
-  (dispatch: Dispatch): DispathProps => {
-    return {
-      saveAccessControl: (params) => saveAccessControlDispatcher(dispatch, params)
-    }
-  }
-)(
-  reduxForm<{}, AddUserFormCustomProps>({
+  )(reduxForm<{}, Props>({
     form: 'saveUserForm'
-  })(AddUserModal)
+  })(AddUserModal))
 )

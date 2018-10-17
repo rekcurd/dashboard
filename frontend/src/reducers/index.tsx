@@ -25,6 +25,7 @@ import {
   loginActionCreators,
   userInfoActionCreators,
   fetchAccessControlListActionCreators,
+  saveAccessControlActionCreators,
   settingsActionCreators
 } from '@src/actions'
 import { APIRequest, APIRequestStatusList} from '@src/apis/Core'
@@ -59,6 +60,7 @@ export class AppState {
     public login: APIRequest<AuthToken> = { status: APIRequestStatusList.notStarted },
     public userInfo: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
     public accessControlList: APIRequest<AccessControlList[]> = { status: APIRequestStatusList.notStarted },
+    public saveAccessControl: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
     // Notification status
     public notification = { toasts: [], id: -1 },
     public navigation = { login: false }
@@ -131,6 +133,7 @@ export const settingsReducer = APIRequestReducerCreator<{}, any>(settingsActionC
 export const loginReducer = APIRequestReducerCreator<LoginParam, AuthToken>(loginActionCreators, 'login')
 export const userInfoReducer = APIRequestReducerCreator<{}, UserInfo>(userInfoActionCreators, 'userInfo')
 export const fetchAccessControlListReducer = APIRequestReducerCreator<{}, AccessControlList[]>(fetchAccessControlListActionCreators, 'accessControlList')
+export const saveAccessControlReducer = APIRequestReducerCreator<{}, {}>(saveAccessControlActionCreators, 'saveAccessControl')
 
 /**
  * Notification with toasts

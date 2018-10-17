@@ -15,10 +15,12 @@ interface StateProps {
   application: APIRequest<Application>
   userInfoStatus: APIRequest<UserInfo>,
 }
+
 interface DispatchProps {
   fetchAccessControlList: (applicationId: string) => Promise<void>
   fetchApplicationById: (id: string) => Promise<void>
 }
+
 type AdminProps = StateProps & DispatchProps & RouteComponentProps<{applicationId: string}>
 
 interface AdminState {
@@ -30,6 +32,7 @@ class Admin extends React.Component<AdminProps, AdminState> {
     super(props)
     this.renderAccessControlList = this.renderAccessControlList.bind(this)
     this.toggleAddUserModalOpen = this.toggleAddUserModalOpen.bind(this)
+    this.reload = this.reload.bind(this)
     this.state = {
       isAddUserModalOpen: false
     }
@@ -59,7 +62,6 @@ class Admin extends React.Component<AdminProps, AdminState> {
     return this.renderContent(application.name, acl, isAdmin)
   }
   renderContent(applicationName: string, acl: AccessControlList[], isAdmin: boolean) {
-    const { applicationId } = this.props.match.params
     const { isAddUserModalOpen } = this.state
     const tableBody = acl.map((e: AccessControlList, i: number) => {
       return (
@@ -97,9 +99,9 @@ class Admin extends React.Component<AdminProps, AdminState> {
           {addUserButton}
         </Row>
         <AddUserModal
-          applicationId={applicationId}
           isModalOpen={isAddUserModalOpen}
           toggle={this.toggleAddUserModalOpen}
+          reload={this.reload}
         />
         <h3>
           <i className='fas fa-unlock fa-fw mr-2'></i>
@@ -123,6 +125,10 @@ class Admin extends React.Component<AdminProps, AdminState> {
       isAddUserModalOpen: !isAddUserModalOpen,
     })
   }
+  private reload() {
+    const { fetchAccessControlList, match } = this.props
+    fetchAccessControlList(match.params.applicationId)
+  }
 }
 
 export default withRouter(
@@ -140,4 +146,5 @@ export default withRouter(
         fetchApplicationById: (id: string) => fetchApplicationByIdDispatcher(dispatch, { id }),
       }
     }
-  )(Admin))
+  )(Admin)
+)
