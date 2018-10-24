@@ -2,7 +2,7 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { Dispatch } from 'redux'
 import { withRouter, RouteComponentProps } from 'react-router'
-import { Table, Row, Col, Button } from 'reactstrap'
+import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
 
 import { AccessControlList, Application, UserInfo, UserRole } from '@src/apis'
 import { APIRequest } from '@src/apis/Core'
@@ -25,6 +25,7 @@ type AdminProps = StateProps & DispatchProps & RouteComponentProps<{applicationI
 
 interface AdminState {
   isAddUserModalOpen: boolean
+  isRemoveUserModalOpen: boolean
 }
 
 class Admin extends React.Component<AdminProps, AdminState> {
@@ -34,7 +35,8 @@ class Admin extends React.Component<AdminProps, AdminState> {
     this.toggleAddUserModalOpen = this.toggleAddUserModalOpen.bind(this)
     this.reload = this.reload.bind(this)
     this.state = {
-      isAddUserModalOpen: false
+      isAddUserModalOpen: false,
+      isRemoveUserModalOpen: false
     }
   }
   componentWillMount() {
@@ -69,6 +71,12 @@ class Admin extends React.Component<AdminProps, AdminState> {
           <td>{e.userUid}</td>
           <td>{e.userName}</td>
           <td>{e.role.replace(/Role./, '')}</td>
+          <td>
+            <Button color='danger' size='sm' onClick={this.onClickRemoveButton(e)}>
+              <i className={`fas fa-times fa-fw mr-2`}></i>
+              Remove
+            </Button>
+          </td>
         </tr>
       )
     })
@@ -103,6 +111,7 @@ class Admin extends React.Component<AdminProps, AdminState> {
           toggle={this.toggleAddUserModalOpen}
           reload={this.reload}
         />
+        {this.renderConfirmRemoveUserModal()}
         <h3>
           <i className='fas fa-unlock fa-fw mr-2'></i>
           Access Control List
@@ -111,7 +120,7 @@ class Admin extends React.Component<AdminProps, AdminState> {
         <Table hover className='mb-3'>
           <thead>
             <tr className='bg-light text-primary'>
-              <th>ID</th><th>Name</th><th>Role</th>
+              <th>ID</th><th>Name</th><th>Role</th><th></th>
             </tr>
           </thead>
           <tbody>{tableBody}</tbody>
@@ -119,11 +128,55 @@ class Admin extends React.Component<AdminProps, AdminState> {
       </div>
     )
   }
+  private renderConfirmRemoveUserModal(): JSX.Element {
+    const { isRemoveUserModalOpen } = this.state
+    const cancel = this.toggleRemoveUserModalOpen.bind(this)
+    const executeDeletion = () => { /* TODO */ }
+    return (
+      <Modal isOpen={isRemoveUserModalOpen} toggle={cancel} size='sm'>
+        <ModalHeader toggle={cancel}>Remove User</ModalHeader>
+        <ModalBody>
+          Are you sure to remove?
+        </ModalBody>
+        <div className='d-flex flex-row mt-3'>
+          <Button
+            color='danger'
+            size='lg'
+            className='rounded-0 flex-1'
+            onClick={executeDeletion}
+          >
+            <i className='fas fa-exclamation-circle mr-3' />
+            Remove
+          </Button>
+          <Button
+            color='secondary'
+            size='lg'
+            className='rounded-0 flex-1'
+            onClick={cancel}
+          >
+            <i className='fas fa-ban mr-3' />
+            Cancel
+          </Button>
+        </div>
+      </Modal>
+    )
+  }
   private toggleAddUserModalOpen() {
     const { isAddUserModalOpen } = this.state
     this.setState({
       isAddUserModalOpen: !isAddUserModalOpen,
     })
+  }
+  private toggleRemoveUserModalOpen() {
+    const { isRemoveUserModalOpen } = this.state
+    this.setState({
+      isRemoveUserModalOpen: !isRemoveUserModalOpen,
+    })
+  }
+  private onClickRemoveButton(acl: AccessControlList) {
+    return () => {
+      this.toggleRemoveUserModalOpen()
+    }
   }
   private reload() {
     const { fetchAccessControlList, match } = this.props

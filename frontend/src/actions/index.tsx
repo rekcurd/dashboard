@@ -10,7 +10,7 @@ import {
   uploadModel, switchModels, syncKubernetesStatus,
   deleteKubernetesHost, deleteKubernetesServices,
   deleteKubernetesModels,
-  settings, login, userInfo, fetchAccessControlList, saveAccessControl,
+  settings, login, userInfo, fetchAllUsers, fetchAccessControlList, saveAccessControl,
   SaveServiceParam, SaveModelParam, SwitchModelParam,
   ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo, AccessControlList
 } from '@src/apis'
@@ -219,6 +219,12 @@ export const userInfoActionCreators = new APIRequestActionCreators<{}, UserInfo>
 export const userInfoDispatcher = asyncAPIRequestDispatcherCreator<{}, UserInfo>(
   userInfoActionCreators,
   userInfo
+)
+
+export const fetchAllUsersActionCreators = new APIRequestActionCreators<{}, UserInfo[]>('ALL_USERS')
+export const fetchAllUsersDispatcher = asyncAPIRequestDispatcherCreator<{}, UserInfo[]>(
+  fetchAllUsersActionCreators,
+  fetchAllUsers
 )
 
 export const fetchAccessControlListActionCreators = new APIRequestActionCreators<any, AccessControlList[]>('FETCH_ACCESS_CONTROL_LIST')

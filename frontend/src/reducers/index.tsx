@@ -26,7 +26,8 @@ import {
   userInfoActionCreators,
   fetchAccessControlListActionCreators,
   saveAccessControlActionCreators,
-  settingsActionCreators
+  settingsActionCreators,
+  fetchAllUsersActionCreators
 } from '@src/actions'
 import { APIRequest, APIRequestStatusList} from '@src/apis/Core'
 import {
@@ -60,6 +61,7 @@ export class AppState {
     public login: APIRequest<AuthToken> = { status: APIRequestStatusList.notStarted },
     public userInfo: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
     public accessControlList: APIRequest<AccessControlList[]> = { status: APIRequestStatusList.notStarted },
+    public allUsers: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
     public saveAccessControl: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
     // Notification status
     public notification = { toasts: [], id: -1 },
@@ -132,6 +134,7 @@ export const syncKubernetesStatusReducer
 export const settingsReducer = APIRequestReducerCreator<{}, any>(settingsActionCreators, 'settings')
 export const loginReducer = APIRequestReducerCreator<LoginParam, AuthToken>(loginActionCreators, 'login')
 export const userInfoReducer = APIRequestReducerCreator<{}, UserInfo>(userInfoActionCreators, 'userInfo')
+export const fetchAllUsersStatusReducer = APIRequestReducerCreator<{}, UserInfo[]>(fetchAllUsersActionCreators, 'allUsers')
 export const fetchAccessControlListReducer = APIRequestReducerCreator<{}, AccessControlList[]>(fetchAccessControlListActionCreators, 'accessControlList')
 export const saveAccessControlReducer = APIRequestReducerCreator<{}, {}>(saveAccessControlActionCreators, 'saveAccessControl')
 

@@ -577,6 +577,21 @@ export async function userInfo(): Promise<UserInfo> {
   )
 }
 
+export async function fetchAllUsers(): Promise<UserInfo[]> {
+  const convert = (results) => {
+    return results.map((result) => {
+      return new UserInfo({
+        userUid: result.user_uid,
+        userName: result.user_name
+      }, [])
+    })
+  }
+  return APICore.getRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/users`,
+    convert
+  )
+}
+
 export async function fetchAccessControlList(param: { applicationId: string }): Promise<AccessControlList[]> {
   const convert = (results: any): AccessControlList[] => {
     return results.map((result: any) => new AccessControlList(
@@ -595,10 +610,9 @@ export async function saveAccessControl(params): Promise<any> {
   const convert = () => {
     // TODO
   }
-  console.log(params)
   return APICore.formDataRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/acl`,
-    {},
+    { ...params },
     convert
   )
 }

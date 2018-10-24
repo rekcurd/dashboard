@@ -7,8 +7,10 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
 import { SingleFormField } from '@components/Common/Field/SingleFormField'
 import { required } from '@components/Common/Field/Validateors'
-import { saveAccessControlDispatcher } from '@src/actions'
-import { APIRequest, isAPISucceeded } from '@src/apis/Core'
+import { saveAccessControlDispatcher, addNotification, AddNotificationAction, fetchAllUsersDispatcher } from '@src/actions'
+import { UserInfo } from '@src/apis'
+import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
+import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
 
 interface Props extends RouteComponentProps<{ applicationId: string }> {
   isModalOpen: boolean
@@ -17,10 +19,13 @@ interface Props extends RouteComponentProps<{ applicationId: string }> {
 }
 
 interface StateProps {
+  fetchAllUsersStatus: APIRequest<UserInfo[]>
   saveAccessControlStatus: APIRequest<boolean>
 }
 
 interface DispathProps {
+  addNotification: (params) => AddNotificationAction
+  fetchAllUsers: () => Promise<void>
   saveAccessControl: (params) => Promise<void>
 }
 
@@ -31,6 +36,7 @@ class AddUserModal extends React.Component<AddUserModalProps> {
     super(props)
     this.onCancel = this.onCancel.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
+    this.renderForm = this.renderForm.bind(this)
     this.state = {
       submitting: false
     }
@@ -40,40 +46,61 @@ class AddUserModal extends React.Component<AddUserModalProps> {
     const { saveAccessControlStatus, reset, toggle, reload, submitting } = nextProps
     if (isModalOpen && submitting) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveAccessControlStatus)
+      const failed: boolean = isAPIFailed<boolean>(saveAccessControlStatus)
       if (succeeded) {
         reset()
         toggle()
         reload()
       }
+      if (failed) {
+        nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+      }
     }
   }
+  componentWillMount() {
+    const { fetchAllUsers } = this.props
+    fetchAllUsers()
+  }
   render() {
-    const { isModalOpen, handleSubmit } = this.props
+    const { fetchAllUsersStatus, isModalOpen } = this.props
     return (
       <Modal isOpen={isModalOpen} toggle={this.onCancel}>
-        <form onSubmit={handleSubmit(this.onSubmit)}>
-          <ModalHeader toggle={this.onCancel}>
-            <i className='fas fa-user-plus fa-fw mr-2'></i>
-            Add User
-          </ModalHeader>
-          {this.renderBodyForm()}
-          {this.renderFooterButtons()}
-        </form>
+        <APIRequestResultsRenderer
+          APIStatus={{ fetchAllUsersStatus }}
+          render={this.renderForm}
+        />
       </Modal>
     )
   }
-  private renderBodyForm() {
+  private renderForm(results) {
+    const { handleSubmit } = this.props
+    return (
+      <form onSubmit={handleSubmit(this.onSubmit)}>
+        <ModalHeader toggle={this.onCancel}>
+          <i className='fas fa-user-plus fa-fw mr-2'></i>
+          Add User
+        </ModalHeader>
+        {this.renderBodyForm(results.fetchAllUsersStatus)}
+        {this.renderFooterButtons()}
+      </form>
+    )
+  }
+  private renderBodyForm(userInfos: UserInfo[]) {
     const roles = [
       { label: 'view',  value: 'view'  },
       { label: 'edit',  value: 'edit'  },
       { label: 'admin', value: 'admin' }
     ]
+    const users = userInfos.map((v: UserInfo) => {
+      return { label: v.user.userUid, value: v.user.userUid }
+    })
     return (
       <ModalBody>
         <Field
           label='User ID'
           name='save.user.uid'
-          component={SingleFormField} type='text'
+          component={SingleFormField} type='select'
+          options={users}
           className='form-control' id='userId'
           validate={required}
           required
@@ -126,11 +153,14 @@ export default withRouter(
     (state: any): StateProps => {
       return {
         ...state.form,
+        fetchAllUsersStatus: state.fetchAllUsersStatusReducer.allUsers,
         saveAccessControlStatus: state.saveAccessControlReducer.saveAccessControl
       }
     },
     (dispatch: Dispatch): DispathProps => {
       return {
+        addNotification: (params) => dispatch(addNotification(params)),
+        fetchAllUsers: () => fetchAllUsersDispatcher(dispatch),
         saveAccessControl: (params) => saveAccessControlDispatcher(dispatch, params)
       }
     }
