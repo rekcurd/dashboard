@@ -814,6 +814,7 @@ def switch_drucker_service_model_assignment(
             name="{0}-deployment".format(sobj.service_name),
             namespace=sobj.service_level
         )
+    response_body["status"] = True
     return response_body
 
 def dump_drucker_on_kubernetes(
