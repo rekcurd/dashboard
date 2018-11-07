@@ -7,9 +7,41 @@ from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
 
 from app import logger
 from auth.ldap import LdapAuthenticator
+from auth.exceptions import ApplicationUserRoleException
 from models import db
 from models.user import User
+from models.application_user_role import ApplicationUserRole, Role
 from utils.env_loader import config
+
+
+def auth_required(fn):
+    def check_role(user_id, application_id, method):
+        role = db.session.query(ApplicationUserRole).filter(
+            ApplicationUserRole.application_id == application_id,
+            ApplicationUserRole.user_id == user_id).one_or_none()
+        if role is None:
+            return False
+        if method == 'GET':
+            return True
+        elif role.role == Role.edit or role.role == Role.admin:
+                return True
+        return False
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if Auth.enabled and request.path.startswith('/api/') and not request.path.startswith('/api/settings'):
+            @jwt_required
+            def run():
+                application_id = kwargs.get('application_id')
+                if application_id is not None:
+                    user_id = get_jwt_identity()
+                    if not check_role(user_id, application_id, request.method):
+                        raise ApplicationUserRoleException
+                return fn(*args, **kwargs)
+            return run()
+        else:
+            return fn(*args, **kwargs)
+    return wrapper
 
 
 class Auth(object):
@@ -18,19 +50,6 @@ class Auth(object):
     def __init__(self, app=None):
         if app is not None:
             self.init_app(app)
-
-    @staticmethod
-    def auth_required(fn):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            if Auth.enabled and request.path.startswith('/api/') and not request.path.startswith('/api/settings'):
-                @jwt_required
-                def run():
-                    return fn(*args, **kwargs)
-                return run()
-            else:
-                return fn(*args, **kwargs)
-        return wrapper
 
     def init_app(self, app, api, **kwargs):
         Auth.enabled = True
@@ -71,6 +90,7 @@ class Auth(object):
         @api.errorhandler(NoAuthorizationError)
         @api.errorhandler(InvalidHeaderError)
         @api.errorhandler(PyJWTError)
+        @api.errorhandler(ApplicationUserRoleException)
         def authorization_error_handler(error):
             logger.error(error)
             logger.error(traceback.format_exc())
