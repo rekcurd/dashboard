@@ -14,45 +14,49 @@ from models.application_user_role import ApplicationUserRole, Role
 from utils.env_loader import config
 
 
-def auth_required(fn):
-    def check_role(user_id, application_id, method):
-        role = db.session.query(ApplicationUserRole).filter(
-            ApplicationUserRole.application_id == application_id,
-            ApplicationUserRole.user_id == user_id).one_or_none()
-        if role is None:
-            return False
-        if method == 'GET':
-            return True
-        elif role.role == Role.edit or role.role == Role.admin:
-                return True
-        return False
-
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        if Auth.enabled and request.path.startswith('/api/') and not request.path.startswith('/api/settings'):
-            @jwt_required
-            def run():
-                application_id = kwargs.get('application_id')
-                if application_id is not None:
-                    user_id = get_jwt_identity()
-                    if not check_role(user_id, application_id, request.method):
-                        raise ApplicationUserRoleException
-                return fn(*args, **kwargs)
-            return run()
-        else:
-            return fn(*args, **kwargs)
-    return wrapper
-
-
 class Auth(object):
-    enabled = False
+    __enabled = False
+
+    @staticmethod
+    def auth_required(fn):
+        def check_role(user_id, application_id, method):
+            role = db.session.query(ApplicationUserRole).filter(
+                ApplicationUserRole.application_id == application_id,
+                ApplicationUserRole.user_id == user_id).one_or_none()
+            if role is None:
+                return False
+            if method == 'GET':
+                return True
+            elif role.role == Role.edit or role.role == Role.admin:
+                    return True
+            return False
+
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if Auth.__enabled and request.path.startswith('/api/') and not request.path.startswith('/api/settings'):
+                @jwt_required
+                def run():
+                    application_id = kwargs.get('application_id')
+                    if application_id is not None:
+                        user_id = get_jwt_identity()
+                        if not check_role(user_id, application_id, request.method):
+                            raise ApplicationUserRoleException
+                    return fn(*args, **kwargs)
+                return run()
+            else:
+                return fn(*args, **kwargs)
+        return wrapper
+
+    @staticmethod
+    def enabled():
+        return Auth.__enabled
 
     def __init__(self, app=None):
         if app is not None:
             self.init_app(app)
 
     def init_app(self, app, api, **kwargs):
-        Auth.enabled = True
+        Auth.__enabled = True
         JWTManager(app)
 
         auth_conf = config['auth']

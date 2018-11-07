@@ -7,7 +7,7 @@ from apis.api_service import srv_info_namespace
 from apis.api_model import mdl_info_namespace
 from apis.api_misc import misc_info_namespace
 from apis.api_admin import admin_info_namespace
-from auth import auth_required
+from auth import Auth
 from kubernetes.client.rest import ApiException
 from models import db
 
@@ -15,7 +15,7 @@ api = Api(
     version='1.0',
     title='Drucker dashboard API',
     description='Drucker dashboard API',
-    decorators=[auth_required]
+    decorators=[Auth.auth_required]
 )
 
 

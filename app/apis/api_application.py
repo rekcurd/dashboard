@@ -6,6 +6,7 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 from flask_jwt_simple import get_jwt_identity
 
 from app import logger
+from auth import Auth
 from models import db
 from models.application import Application
 from models.service import Service
@@ -80,8 +81,8 @@ class ApiApplications(Resource):
     @app_info_namespace.marshal_list_with(app_info)
     def get(self):
         """get_applications"""
-        user_id = get_jwt_identity()
-        if user_id is not None:
+        if Auth.enabled():
+            user_id = get_jwt_identity()
             uobj = db.session.query(User).filter(User.user_id == user_id).one()
             return [assoc.application for assoc in uobj.applications]
         return Application.query.all()
