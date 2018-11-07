@@ -606,13 +606,26 @@ export async function fetchAccessControlList(param: { applicationId: string }): 
   )
 }
 
-export async function saveAccessControl(params): Promise<any> {
-  const convert = () => {
-    // TODO
-  }
+export async function saveAccessControl(params): Promise<boolean> {
+  const convert = (result) => result.status
   return APICore.formDataRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/acl`,
     { ...params },
     convert
+  )
+}
+
+export async function deleteAccessControl(params): Promise<boolean> {
+  const convert = (result) => result.status
+  const body = new FormData()
+  body.append('uid', params.userUid)
+  const options = {
+    method: 'DELETE',
+    body
+  }
+  return APICore.rawRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/acl`,
+    convert,
+    options
   )
 }

@@ -30,6 +30,7 @@ import {
   fetchAccessControlListReducer,
   fetchAllUsersStatusReducer,
   saveAccessControlReducer,
+  deleteAccessControlReducer,
   userInfoReducer
 } from './reducers'
 import { App } from './components/App'
@@ -64,6 +65,7 @@ const store = compose(applyMiddleware(thunk))(createStore)(
     fetchAccessControlListReducer,
     fetchAllUsersStatusReducer,
     saveAccessControlReducer,
+    deleteAccessControlReducer,
     form: reduxFormReducer
   }))
 

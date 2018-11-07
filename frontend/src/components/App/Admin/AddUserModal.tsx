@@ -48,6 +48,7 @@ class AddUserModal extends React.Component<AddUserModalProps> {
       const succeeded: boolean = isAPISucceeded<boolean>(saveAccessControlStatus)
       const failed: boolean = isAPIFailed<boolean>(saveAccessControlStatus)
       if (succeeded) {
+        nextProps.addNotification({ color: 'success', message: 'Successfully added user' })
         reset()
         toggle()
         reload()

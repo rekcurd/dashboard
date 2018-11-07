@@ -10,7 +10,8 @@ import {
   uploadModel, switchModels, syncKubernetesStatus,
   deleteKubernetesHost, deleteKubernetesServices,
   deleteKubernetesModels,
-  settings, login, userInfo, fetchAllUsers, fetchAccessControlList, saveAccessControl,
+  settings, login, userInfo, fetchAllUsers,
+  fetchAccessControlList, saveAccessControl, deleteAccessControl,
   SaveServiceParam, SaveModelParam, SwitchModelParam,
   ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo, AccessControlList
 } from '@src/apis'
@@ -233,10 +234,16 @@ export const fetchAccessControlListDispatcher = asyncAPIRequestDispatcherCreator
   fetchAccessControlList
 )
 
-export const saveAccessControlActionCreators = new APIRequestActionCreators<{}, {}>('SAVE_ACCESS_CONTROL')
-export const saveAccessControlDispatcher = asyncAPIRequestDispatcherCreator<{}, {}>(
+export const saveAccessControlActionCreators = new APIRequestActionCreators<{}, boolean>('SAVE_ACCESS_CONTROL')
+export const saveAccessControlDispatcher = asyncAPIRequestDispatcherCreator<{}, boolean>(
   saveAccessControlActionCreators,
   saveAccessControl
+)
+
+export const deleteAccessControlActionCreators = new APIRequestActionCreators<{}, boolean>('DELETE_ACCESS_CONTROL')
+export const deleteAccessControlDispatcher = asyncAPIRequestDispatcherCreator<{}, boolean>(
+  deleteAccessControlActionCreators,
+  deleteAccessControl
 )
 
 // Notification actions

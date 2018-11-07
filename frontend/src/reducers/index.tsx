@@ -26,6 +26,7 @@ import {
   userInfoActionCreators,
   fetchAccessControlListActionCreators,
   saveAccessControlActionCreators,
+  deleteAccessControlActionCreators,
   settingsActionCreators,
   fetchAllUsersActionCreators
 } from '@src/actions'
@@ -63,6 +64,7 @@ export class AppState {
     public accessControlList: APIRequest<AccessControlList[]> = { status: APIRequestStatusList.notStarted },
     public allUsers: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
     public saveAccessControl: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
+    public deleteAccessControl: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     // Notification status
     public notification = { toasts: [], id: -1 },
     public navigation = { login: false }
@@ -136,7 +138,8 @@ export const loginReducer = APIRequestReducerCreator<LoginParam, AuthToken>(logi
 export const userInfoReducer = APIRequestReducerCreator<{}, UserInfo>(userInfoActionCreators, 'userInfo')
 export const fetchAllUsersStatusReducer = APIRequestReducerCreator<{}, UserInfo[]>(fetchAllUsersActionCreators, 'allUsers')
 export const fetchAccessControlListReducer = APIRequestReducerCreator<{}, AccessControlList[]>(fetchAccessControlListActionCreators, 'accessControlList')
-export const saveAccessControlReducer = APIRequestReducerCreator<{}, {}>(saveAccessControlActionCreators, 'saveAccessControl')
+export const saveAccessControlReducer = APIRequestReducerCreator<{}, boolean>(saveAccessControlActionCreators, 'saveAccessControl')
+export const deleteAccessControlReducer = APIRequestReducerCreator<{}, boolean>(deleteAccessControlActionCreators, 'deleteAccessControl')
 
 /**
  * Notification with toasts

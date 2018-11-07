@@ -5,20 +5,29 @@ import { withRouter, RouteComponentProps } from 'react-router'
 import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
 
 import { AccessControlList, Application, UserInfo, UserRole } from '@src/apis'
-import { APIRequest } from '@src/apis/Core'
-import { fetchAccessControlListDispatcher, fetchApplicationByIdDispatcher } from '@src/actions'
+import { APIRequest, isAPISucceeded } from '@src/apis/Core'
+import {
+  addNotification,
+  AddNotificationAction,
+  fetchAccessControlListDispatcher,
+  fetchApplicationByIdDispatcher,
+  deleteAccessControlDispatcher,
+} from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import AddUserModal from './AddUserModal'
 
 interface StateProps {
   accessControlList: APIRequest<AccessControlList>
   application: APIRequest<Application>
-  userInfoStatus: APIRequest<UserInfo>,
+  userInfoStatus: APIRequest<UserInfo>
+  deleteAccessControlStatus: APIRequest<boolean>
 }
 
 interface DispatchProps {
+  addNotification: (params) => AddNotificationAction
   fetchAccessControlList: (applicationId: string) => Promise<void>
   fetchApplicationById: (id: string) => Promise<void>
+  deleteAccessControl: (applicaitonId: string, userUid: string) => Promise<void>
 }
 
 type AdminProps = StateProps & DispatchProps & RouteComponentProps<{applicationId: string}>
@@ -26,6 +35,8 @@ type AdminProps = StateProps & DispatchProps & RouteComponentProps<{applicationI
 interface AdminState {
   isAddUserModalOpen: boolean
   isRemoveUserModalOpen: boolean
+  removeTarget?: string
+  submitted: boolean
 }
 
 class Admin extends React.Component<AdminProps, AdminState> {
@@ -36,7 +47,21 @@ class Admin extends React.Component<AdminProps, AdminState> {
     this.reload = this.reload.bind(this)
     this.state = {
       isAddUserModalOpen: false,
-      isRemoveUserModalOpen: false
+      isRemoveUserModalOpen: false,
+      submitted: false
+    }
+  }
+  componentWillReceiveProps(nextProps: AdminProps) {
+    const { deleteAccessControlStatus, fetchAccessControlList, match } = nextProps
+    const { submitted } = this.state
+    if (submitted) {
+      if (isAPISucceeded<boolean>(deleteAccessControlStatus)) {
+        nextProps.addNotification({ color: 'success', message: 'Successfully removed user' })
+        fetchAccessControlList(match.params.applicationId)
+      } else {
+        nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+      }
+      this.setState({ submitted: false })
     }
   }
   componentWillMount() {
@@ -129,14 +154,19 @@ class Admin extends React.Component<AdminProps, AdminState> {
     )
   }
   private renderConfirmRemoveUserModal(): JSX.Element {
-    const { isRemoveUserModalOpen } = this.state
+    const { deleteAccessControl, match } = this.props
+    const { isRemoveUserModalOpen, removeTarget } = this.state
     const cancel = this.toggleRemoveUserModalOpen.bind(this)
-    const executeDeletion = () => { /* TODO */ }
+    const executeDeletion = () => {
+      deleteAccessControl(match.params.applicationId, removeTarget)
+      this.setState({ submitted: true })
+      this.toggleRemoveUserModalOpen()
+    }
     return (
       <Modal isOpen={isRemoveUserModalOpen} toggle={cancel} size='sm'>
         <ModalHeader toggle={cancel}>Remove User</ModalHeader>
         <ModalBody>
-          Are you sure to remove?
+          Are you sure to remove {removeTarget}?
         </ModalBody>
         <div className='d-flex flex-row mt-3'>
           <Button
@@ -175,6 +205,7 @@ class Admin extends React.Component<AdminProps, AdminState> {
   }
   private onClickRemoveButton(acl: AccessControlList) {
     return () => {
+      this.setState({ removeTarget: acl.userUid })
       this.toggleRemoveUserModalOpen()
     }
   }
@@ -191,12 +222,15 @@ export default withRouter(
         accessControlList: state.fetchAccessControlListReducer.accessControlList,
         application: state.fetchApplicationByIdReducer.applicationById,
         userInfoStatus: state.userInfoReducer.userInfo,
+        deleteAccessControlStatus: state.deleteAccessControlReducer.deleteAccessControl
       }
     },
     (dispatch: Dispatch): DispatchProps => {
       return {
+        addNotification: (params) => dispatch(addNotification(params)),
         fetchAccessControlList: (applicationId: string) => fetchAccessControlListDispatcher(dispatch, { applicationId }),
         fetchApplicationById: (id: string) => fetchApplicationByIdDispatcher(dispatch, { id }),
+        deleteAccessControl: (applicationId: string, userUid: string) => deleteAccessControlDispatcher(dispatch, { applicationId, userUid })
       }
     }
   )(Admin)
