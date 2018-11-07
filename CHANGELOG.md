@@ -1,5 +1,14 @@
 # Change Log
 
+## [v0.3.4](https://github.com/drucker/drucker-dashboard/tree/v0.3.4) (2018-10-03)
+[Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.3...v0.3.4)
+
+**Merged pull requests:**
+
+- \[Hotfix\] Limit application name length [\#36](https://github.com/drucker/drucker-dashboard/pull/36) ([keigohtr](https://github.com/keigohtr))
+- \[Hotfix\] Fix file upload limit for gRPC and flask [\#35](https://github.com/drucker/drucker-dashboard/pull/35) ([keigohtr](https://github.com/keigohtr))
+- \[Hotfix\] Add encode info [\#34](https://github.com/drucker/drucker-dashboard/pull/34) ([keigohtr](https://github.com/keigohtr))
+
 ## [v0.3.3](https://github.com/drucker/drucker-dashboard/tree/v0.3.3) (2018-08-29)
 [Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.2...v0.3.3)
 

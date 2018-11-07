@@ -23,7 +23,7 @@ app = Flask(__name__)
 def configure_app(flask_app: Flask, db_url: str) -> None:
     flask_app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-    flask_app.config['DEBUG'] = bool(os.getenv("FLASK_DEBUG", "True"))
+    flask_app.config['DEBUG'] = os.getenv("FLASK_DEBUG", "True")
     flask_app.config['SWAGGER_UI_DOC_EXPANSION'] = 'list'
     flask_app.config['RESTPLUS_VALIDATE'] = True
     flask_app.config['MAX_CONTENT_LENGTH'] = int(os.getenv("FLASK_MAX_CONTENT_LENGTH", "1073741824"))
