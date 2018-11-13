@@ -4,7 +4,7 @@ import { withRouter, RouteComponentProps } from 'react-router'
 import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Model, Service, SwitchModelParam, SynKubernetesStatusParam, Application } from '@src/apis'
+import { Model, Service, SwitchModelParam, SynKubernetesStatusParam, Application, UserInfo, UserRole } from '@src/apis'
 import {
   addNotification,
   fetchApplicationByIdDispatcher,
@@ -26,9 +26,20 @@ export enum ControlMode {
   EVALUATE_MODELS
 }
 
+interface DeployStatusState {
+  controlMode: ControlMode
+  isDeleteServicesModalOpen: boolean
+  isAddModelFileModalOpen: boolean
+  selectedData: { services: any[], models: any[] }
+  submitted: boolean
+  notified: boolean
+  syncSubmitted: boolean
+  syncNotified: boolean
+}
+
 type DeployStatusProps = DispatchProps & StateProps & RouteComponentProps<{applicationId: string}>
 
-class Deploy extends React.Component<DeployStatusProps, any> {
+class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
   constructor(props, context) {
     super(props, context)
 
@@ -38,6 +49,7 @@ class Deploy extends React.Component<DeployStatusProps, any> {
       isAddModelFileModalOpen: false,
       selectedData: { services: [], models: [] },
       submitted: false,
+      notified: false,
       syncSubmitted: false,
       syncNotified: false
     }
@@ -108,10 +120,10 @@ class Deploy extends React.Component<DeployStatusProps, any> {
         isAPIFailed<boolean>(status)
 
       if (succeeded) {
-        this.setState({[submitted]: false, [notified]: true})
+        this.setState({ submitted: false, notified: true})
         this.complete({ color: 'success', message: notificationText })
       } else if (failed) {
-        this.setState({[submitted]: false, [notified]: true})
+        this.setState({ submitted: false, notified: true})
         this.complete({ color: 'error', message: 'Something went wrong. Try again later' })
       }
     }
@@ -120,13 +132,13 @@ class Deploy extends React.Component<DeployStatusProps, any> {
   // Render methods
 
   render(): JSX.Element {
-    const { application, models, services } = this.props
+    const { application, models, services, userInfoStatus } = this.props
     if ( this.props.match.params.applicationId === 'add' ) {
       return null
     }
     return (
       <APIRequestResultsRenderer
-        APIStatus={{ models, services, application }}
+        APIStatus={{ models, services, application, userInfoStatus }}
         render={this.renderDeployStatus}
       />
     )
@@ -151,11 +163,15 @@ class Deploy extends React.Component<DeployStatusProps, any> {
     const services: Service[] = fetchedResults.services
     const models: Model[] = fetchedResults.models
     const deployStatus = this.makeDeployStatus(services)
-    const onSubmitMap = {
+    const onSubmitMap: { [mode: number]: (params: any) => Promise<void> } = {
       [ControlMode.VIEW_DEPLOY_STATUS]: onSubmitDeployStatusChanges, // Dummy to render form
       [ControlMode.EDIT_DEPLOY_STATUS]: onSubmitDeployStatusChanges,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
     }
+    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((role: UserRole) => {
+      return String(role.applicationId) === applicationId &&
+        (role.role === 'edit' || role.role === 'admin')
+    })
 
     // Render contents to control deploy status
     switch (controlMode) {
@@ -173,9 +189,11 @@ class Deploy extends React.Component<DeployStatusProps, any> {
               mode={controlMode}
               onSubmit={onSubmitMap[controlMode]}
               changeMode={changeMode}
+              canEdit={canEdit}
             />,
             name,
-            kubernetesId
+            kubernetesId,
+            canEdit
           )
         )
 
@@ -184,16 +202,17 @@ class Deploy extends React.Component<DeployStatusProps, any> {
           this.renderContent(
             <div>TBD</div>,
             name,
-            kubernetesId
+            kubernetesId,
+            canEdit
           )
         )
     }
   }
 
-  renderContent = (content: JSX.Element, applicationName, kubernetesId): JSX.Element => {
+  renderContent = (content: JSX.Element, applicationName, kubernetesId, canEdit: boolean): JSX.Element => {
     return (
       <div className='pb-5'>
-        {this.renderTitle(applicationName, kubernetesId)}
+        {this.renderTitle(applicationName, kubernetesId, canEdit)}
         <AddModelFileModal
           applicationId={this.props.match.params.applicationId}
           isModalOpen={this.state.isAddModelFileModalOpen}
@@ -215,7 +234,21 @@ class Deploy extends React.Component<DeployStatusProps, any> {
     )
   }
 
-  renderTitle = (applicationName, kubernetesId): JSX.Element => {
+  renderTitle = (applicationName, kubernetesId, isAdmin: boolean): JSX.Element => {
+    const buttons = (
+      <Col xs='5' className='text-right'>
+        <Button
+          color='primary'
+          size='sm'
+          onClick={this.toggleAddModelFileModalOpen}
+        >
+          <i className='fas fa-robot fa-fw mr-2'></i>
+          Add Model
+          </Button>
+        {' '}
+        {kubernetesId ? this.renderKubernetesControlButtons(kubernetesId) : null}
+      </Col>
+    )
     return (
       <Row className='align-items-center mb-5'>
         <Col xs='7'>
@@ -224,18 +257,7 @@ class Deploy extends React.Component<DeployStatusProps, any> {
             {applicationName}
           </h1>
         </Col>
-        <Col xs='5' className='text-right'>
-          <Button
-            color='primary'
-            size='sm'
-            onClick={this.toggleAddModelFileModalOpen}
-          >
-            <i className='fas fa-robot fa-fw mr-2'></i>
-            Add Model
-            </Button>
-          {' '}
-          {kubernetesId ? this.renderKubernetesControlButtons(kubernetesId) : null}
-        </Col>
+        {isAdmin ? buttons : null}
       </Row>
     )
   }
@@ -355,7 +377,7 @@ class Deploy extends React.Component<DeployStatusProps, any> {
    *
    * @param params
    */
-  onSubmitDelete(params): void {
+  onSubmitDelete(params): Promise<void> {
     this.setState({
       isDeleteServicesModalOpen: true,
       selectedData: {
@@ -363,6 +385,7 @@ class Deploy extends React.Component<DeployStatusProps, any> {
         models: params.delete.models
       }
     })
+    return Promise.resolve()
   }
 
   deleteKubernetesServices(params): Promise<void> {
@@ -435,18 +458,19 @@ export interface StateProps {
   switchModelsStatus: APIRequest<boolean[]>
   deleteKubernetesServicesStatus: APIRequest<boolean[]>
   syncKubernetesServicesStatusStatus: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
 }
 
 const mapStateToProps = (state): StateProps => {
-  const props = {
+  return {
     application: state.fetchApplicationByIdReducer.applicationById,
     models: state.fetchAllModelsReducer.models,
     services: state.fetchAllServicesReducer.services,
     switchModelsStatus: state.switchModelsReducer.switchModels,
     deleteKubernetesServicesStatus: state.deleteKubernetesServicesReducer.deleteKubernetesServices,
-    syncKubernetesServicesStatusStatus: state.syncKubernetesStatusReducer.syncKubernetesStatus
+    syncKubernetesServicesStatusStatus: state.syncKubernetesStatusReducer.syncKubernetesStatus,
+    userInfoStatus: state.userInfoReducer.userInfo,
   }
-  return props
 }
 
 export interface DispatchProps {
