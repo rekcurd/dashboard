@@ -4,7 +4,7 @@ import { withRouter, RouteComponentProps } from 'react-router'
 import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Model, Application } from '@src/apis'
+import { Model, Application, UserInfo, UserRole } from '@src/apis'
 import {
   addNotification,
   fetchApplicationByIdDispatcher,
@@ -74,13 +74,13 @@ class Models extends React.Component<ModelsStatusProps, any> {
   // Render methods
 
   render(): JSX.Element {
-    const { application, models } = this.props
+    const { application, models, userInfoStatus } = this.props
     if ( this.props.match.params.applicationId === 'add' ) {
       return null
     }
     return (
       <APIRequestResultsRenderer
-        APIStatus={{ application, models }}
+        APIStatus={{ application, models, userInfoStatus }}
         render={this.renderModels}
       />
     )
@@ -108,6 +108,10 @@ class Models extends React.Component<ModelsStatusProps, any> {
       [ControlMode.VIEW_MODELS_STATUS]: onSubmitNothing,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
     }
+    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((role: UserRole) => {
+      return String(role.applicationId) === applicationId &&
+        (role.role === 'edit' || role.role === 'admin')
+    })
 
     return (
       this.renderContent(
@@ -118,17 +122,19 @@ class Models extends React.Component<ModelsStatusProps, any> {
           mode={controlMode}
           onSubmit={onSubmitMap[controlMode]}
           changeMode={changeMode}
+          canEdit={canEdit}
         />,
         name,
-        kubernetesId
+        kubernetesId,
+        canEdit
       )
     )
   }
 
-  renderContent = (content: JSX.Element, applicationName, kubernetesId): JSX.Element => {
+  renderContent = (content: JSX.Element, applicationName, kubernetesId, canEdit: boolean): JSX.Element => {
     return (
       <div className='pb-5'>
-        {this.renderTitle(applicationName, kubernetesId)}
+        {this.renderTitle(applicationName, canEdit)}
         <AddModelFileModal
           applicationId={this.props.match.params.applicationId}
           isModalOpen={this.state.isAddModelFileModalOpen}
@@ -150,7 +156,17 @@ class Models extends React.Component<ModelsStatusProps, any> {
     )
   }
 
-  renderTitle = (applicationName, kubernetesId): JSX.Element => {
+  renderTitle = (applicationName, canEdit: boolean): JSX.Element => {
+    const button = (
+      <Button
+        color='primary'
+        size='sm'
+        onClick={this.toggleAddModelFileModalOpen}
+      >
+        <i className='fas fa-robot fa-fw mr-2'></i>
+        Add Model
+      </Button>
+    )
     return (
       <Row className='align-items-center mb-5'>
         <Col xs='7'>
@@ -160,14 +176,7 @@ class Models extends React.Component<ModelsStatusProps, any> {
           </h1>
         </Col>
         <Col xs='5' className='text-right'>
-          <Button
-            color='primary'
-            size='sm'
-            onClick={this.toggleAddModelFileModalOpen}
-          >
-            <i className='fas fa-robot fa-fw mr-2'></i>
-            Add Model
-          </Button>
+          {canEdit ? button : null}
         </Col>
       </Row>
     )
@@ -298,6 +307,7 @@ export interface StateProps {
   application: APIRequest<Application>
   models: APIRequest<Model[]>
   deleteKubernetesModelsStatus: APIRequest<boolean[]>
+  userInfoStatus: APIRequest<UserInfo>
 }
 
 const mapStateToProps = (state): StateProps => {
@@ -305,6 +315,7 @@ const mapStateToProps = (state): StateProps => {
     application: state.fetchApplicationByIdReducer.applicationById,
     models: state.fetchAllModelsReducer.models,
     deleteKubernetesModelsStatus: state.deleteKubernetesModelsReducer.deleteKubernetesModels,
+    userInfoStatus: state.userInfoReducer.userInfo,
   }
   return props
 }

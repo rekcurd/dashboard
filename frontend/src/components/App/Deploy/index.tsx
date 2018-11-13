@@ -234,7 +234,7 @@ class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
     )
   }
 
-  renderTitle = (applicationName, kubernetesId, isAdmin: boolean): JSX.Element => {
+  renderTitle = (applicationName, kubernetesId, canEdit: boolean): JSX.Element => {
     const buttons = (
       <Col xs='5' className='text-right'>
         <Button
@@ -257,7 +257,7 @@ class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
             {applicationName}
           </h1>
         </Col>
-        {isAdmin ? buttons : null}
+        {canEdit ? buttons : null}
       </Row>
     )
   }

@@ -146,6 +146,7 @@ interface ServicesDeleteFormCustomProps {
   applicationId
   mode: ControlMode
   services: Service[]
+  canEdit: boolean
   onSubmit: (e) => Promise<void>
   changeMode: (mode: ControlMode) => void
 }

@@ -64,13 +64,13 @@ class ModelsStatusTable extends React.Component<ModelsStatusProps, {tooltipOpen}
    * @param models Models to be shown (Currently show all, but should be filtered)
    */
   renderTableBody = (models) => {
-    const { applicationType, applicationId } = this.props
+    const { applicationType, applicationId, canEdit } = this.props
 
     // Button to delete Model (for deleting k8s models)
     const deleteCheckButton = (modelName: string, modelId: string) => {
       return (
         <Row>
-          { applicationType === 'kubernetes' ?
+          { applicationType === 'kubernetes' && canEdit ?
             <Field
               name={`delete.models.${modelId}`}
               component={CustomCheckBox}
@@ -124,8 +124,9 @@ const CustomCheckBox = (props) => {
 interface ModelsStatusFormCustomProps {
   applicationType: string
   applicationId
-  models: Model[],
-  mode: ControlMode,
+  models: Model[]
+  mode: ControlMode
+  canEdit: boolean
 }
 
 export interface DispatchProps {

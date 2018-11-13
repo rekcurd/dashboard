@@ -4,7 +4,7 @@ import { withRouter, RouteComponentProps } from 'react-router'
 import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Service, SynKubernetesStatusParam, Application } from '@src/apis'
+import { Service, SynKubernetesStatusParam, Application, UserInfo, UserRole } from '@src/apis'
 import {
   addNotification,
   fetchApplicationByIdDispatcher,
@@ -100,13 +100,13 @@ class Services extends React.Component<ServicesStatusProps, any> {
   // Render methods
 
   render(): JSX.Element {
-    const { application, services } = this.props
+    const { application, services, userInfoStatus } = this.props
     if ( this.props.match.params.applicationId === 'add' ) {
       return null
     }
     return (
       <APIRequestResultsRenderer
-        APIStatus={{ application, services }}
+        APIStatus={{ application, services, userInfoStatus }}
         render={this.renderServices}
       />
     )
@@ -134,6 +134,10 @@ class Services extends React.Component<ServicesStatusProps, any> {
       [ControlMode.VIEW_SERVICES_STATUS]: onSubmitNothing,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
     }
+    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((role: UserRole) => {
+      return String(role.applicationId) === applicationId &&
+        (role.role === 'edit' || role.role === 'admin')
+    })
 
     return (
       this.renderContent(
@@ -144,17 +148,19 @@ class Services extends React.Component<ServicesStatusProps, any> {
           mode={controlMode}
           onSubmit={onSubmitMap[controlMode]}
           changeMode={changeMode}
+          canEdit={canEdit}
         />,
         name,
-        kubernetesId
+        kubernetesId,
+        canEdit
       )
     )
   }
 
-  renderContent = (content: JSX.Element, applicationName, kubernetesId): JSX.Element => {
+  renderContent = (content: JSX.Element, applicationName, kubernetesId, canEdit: boolean): JSX.Element => {
     return (
       <div className='pb-5'>
-        {this.renderTitle(applicationName, kubernetesId)}
+        {this.renderTitle(applicationName, kubernetesId, canEdit)}
         <h3>
           <i className='fas fa-server fa-fw mr-2'></i>
           Services
@@ -170,7 +176,7 @@ class Services extends React.Component<ServicesStatusProps, any> {
     )
   }
 
-  renderTitle = (applicationName, kubernetesId): JSX.Element => {
+  renderTitle = (applicationName, kubernetesId, canEdit: boolean): JSX.Element => {
     return (
       <Row className='align-items-center mb-5'>
         <Col xs='7'>
@@ -180,7 +186,7 @@ class Services extends React.Component<ServicesStatusProps, any> {
           </h1>
         </Col>
         <Col xs='5' className='text-right'>
-          {kubernetesId ? this.renderKubernetesControlButtons(kubernetesId) : null}
+          {kubernetesId && canEdit ? this.renderKubernetesControlButtons(kubernetesId) : null}
         </Col>
       </Row>
     )
@@ -340,6 +346,7 @@ export interface StateProps {
   services: APIRequest<Service[]>
   deleteKubernetesServicesStatus: APIRequest<boolean[]>
   syncKubernetesServicesStatusStatus: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
 }
 
 const mapStateToProps = (state): StateProps => {
@@ -347,7 +354,8 @@ const mapStateToProps = (state): StateProps => {
     application: state.fetchApplicationByIdReducer.applicationById,
     services: state.fetchAllServicesReducer.services,
     deleteKubernetesServicesStatus: state.deleteKubernetesServicesReducer.deleteKubernetesServices,
-    syncKubernetesServicesStatusStatus: state.syncKubernetesStatusReducer.syncKubernetesStatus
+    syncKubernetesServicesStatusStatus: state.syncKubernetesStatusReducer.syncKubernetesStatus,
+    userInfoStatus: state.userInfoReducer.userInfo,
   }
   return props
 }
