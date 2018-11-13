@@ -4,7 +4,7 @@ import { withRouter, RouteComponentProps, Link } from 'react-router-dom'
 import { Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Model, Application } from '@src/apis'
+import { Model, Application, UserInfo, UserRole } from '@src/apis'
 import {
   fetchApplicationByIdDispatcher,
   saveModelDispatcher,
@@ -58,6 +58,21 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
     fetchApplicationById({id: applicationId})
   }
 
+  componentDidMount() {
+    const { userInfoStatus, history } = this.props
+    const { applicationId } = this.props.match.params
+    const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
+    if (userInfo) {
+      const canEdit: boolean = userInfo.roles.some((role: UserRole) => {
+        return String(role.applicationId) === applicationId &&
+          (role.role === 'edit' || role.role === 'admin')
+      })
+      if (!canEdit) {
+        history.goBack()
+      }
+    }
+  }
+
   render() {
     const { application } = this.props
     const targetStatus = { application }
@@ -101,17 +116,19 @@ interface StateProps {
   model: APIRequest<Model>
   application: APIRequest<Application>
   saveModelStatus: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
 }
 
 interface CustomProps {
   mode: string
 }
 
-const mapStateToProps = (state: any, extraProps: CustomProps) => (
+const mapStateToProps = (state: any, extraProps: CustomProps): StateProps => (
   {
     application: state.fetchApplicationByIdReducer.applicationById,
     model: state.fetchModelByIdReducer.modelById,
     saveModelStatus: state.saveModelReducer.saveModel,
+    userInfoStatus: state.userInfoReducer.userInfo,
     ...state.form,
     ...extraProps
   }

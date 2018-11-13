@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { withRouter, RouteComponentProps, Link } from 'react-router-dom'
+import { withRouter, RouteComponentProps } from 'react-router-dom'
 import { Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Service, Application } from '@src/apis'
+import { Service, Application, UserInfo, UserRole } from '@src/apis'
 import {
   fetchApplicationByIdDispatcher,
   saveServiceDispatcher,
@@ -59,6 +59,21 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
     fetchApplicationById({id: applicationId})
   }
 
+  componentDidMount() {
+    const { userInfoStatus, history } = this.props
+    const { applicationId } = this.props.match.params
+    const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
+    if (userInfo) {
+      const canEdit: boolean = userInfo.roles.some((role: UserRole) => {
+        return String(role.applicationId) === applicationId &&
+          (role.role === 'edit' || role.role === 'admin')
+      })
+      if (!canEdit) {
+        history.goBack()
+      }
+    }
+  }
+
   render() {
     const { application } = this.props
     const targetStatus = { application }
@@ -106,6 +121,7 @@ interface StateProps {
   service: APIRequest<Service>
   application: APIRequest<Application>
   saveServiceStatus: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
 }
 
 interface CustomProps {
@@ -117,6 +133,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     application: state.fetchApplicationByIdReducer.applicationById,
     service: state.fetchServiceByIdReducer.serviceById,
     saveServiceStatus: state.saveServiceReducer.saveService,
+    userInfoStatus: state.userInfoReducer.userInfo,
     ...state.form,
     ...extraProps
   }
