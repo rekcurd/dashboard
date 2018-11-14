@@ -1,4 +1,5 @@
 import uuid
+import datetime
 
 from werkzeug.datastructures import FileStorage
 
@@ -50,23 +51,6 @@ app_info = app_info_namespace.model('Application', {
     )
 })
 
-
-@app_info_namespace.route('/evaluate')
-class ApiEvaluate(Resource):
-    upload_parser = reqparse.RequestParser()
-    upload_parser.add_argument('file', location='files',
-                               type=FileStorage, required=True)
-
-    @app_info_namespace.marshal_with(success_or_not)
-    @app_info_namespace.expect(upload_parser)
-    def post(self):
-        """TBD evaluate"""
-        args = self.upload_parser.parse_args()
-        file = args['file']
-        url = 'localhost:5000'
-        drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=url)
-        response_body = drucker_dashboard_application.run_evaluate_model(file.read())
-        return response_body
 
 @app_info_namespace.route('/')
 class ApiApplications(Resource):

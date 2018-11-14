@@ -115,14 +115,14 @@ class DruckerDashboardClient:
             raise Exception(response["message"])
         return response
 
-    def __eval_model_request(self, f:FileStorage):
+    def __eval_model_request(self, f:FileStorage, data_path:str):
         for data in ProtobufUtil.stream_file(f):
-            request = drucker_pb2.EvaluateModelRequest(data=data)
+            request = drucker_pb2.EvaluateModelRequest(data=data, data_path=data_path)
             yield request
 
-    def run_evaluate_model(self, f:FileStorage):
+    def run_evaluate_model(self, f:FileStorage, data_path:str):
         try:
-            request_iterator = self.__eval_model_request(f)
+            request_iterator = self.__eval_model_request(f, data_path)
             response = self.stub.EvaluateModel(request_iterator)
             response = ProtobufUtil.serialize_to_object(response)
             return response
