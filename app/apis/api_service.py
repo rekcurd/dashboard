@@ -5,10 +5,7 @@ from werkzeug.datastructures import FileStorage
 from flask_restplus import Namespace, fields, Resource, reqparse
 
 from app import logger
-from models import db
-from models.kubernetes import Kubernetes
-from models.application import Application
-from models.service import Service
+from models import db, Kubernetes, Application, Service, Evaluation
 from core.drucker_dashboard_client import DruckerDashboardClient
 
 from apis.common import DatetimeToTimestamp
@@ -210,4 +207,10 @@ class ApiEvaluate(Resource):
 
         drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
         response_body = drucker_dashboard_application.run_evaluate_model(file.read(), eval_data_path)
+
+        eobj = Evaluation(service_id=service_id, data_path=eval_data_path)
+        db.session.add(eobj)
+        db.session.commit()
+        db.session.close()
+
         return response_body

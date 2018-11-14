@@ -41,3 +41,4 @@ from models.kubernetes import Kubernetes
 from models.application import Application
 from models.service import Service
 from models.model import Model
+from models.evaluation import Evaluation
