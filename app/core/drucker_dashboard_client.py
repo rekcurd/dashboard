@@ -124,7 +124,8 @@ class DruckerDashboardClient:
         try:
             request_iterator = self.__eval_model_request(f, data_path)
             response = self.stub.EvaluateModel(request_iterator)
-            response = ProtobufUtil.serialize_to_object(response)
+            response = ProtobufUtil.serialize_to_object(response.metrics)
+            response['option'] = dict(response.metrics.option)
             return response
         except Exception as e:
             self.logger.error(str(e))
