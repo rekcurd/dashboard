@@ -79,47 +79,29 @@ class Admin extends React.Component<AdminProps, AdminState> {
     )
   }
   renderAccessControlList(results) {
-    const { applicationId } = this.props.match.params
     const application: Application = results.application
     const acl: AccessControlList[] = results.accessControlList
     const userInfo: UserInfo = results.userInfoStatus
-    const isAdmin: boolean = userInfo.roles.some((role: UserRole) => {
-      return applicationId === String(role.applicationId) && role.role === 'admin'
-    })
-    return this.renderContent(application.name, acl, isAdmin)
+    return this.renderContent(application.name, acl, userInfo)
   }
-  renderContent(applicationName: string, acl: AccessControlList[], isAdmin: boolean) {
+  renderContent(applicationName: string, acl: AccessControlList[], userInfo: UserInfo) {
     const { isAddUserModalOpen } = this.state
     const tableBody = acl.map((e: AccessControlList, i: number) => {
+      const removeButton = (
+        <Button color='danger' size='sm' onClick={this.onClickRemoveButton(e)}>
+          <i className={`fas fa-times fa-fw mr-2`}></i>
+          Remove
+        </Button>
+      )
       return (
         <tr key={i}>
           <td>{e.userUid}</td>
           <td>{e.userName}</td>
           <td>{e.role.replace(/Role./, '')}</td>
-          <td>
-            <Button color='danger' size='sm' onClick={this.onClickRemoveButton(e)}>
-              <i className={`fas fa-times fa-fw mr-2`}></i>
-              Remove
-            </Button>
-          </td>
+          <td>{e.userUid !== userInfo.user.userUid ? removeButton : null}</td>
         </tr>
       )
     })
-    let addUserButton
-    if (isAdmin) {
-      addUserButton = (
-        <Col xs='5' className='text-right'>
-          <Button
-            color='primary'
-            size='sm'
-            onClick={this.toggleAddUserModalOpen}
-          >
-            <i className='fas fa-user-plus fa-fw mr-2'></i>
-            Add User
-          </Button>
-        </Col>
-      )
-    }
     return (
       <div className='pb-5'>
         <Row className='align-items-center mb-5'>
@@ -129,7 +111,16 @@ class Admin extends React.Component<AdminProps, AdminState> {
               {applicationName}
             </h1>
           </Col>
-          {addUserButton}
+          <Col xs='5' className='text-right'>
+            <Button
+              color='primary'
+              size='sm'
+              onClick={this.toggleAddUserModalOpen}
+            >
+              <i className='fas fa-user-plus fa-fw mr-2'></i>
+              Add User
+            </Button>
+          </Col>
         </Row>
         <AddUserModal
           isModalOpen={isAddUserModalOpen}
