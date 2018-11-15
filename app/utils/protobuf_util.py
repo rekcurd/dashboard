@@ -4,7 +4,7 @@ class ProtobufUtil:
 
     @staticmethod
     def serialize_to_object(proto, descriptor = None):
-        if isinstance(proto, (str, int, bool)):
+        if isinstance(proto, (str, int, bool, float)):
             return proto
         ## TODO Use protobuf label = 3
         elif descriptor and descriptor.label == 3:

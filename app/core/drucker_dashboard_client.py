@@ -12,6 +12,7 @@ import drucker_pb2_grpc
 from logger.logger_interface import SystemLoggerInterface
 from utils.protobuf_util import ProtobufUtil
 from werkzeug.datastructures import FileStorage
+from protobuf_to_dict import protobuf_to_dict
 
 
 def error_handling(error_response):
@@ -123,10 +124,8 @@ class DruckerDashboardClient:
     def run_evaluate_model(self, f:FileStorage, data_path:str):
         try:
             request_iterator = self.__eval_model_request(f, data_path)
-            response = self.stub.EvaluateModel(request_iterator)
-            response = ProtobufUtil.serialize_to_object(response.metrics)
-            response['option'] = dict(response.metrics.option)
-            return response
+            return protobuf_to_dict(self.stub.EvaluateModel(request_iterator),
+                                    including_default_value_fields=True)
         except Exception as e:
             self.logger.error(str(e))
             self.logger.error(traceback.format_exc())

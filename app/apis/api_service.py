@@ -193,7 +193,6 @@ class ApiEvaluate(Resource):
     upload_parser = reqparse.RequestParser()
     upload_parser.add_argument('file', location='files', type=FileStorage, required=True)
 
-    @srv_info_namespace.marshal_with(success_or_not)
     @srv_info_namespace.expect(upload_parser)
     def post(self, application_id:int, service_id:int):
         """evaluate"""
@@ -206,7 +205,7 @@ class ApiEvaluate(Resource):
             service_id=service_id).first_or_404()
 
         drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
-        response_body = drucker_dashboard_application.run_evaluate_model(file.read(), eval_data_path)
+        response_body = drucker_dashboard_application.run_evaluate_model(file, eval_data_path)
 
         eobj = Evaluation(service_id=service_id, data_path=eval_data_path)
         db.session.add(eobj)
