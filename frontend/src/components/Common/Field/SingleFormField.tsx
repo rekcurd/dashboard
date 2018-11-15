@@ -14,7 +14,7 @@ interface CustomFormFieldProps {
   className: string,
   groupClassName?: string,
   disable?: boolean,
-  options?: Array<{label: string, value: string}>
+  options?: Array<{label: string, value: string, disabled: boolean}>
   required?: boolean
   formText?: string | JSX.Element
 }
@@ -30,7 +30,7 @@ export const SingleFormField = ({
   className,
   groupClassName,
   disable,
-  options = [] as Array<{label: string, value: string}>,
+  options = [] as Array<{label: string, value: string, disabled: boolean}>,
   meta: { touched, error, warning, submitting },
   required,
   formText
@@ -43,9 +43,9 @@ export const SingleFormField = ({
   const isValid = (!error) && (!warning)
   const margin = 'mb-3'
   const renderOptionElements =
-    () => ([{label: '', value: ''}].concat(options)).map(
+    () => ([{label: '', value: '', disabled: false}].concat(options)).map(
       (value, index) =>
-        (<option value={value.value} key={value.label}>{value.label}</option>)
+        (<option value={value.value} key={value.label} disabled={value.disabled}>{value.label}</option>)
       )
   const requiredClass = required ? 'required' : ''
   const formTextElement =

@@ -8,12 +8,13 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 import { SingleFormField } from '@components/Common/Field/SingleFormField'
 import { required } from '@components/Common/Field/Validateors'
 import { saveAccessControlDispatcher, addNotification, AddNotificationAction, fetchAllUsersDispatcher } from '@src/actions'
-import { UserInfo } from '@src/apis'
+import { UserInfo, AccessControlList } from '@src/apis'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
 
 interface Props extends RouteComponentProps<{ applicationId: string }> {
   isModalOpen: boolean
+  acl: AccessControlList[]
   toggle: () => void
   reload: () => void
 }
@@ -32,6 +33,7 @@ interface DispathProps {
 type AddUserModalProps = Props & StateProps & DispathProps & InjectedFormProps<any, any>
 
 class AddUserModal extends React.Component<AddUserModalProps> {
+  private alreadyAdded: Set<string>
   constructor(props) {
     super(props)
     this.onCancel = this.onCancel.bind(this)
@@ -40,6 +42,10 @@ class AddUserModal extends React.Component<AddUserModalProps> {
     this.state = {
       submitting: false
     }
+    this.alreadyAdded = new Set<string>()
+    props.acl.forEach((e: AccessControlList) => {
+      this.alreadyAdded.add(e.userUid)
+    })
   }
   componentWillReceiveProps(nextProps: AddUserModalProps) {
     const { isModalOpen } = this.props
@@ -93,7 +99,11 @@ class AddUserModal extends React.Component<AddUserModalProps> {
       { label: 'admin', value: 'admin' }
     ]
     const users = userInfos.map((v: UserInfo) => {
-      return { label: v.user.userUid, value: v.user.userUid }
+      return {
+        label: v.user.userUid,
+        value: v.user.userUid,
+        disabled: this.alreadyAdded.has(v.user.userUid)
+      }
     })
     return (
       <ModalBody>

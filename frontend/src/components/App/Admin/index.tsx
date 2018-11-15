@@ -126,6 +126,7 @@ class Admin extends React.Component<AdminProps, AdminState> {
           isModalOpen={isAddUserModalOpen}
           toggle={this.toggleAddUserModalOpen}
           reload={this.reload}
+          acl={acl}
         />
         {this.renderConfirmRemoveUserModal()}
         <h3>
