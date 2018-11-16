@@ -121,14 +121,10 @@ class DruckerDashboardClient:
             request = drucker_pb2.EvaluateModelRequest(data=data, data_path=data_path)
             yield request
 
+    @error_handling({"status": False})
     def run_evaluate_model(self, f:FileStorage, data_path:str):
-        try:
-            request_iterator = self.__eval_model_request(f, data_path)
-            return protobuf_to_dict(self.stub.EvaluateModel(request_iterator),
+        request_iterator = self.__eval_model_request(f, data_path)
+        response = protobuf_to_dict(self.stub.EvaluateModel(request_iterator).metrics,
                                     including_default_value_fields=True)
-        except Exception as e:
-            self.logger.error(str(e))
-            self.logger.error(traceback.format_exc())
-            response = drucker_pb2.EvaluateModelResponse()
-            response = ProtobufUtil.serialize_to_object(response)
-            return response
+        response['status'] = True
+        return response

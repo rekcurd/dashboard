@@ -207,7 +207,7 @@ class ApiEvaluate(Resource):
         drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
         response_body = drucker_dashboard_application.run_evaluate_model(file, eval_data_path)
 
-        if response_body['num'] != 0:
+        if response_body['status']:
             eobj = Evaluation(service_id=service_id, data_path=eval_data_path)
             db.session.add(eobj)
             db.session.commit()
