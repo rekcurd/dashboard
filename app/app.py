@@ -36,7 +36,7 @@ def initialize_app(flask_app: Flask) -> None:
     from utils.env_loader import DIR_KUBE_CONFIG, config
 
     if not os.path.isdir(DIR_KUBE_CONFIG):
-        os.mkdir(DIR_KUBE_CONFIG)
+        os.makedirs(DIR_KUBE_CONFIG)
     configure_app(flask_app, db_url())
 
     api.init_app(flask_app)
