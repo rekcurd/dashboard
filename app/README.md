@@ -17,3 +17,8 @@ All you have to do is specify the DB (sqlite or MySQL) you want to use.
 $ cd app
 $ sh start.sh
 ```
+
+### Test
+```
+$ python -m unittest
+```
