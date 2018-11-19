@@ -416,6 +416,10 @@ def create_or_update_drucker_on_kubernetes(
             value=commit_message
         ),
         client.V1EnvVar(
+            name="DRUCKER_TEST_MODE",
+            value="False"
+        ),
+        client.V1EnvVar(
             name="DRUCKER_APPLICATION_NAME",
             value=app_name
         ),
