@@ -1,11 +1,12 @@
 import datetime
 
+from werkzeug.datastructures import FileStorage
+
 from flask_restplus import Namespace, fields, Resource, reqparse
 
-from models import db
-from models.kubernetes import Kubernetes
-from models.application import Application
-from models.service import Service
+from app import logger
+from models import db, Kubernetes, Application, Service, Evaluation
+from core.drucker_dashboard_client import DruckerDashboardClient
 
 from apis.common import DatetimeToTimestamp
 from apis.api_kubernetes import update_dbs_kubernetes, switch_drucker_service_model_assignment
@@ -185,4 +186,31 @@ class ApiApplicationIdServiceId(Resource):
         response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()
+        return response_body
+
+@srv_info_namespace.route('/<int:application_id>/services/<int:service_id>/evaluate')
+class ApiEvaluate(Resource):
+    upload_parser = reqparse.RequestParser()
+    upload_parser.add_argument('file', location='files', type=FileStorage, required=True)
+
+    @srv_info_namespace.expect(upload_parser)
+    def post(self, application_id:int, service_id:int):
+        """evaluate"""
+        args = self.upload_parser.parse_args()
+        file = args['file']
+        eval_data_path = "eval-{0:%Y%m%d%H%M%S}".format(datetime.datetime.utcnow())
+
+        sobj = Service.query.filter_by(
+            application_id=application_id,
+            service_id=service_id).first_or_404()
+
+        drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
+        response_body = drucker_dashboard_application.run_evaluate_model(file, eval_data_path)
+
+        if response_body['status']:
+            eobj = Evaluation(service_id=service_id, data_path=eval_data_path)
+            db.session.add(eobj)
+            db.session.commit()
+            db.session.close()
+
         return response_body

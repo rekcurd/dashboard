@@ -15,3 +15,4 @@ Flask-JWT-Simple==0.0.3
 python-ldap==3.1.0
 Flask-Migrate==2.2.1
 Flask-Script==2.0.6
+protobuf3-to-dict==0.1.5
