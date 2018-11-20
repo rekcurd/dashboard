@@ -20,5 +20,9 @@ $ sh start.sh
 
 ### Test
 ```
+$ cd app
+$ sh drucker-grpc-proto/run_codegen.sh
+$ cp drucker-grpc-proto/protobuf/drucker_pb2.py .
+$ cp drucker-grpc-proto/protobuf/drucker_pb2_grpc.py .
 $ python -m unittest
 ```
