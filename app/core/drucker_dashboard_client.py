@@ -12,6 +12,7 @@ import drucker_pb2_grpc
 from logger.logger_interface import SystemLoggerInterface
 from utils.protobuf_util import ProtobufUtil
 from werkzeug.datastructures import FileStorage
+from protobuf_to_dict import protobuf_to_dict
 
 
 def error_handling(error_response):
@@ -84,7 +85,8 @@ class DruckerDashboardClient:
     def run_service_info(self):
         request = drucker_pb2.ServiceInfoRequest()
         response_protobuf = self.stub.ServiceInfo(request)
-        response = ProtobufUtil.serialize_to_object(response_protobuf)
+        response = protobuf_to_dict(response_protobuf,
+                                    including_default_value_fields=True)
         return response
 
     def __upload_model_request(self, model_path:str, f:FileStorage):
@@ -99,7 +101,8 @@ class DruckerDashboardClient:
     def run_upload_model(self, model_path:str, f:FileStorage):
         request_iterator = self.__upload_model_request(model_path, f)
         response = self.stub.UploadModel(request_iterator)
-        response = ProtobufUtil.serialize_to_object(response)
+        response = protobuf_to_dict(response,
+                                    including_default_value_fields=True)
         if not response["status"]:
             raise Exception(response["message"])
         return response
@@ -110,25 +113,21 @@ class DruckerDashboardClient:
             path=model_path,
         )
         response_protobuf = self.stub.SwitchModel(request)
-        response = ProtobufUtil.serialize_to_object(response_protobuf)
+        response = protobuf_to_dict(response_protobuf,
+                                    including_default_value_fields=True)
         if not response["status"]:
             raise Exception(response["message"])
         return response
 
-    def __eval_model_request(self, f:FileStorage):
+    def __eval_model_request(self, f:FileStorage, data_path:str):
         for data in ProtobufUtil.stream_file(f):
-            request = drucker_pb2.EvaluateModelRequest(data=data)
+            request = drucker_pb2.EvaluateModelRequest(data=data, data_path=data_path)
             yield request
 
-    def run_evaluate_model(self, f:FileStorage):
-        try:
-            request_iterator = self.__eval_model_request(f)
-            response = self.stub.EvaluateModel(request_iterator)
-            response = ProtobufUtil.serialize_to_object(response)
-            return response
-        except Exception as e:
-            self.logger.error(str(e))
-            self.logger.error(traceback.format_exc())
-            response = drucker_pb2.EvaluateModelResponse()
-            response = ProtobufUtil.serialize_to_object(response)
-            return response
+    @error_handling({"status": False})
+    def run_evaluate_model(self, f:FileStorage, data_path:str):
+        request_iterator = self.__eval_model_request(f, data_path)
+        response = protobuf_to_dict(self.stub.EvaluateModel(request_iterator).metrics,
+                                    including_default_value_fields=True)
+        response['status'] = True
+        return response

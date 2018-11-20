@@ -1,5 +1,14 @@
 # Change Log
 
+## [v0.3.5](https://github.com/drucker/drucker-dashboard/tree/v0.3.5) (2018-11-07)
+[Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.4...v0.3.5)
+
+**Merged pull requests:**
+
+- \[Hotfix\] Fix `switchModel` API response handler [\#41](https://github.com/drucker/drucker-dashboard/pull/41) ([keigohtr](https://github.com/keigohtr))
+- Create CODE\_OF\_CONDUCT.md [\#39](https://github.com/drucker/drucker-dashboard/pull/39) ([syleeeee](https://github.com/syleeeee))
+- \[Hotfix\] Fix inaccurate boolean check [\#38](https://github.com/drucker/drucker-dashboard/pull/38) ([keigohtr](https://github.com/keigohtr))
+
 ## [v0.3.4](https://github.com/drucker/drucker-dashboard/tree/v0.3.4) (2018-10-03)
 [Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.3...v0.3.4)
 
