@@ -85,7 +85,8 @@ class DruckerDashboardClient:
     def run_service_info(self):
         request = drucker_pb2.ServiceInfoRequest()
         response_protobuf = self.stub.ServiceInfo(request)
-        response = ProtobufUtil.serialize_to_object(response_protobuf)
+        response = protobuf_to_dict(response_protobuf,
+                                    including_default_value_fields=True)
         return response
 
     def __upload_model_request(self, model_path:str, f:FileStorage):
@@ -100,7 +101,8 @@ class DruckerDashboardClient:
     def run_upload_model(self, model_path:str, f:FileStorage):
         request_iterator = self.__upload_model_request(model_path, f)
         response = self.stub.UploadModel(request_iterator)
-        response = ProtobufUtil.serialize_to_object(response)
+        response = protobuf_to_dict(response,
+                                    including_default_value_fields=True)
         if not response["status"]:
             raise Exception(response["message"])
         return response
@@ -111,7 +113,8 @@ class DruckerDashboardClient:
             path=model_path,
         )
         response_protobuf = self.stub.SwitchModel(request)
-        response = ProtobufUtil.serialize_to_object(response_protobuf)
+        response = protobuf_to_dict(response_protobuf,
+                                    including_default_value_fields=True)
         if not response["status"]:
             raise Exception(response["message"])
         return response
