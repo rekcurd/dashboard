@@ -1,3 +1,5 @@
+import warnings
+
 from flask import Flask
 from flask_testing import TestCase
 
@@ -6,10 +8,6 @@ from app import initialize_app
 
 
 class BaseTestCase(TestCase):
-    START_TIMEOUT = 180
-    SQLALCHEMY_DATABASE_URI = "sqlite://"
-    TESTING = True
-
     def create_app(self):
         app = Flask(__name__)
         initialize_app(app)
@@ -17,8 +15,9 @@ class BaseTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        app = Flask(__name__)
-        initialize_app(app)
+        warnings.filterwarnings("ignore",
+                                category=ImportWarning,
+                                message="can't resolve package from __spec__ or __package__, falling back on __name__ and __path__")
 
     def setUp(self):
         db.create_all()
