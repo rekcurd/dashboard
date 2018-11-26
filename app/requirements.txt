@@ -1,7 +1,7 @@
 Flask==1.0.2
 Flask-Cors==3.0.4
-grpcio==1.13.0
-grpcio-tools==1.13.0
+grpcio==1.16.1
+grpcio-tools==1.16.1
 python-json-logger==0.1.9
 fluent-logger==0.9.3
 PyYAML==3.12
