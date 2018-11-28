@@ -9,6 +9,7 @@ from app import logger
 from auth import Auth
 from models import db
 from models.application import Application
+from models.application_user_role import ApplicationUserRole
 from models.service import Service
 from models.user import User
 from core.drucker_dashboard_client import DruckerDashboardClient
@@ -109,6 +110,14 @@ class ApiApplications(Resource):
             aobj = Application(application_name=application_name,
                                description=description)
             db.session.add(aobj)
+            db.session.flush()
+        if Auth.enabled():
+            user_id = get_jwt_identity()
+            roleObj = ApplicationUserRole(
+                application_id=aobj.application_id,
+                user_id=user_id,
+                role='admin')
+            db.session.add(roleObj)
             db.session.flush()
         sobj = db.session.query(Service).filter(
             Service.service_name == service_name).one_or_none()
