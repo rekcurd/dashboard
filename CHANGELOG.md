@@ -1,5 +1,19 @@
 # Change Log
 
+## [v0.3.6](https://github.com/drucker/drucker-dashboard/tree/v0.3.6) (2018-11-20)
+[Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.5...v0.3.6)
+
+**Closed issues:**
+
+- Handle parallel request return status [\#30](https://github.com/drucker/drucker-dashboard/issues/30)
+
+**Merged pull requests:**
+
+- evaluate model API [\#45](https://github.com/drucker/drucker-dashboard/pull/45) ([yuki-mt](https://github.com/yuki-mt))
+- \[Hotfix\] Set "DRUCKER\_TEST\_MODE=False" when it deploys to Kubernetes [\#43](https://github.com/drucker/drucker-dashboard/pull/43) ([keigohtr](https://github.com/keigohtr))
+- Make dump method independent from update method [\#42](https://github.com/drucker/drucker-dashboard/pull/42) ([keigohtr](https://github.com/keigohtr))
+- \[Hotfix\] Update README [\#40](https://github.com/drucker/drucker-dashboard/pull/40) ([keigohtr](https://github.com/keigohtr))
+
 ## [v0.3.5](https://github.com/drucker/drucker-dashboard/tree/v0.3.5) (2018-11-07)
 [Full Changelog](https://github.com/drucker/drucker-dashboard/compare/v0.3.4...v0.3.5)
 
