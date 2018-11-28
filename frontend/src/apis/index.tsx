@@ -611,7 +611,8 @@ export async function saveAccessControl(params): Promise<boolean> {
   return APICore.formDataRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/acl`,
     { ...params },
-    convert
+    convert,
+    params.mode === 'add' ? 'POST' : 'PATCH'
   )
 }
 

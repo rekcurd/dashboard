@@ -48,7 +48,6 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
         this.setState({ notified: true })
       }
     }
-
   }
 
   componentWillMount() {

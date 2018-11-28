@@ -5,6 +5,14 @@ from models.application_user_role import ApplicationUserRole
 from models.user import User
 
 admin_info_namespace = Namespace('admin', description='Admin Endpoint.')
+success_or_not = admin_info_namespace.model('Success', {
+    'status': fields.Boolean(
+        required=True
+    ),
+    'message': fields.String(
+        required=True
+    )
+})
 user_info = admin_info_namespace.model('User', {
     'user_uid': fields.String(required=True),
     'user_name': fields.String(required=True)
@@ -26,9 +34,9 @@ class ApiApplicationUsers(Resource):
 class ApiApplicationIdACL(Resource):
     # TODO: check admin
 
-    add_acl_parser = reqparse.RequestParser()
-    add_acl_parser.add_argument('uid', type=str, required=True, location='form')
-    add_acl_parser.add_argument('role', type=str, required=True, location='form')
+    save_acl_parser = reqparse.RequestParser()
+    save_acl_parser.add_argument('uid', type=str, required=True, location='form')
+    save_acl_parser.add_argument('role', type=str, required=True, location='form')
 
     delete_acl_parser = reqparse.RequestParser()
     delete_acl_parser.add_argument('uid', type=str, required=True, location='form')
@@ -38,9 +46,10 @@ class ApiApplicationIdACL(Resource):
         roles = ApplicationUserRole.query.filter_by(application_id=application_id).all()
         return roles
 
-    @admin_info_namespace.expect(add_acl_parser)
+    @admin_info_namespace.marshal_with(success_or_not)
+    @admin_info_namespace.expect(save_acl_parser)
     def post(self, application_id):
-        args = self.add_acl_parser.parse_args()
+        args = self.save_acl_parser.parse_args()
         uid = args['uid']
         uobj = db.session.query(User).filter(User.user_uid == uid).one_or_none()
         if uobj is None:
@@ -56,6 +65,23 @@ class ApiApplicationIdACL(Resource):
         db.session.close()
         return {"status": True, "message": "Success."}, 200
 
+    @admin_info_namespace.marshal_with(success_or_not)
+    @admin_info_namespace.expect(save_acl_parser)
+    def patch(self, application_id):
+        args = self.save_acl_parser.parse_args()
+        uid = args['uid']
+        uobj = db.session.query(User).filter(User.user_uid == uid).one_or_none()
+        if uobj is None:
+            return {"status": False}, 400
+        roleObj = db.session.query(ApplicationUserRole).filter(
+            ApplicationUserRole.application_id == application_id,
+            ApplicationUserRole.user_id == uobj.user_id).one()
+        roleObj.role = args['role']
+        db.session.commit()
+        db.session.close()
+        return {"status": True, "message": "Success."}, 200
+
+    @admin_info_namespace.marshal_with(success_or_not)
     @admin_info_namespace.expect(delete_acl_parser)
     def delete(self, application_id):
         args = self.delete_acl_parser.parse_args()

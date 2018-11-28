@@ -49,7 +49,6 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
         this.setState({ notified: true })
       }
     }
-
   }
 
   componentWillMount() {

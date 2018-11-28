@@ -2,59 +2,47 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router'
 import { Dispatch } from 'redux'
-import { Field, InjectedFormProps, reduxForm } from 'redux-form'
+import { InjectedFormProps, reduxForm, Field } from 'redux-form'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
-import { UserInfo, AccessControlList } from '@src/apis'
+import { AccessControlList } from '@src/apis'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { saveAccessControlDispatcher, addNotification, AddNotificationAction, fetchAllUsersDispatcher } from '@src/actions'
+import { saveAccessControlDispatcher, AddNotificationAction, addNotification } from '@src/actions'
 import { SingleFormField } from '@components/Common/Field/SingleFormField'
 import { required } from '@components/Common/Field/Validateors'
-import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
 
 interface Props extends RouteComponentProps<{ applicationId: string }> {
   isModalOpen: boolean
-  acl: AccessControlList[]
   toggle: () => void
   reload: () => void
+  target?: AccessControlList
 }
 
 interface StateProps {
-  fetchAllUsersStatus: APIRequest<UserInfo[]>
   saveAccessControlStatus: APIRequest<boolean>
 }
 
 interface DispatchProps {
   addNotification: (params) => AddNotificationAction
-  fetchAllUsers: () => Promise<void>
   saveAccessControl: (params) => Promise<void>
 }
 
-type AddUserModalProps = Props & StateProps & DispatchProps & InjectedFormProps<any, any>
+type EditUserModalProps = Props & StateProps & DispatchProps & InjectedFormProps<{}, Props>
 
-class AddUserModal extends React.Component<AddUserModalProps> {
-  private alreadyAdded: Set<string>
-  constructor(props) {
+class EditUserModal extends React.Component<EditUserModalProps> {
+  constructor(props: EditUserModalProps) {
     super(props)
     this.onCancel = this.onCancel.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
-    this.renderForm = this.renderForm.bind(this)
-    this.state = {
-      submitting: false
-    }
-    this.alreadyAdded = new Set<string>()
-    props.acl.forEach((e: AccessControlList) => {
-      this.alreadyAdded.add(e.userUid)
-    })
   }
-  componentWillReceiveProps(nextProps: AddUserModalProps) {
+  componentWillReceiveProps(nextProps: EditUserModalProps) {
     const { isModalOpen } = this.props
     const { saveAccessControlStatus, reset, toggle, reload, submitting } = nextProps
     if (isModalOpen && submitting) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveAccessControlStatus)
       const failed: boolean = isAPIFailed<boolean>(saveAccessControlStatus)
       if (succeeded) {
-        nextProps.addNotification({ color: 'success', message: 'Successfully added user' })
+        nextProps.addNotification({ color: 'success', message: 'Successfully updated user' })
         reset()
         toggle()
         reload()
@@ -64,63 +52,38 @@ class AddUserModal extends React.Component<AddUserModalProps> {
       }
     }
   }
-  componentWillMount() {
-    const { fetchAllUsers } = this.props
-    fetchAllUsers()
-  }
   render() {
-    const { fetchAllUsersStatus, isModalOpen } = this.props
+    const { isModalOpen, handleSubmit, target } = this.props
+    if (!target) {
+      return null
+    }
     return (
       <Modal isOpen={isModalOpen} toggle={this.onCancel}>
-        <APIRequestResultsRenderer
-          APIStatus={{ fetchAllUsersStatus }}
-          render={this.renderForm}
-        />
+        <form onSubmit={handleSubmit(this.onSubmit)}>
+          <ModalHeader toggle={this.onCancel}>
+            <i className='fas fa-user-plus fa-fw mr-2'></i>
+            Edit User {target.userUid}
+          </ModalHeader>
+          {this.renderBodyForm(target)}
+          {this.renderFooterButtons()}
+        </form>
       </Modal>
     )
   }
-  private renderForm(results) {
-    const { handleSubmit } = this.props
-    return (
-      <form onSubmit={handleSubmit(this.onSubmit)}>
-        <ModalHeader toggle={this.onCancel}>
-          <i className='fas fa-user-plus fa-fw mr-2'></i>
-          Add User
-        </ModalHeader>
-        {this.renderBodyForm(results.fetchAllUsersStatus)}
-        {this.renderFooterButtons()}
-      </form>
-    )
-  }
-  private renderBodyForm(userInfos: UserInfo[]) {
+  private renderBodyForm(target: AccessControlList) {
     const roles = [
       { label: 'view',  value: 'view'  },
       { label: 'edit',  value: 'edit'  },
       { label: 'admin', value: 'admin' }
     ]
-    const users = userInfos.map((v: UserInfo) => {
-      return {
-        label: v.user.userUid,
-        value: v.user.userUid,
-        disabled: this.alreadyAdded.has(v.user.userUid)
-      }
-    })
     return (
       <ModalBody>
         <Field
-          label='User ID'
-          name='save.user.uid'
-          component={SingleFormField} type='select'
-          options={users}
-          className='form-control' id='userId'
-          validate={required}
-          required
-        />
-        <Field
           label='Role'
-          name='save.user.role'
+          name='edit.user.role'
           component={SingleFormField} type='select'
           options={roles}
+          defaultValue={target.role.replace(/Role./, '')}
           className='form-control' id='userRole'
           validate={required}
           required
@@ -149,13 +112,14 @@ class AddUserModal extends React.Component<AddUserModalProps> {
     toggle()
   }
   private onSubmit(params) {
-    const { saveAccessControl, match } = this.props
+    const { saveAccessControl, match, target } = this.props
     const applicationId = match.params.applicationId
     this.setState({ submitting: true })
     return saveAccessControl({
       applicationId,
-      ...params.save.user,
-      mode: 'add'
+      ...params.edit.user,
+      uid: target.userUid,
+      mode: 'edit'
     })
   }
 }
@@ -165,18 +129,16 @@ export default withRouter(
     (state: any): StateProps => {
       return {
         ...state.form,
-        fetchAllUsersStatus: state.fetchAllUsersStatusReducer.allUsers,
         saveAccessControlStatus: state.saveAccessControlReducer.saveAccessControl
       }
     },
     (dispatch: Dispatch): DispatchProps => {
       return {
         addNotification: (params) => dispatch(addNotification(params)),
-        fetchAllUsers: () => fetchAllUsersDispatcher(dispatch),
         saveAccessControl: (params) => saveAccessControlDispatcher(dispatch, params)
       }
     }
   )(reduxForm<{}, Props>({
-    form: 'saveUserForm'
-  })(AddUserModal))
+    form: 'editUserForm'
+  })(EditUserModal))
 )

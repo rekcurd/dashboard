@@ -4,7 +4,7 @@ import { Dispatch } from 'redux'
 import { withRouter, RouteComponentProps } from 'react-router'
 import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
 
-import { AccessControlList, Application, UserInfo, UserRole } from '@src/apis'
+import { AccessControlList, Application, UserInfo } from '@src/apis'
 import { APIRequest, isAPISucceeded } from '@src/apis/Core'
 import {
   addNotification,
@@ -14,7 +14,9 @@ import {
   deleteAccessControlDispatcher,
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
+
 import AddUserModal from './AddUserModal'
+import EditUserModal from './EditUserModal'
 
 interface StateProps {
   accessControlList: APIRequest<AccessControlList>
@@ -34,8 +36,10 @@ type AdminProps = StateProps & DispatchProps & RouteComponentProps<{applicationI
 
 interface AdminState {
   isAddUserModalOpen: boolean
+  isEditUserModalOpen: boolean
   isRemoveUserModalOpen: boolean
   removeTarget?: string
+  editTarget?: AccessControlList
   submitted: boolean
 }
 
@@ -44,9 +48,11 @@ class Admin extends React.Component<AdminProps, AdminState> {
     super(props)
     this.renderAccessControlList = this.renderAccessControlList.bind(this)
     this.toggleAddUserModalOpen = this.toggleAddUserModalOpen.bind(this)
+    this.toggleEditUserModalOpen = this.toggleEditUserModalOpen.bind(this)
     this.reload = this.reload.bind(this)
     this.state = {
       isAddUserModalOpen: false,
+      isEditUserModalOpen: false,
       isRemoveUserModalOpen: false,
       submitted: false
     }
@@ -85,8 +91,9 @@ class Admin extends React.Component<AdminProps, AdminState> {
     return this.renderContent(application.name, acl, userInfo)
   }
   renderContent(applicationName: string, acl: AccessControlList[], userInfo: UserInfo) {
-    const { isAddUserModalOpen } = this.state
+    const { isAddUserModalOpen, isEditUserModalOpen, editTarget } = this.state
     const tableBody = acl.map((e: AccessControlList, i: number) => {
+      const isMyself: boolean = e.userUid === userInfo.user.userUid
       const removeButton = (
         <Button color='danger' size='sm' onClick={this.onClickRemoveButton(e)}>
           <i className={`fas fa-times fa-fw mr-2`}></i>
@@ -95,10 +102,17 @@ class Admin extends React.Component<AdminProps, AdminState> {
       )
       return (
         <tr key={i}>
-          <td>{e.userUid}</td>
+          <td>
+            <div
+              className={isMyself ? '' : 'text-info'}
+              style={isMyself ? {} : { cursor: 'pointer' }}
+              onClick={isMyself ? null : this.onClickEditUser(e)}>
+              {e.userUid}
+            </div>
+          </td>
           <td>{e.userName}</td>
           <td>{e.role.replace(/Role./, '')}</td>
-          <td>{e.userUid !== userInfo.user.userUid ? removeButton : null}</td>
+          <td>{isMyself ? null : removeButton}</td>
         </tr>
       )
     })
@@ -127,6 +141,12 @@ class Admin extends React.Component<AdminProps, AdminState> {
           toggle={this.toggleAddUserModalOpen}
           reload={this.reload}
           acl={acl}
+        />
+        <EditUserModal
+          isModalOpen={isEditUserModalOpen}
+          toggle={this.toggleEditUserModalOpen}
+          reload={this.reload}
+          target={editTarget}
         />
         {this.renderConfirmRemoveUserModal()}
         <h3>
@@ -189,6 +209,12 @@ class Admin extends React.Component<AdminProps, AdminState> {
       isAddUserModalOpen: !isAddUserModalOpen,
     })
   }
+  private toggleEditUserModalOpen() {
+    const { isEditUserModalOpen } = this.state
+    this.setState({
+      isEditUserModalOpen: !isEditUserModalOpen,
+    })
+  }
   private toggleRemoveUserModalOpen() {
     const { isRemoveUserModalOpen } = this.state
     this.setState({
@@ -199,6 +225,12 @@ class Admin extends React.Component<AdminProps, AdminState> {
     return () => {
       this.setState({ removeTarget: acl.userUid })
       this.toggleRemoveUserModalOpen()
+    }
+  }
+  private onClickEditUser(acl: AccessControlList) {
+    return () => {
+      this.toggleEditUserModalOpen()
+      this.setState({ editTarget: acl })
     }
   }
   private reload() {
