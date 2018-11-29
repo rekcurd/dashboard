@@ -10,6 +10,7 @@ from auth.ldap import LdapAuthenticator
 from auth.exceptions import ApplicationUserRoleException
 from models import db
 from models.user import User
+from models.application import Application
 from models.application_user_role import ApplicationUserRole, Role
 from utils.env_loader import config
 
@@ -24,6 +25,11 @@ class Auth(object):
                 ApplicationUserRole.application_id == application_id,
                 ApplicationUserRole.user_id == user_id).one_or_none()
             if role is None:
+                # applications which don't have users are also accesssible as admin
+                roles = db.session.query(ApplicationUserRole).filter(
+                    ApplicationUserRole.application_id == application_id).count()
+                if roles == 0:
+                    return True
                 return False
             if method == 'GET':
                 return True
@@ -88,6 +94,12 @@ class Auth(object):
                 abort(404)
             application_roles = uobj.applications
             applications = [{'application_id': ar.application_id, 'role': ar.role.name} for ar in application_roles]
+            # applications which don't have users are also accesssible as admin
+            application_ids = db.session.query(ApplicationUserRole.application_id).distinct().all()
+            ids = [application_id for application_id, in application_ids]
+            public_applications = db.session.query(Application).filter(~Application.application_id.in_(ids)).all()
+            applications += [{'application_id': app.application_id, 'role': 'admin'} for app in public_applications]
+
             return jsonify({'user': uobj.serialize, 'applications': applications}), 200
 
         # Add error handlers

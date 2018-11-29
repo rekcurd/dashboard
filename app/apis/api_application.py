@@ -85,7 +85,11 @@ class ApiApplications(Resource):
         if Auth.enabled():
             user_id = get_jwt_identity()
             uobj = db.session.query(User).filter(User.user_id == user_id).one()
-            return [assoc.application for assoc in uobj.applications]
+            # applications which don't have users are also accessible
+            application_ids = db.session.query(ApplicationUserRole.application_id).distinct().all()
+            ids = [application_id for application_id, in application_ids]
+            applications = db.session.query(Application).filter(~Application.application_id.in_(ids)).all()
+            return [assoc.application for assoc in uobj.applications] + applications
         return Application.query.all()
 
     @app_info_namespace.marshal_with(success_or_not)
