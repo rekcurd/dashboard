@@ -39,7 +39,7 @@ class Auth(object):
 
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            if Auth.__enabled and request.path.startswith('/api/') and not request.path.startswith('/api/settings'):
+            if Auth.__enabled and request.path.startswith('/api/') and not request.path.startswith('/api/settings') and not request.path.startswith('/api/kubernetes/dump'):
                 @jwt_required
                 def run():
                     application_id = kwargs.get('application_id')

@@ -447,7 +447,7 @@ export async function switchModel(param: SwitchModelParam) {
   const requestBody = {
     model_id: param.modelId
   }
-  const convert = (result) => result.success
+  const convert = (result) => result.status
 
   return APICore.putJsonRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${param.applicationId}/services/${param.serviceId}`,
@@ -475,7 +475,7 @@ export async function switchModels(params: SwitchModelParam[]) {
         : `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${param.applicationId}/services/${param.serviceId}`
     )
   )
-  const convert = (result) => result.success
+  const convert = (result) => result.status
 
   return APICore.rawMultiRequest(entryPoints, convert, requestOptions)
 }

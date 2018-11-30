@@ -109,7 +109,7 @@ app/drucker_pb2_grpc.py
 
 # sqlite
 app/db.sqlite3
-app/db.test.sqlite3
+app/test/db.test.sqlite3
 
 # DB migration
 app/migrations/

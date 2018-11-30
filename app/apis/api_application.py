@@ -1,9 +1,8 @@
 import uuid
 
-from werkzeug.datastructures import FileStorage
-
-from flask_restplus import Namespace, fields, Resource, reqparse
 from flask_jwt_simple import get_jwt_identity
+from flask_restplus import Namespace, fields, Resource, reqparse
+from werkzeug.datastructures import FileStorage
 
 from app import logger
 from auth import Auth
