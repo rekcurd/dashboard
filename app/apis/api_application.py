@@ -1,11 +1,15 @@
 import uuid
+import datetime
 
 from flask_restplus import Namespace, fields, Resource, reqparse
+from flask import abort
+from werkzeug.datastructures import FileStorage
 
 from app import logger
 from models import db
 from models.application import Application
 from models.service import Service
+from models.evaluation_data import EvaluationData
 from core.drucker_dashboard_client import DruckerDashboardClient
 from apis.common import DatetimeToTimestamp
 
@@ -121,3 +125,44 @@ class ApiApplications(Resource):
         db.session.commit()
         db.session.close()
         return response_body
+
+@app_info_namespace.route('/<int:application_id>/evaluation')
+class ApiEvaluation(Resource):
+    upload_parser = reqparse.RequestParser()
+    upload_parser.add_argument('file', location='files', type=FileStorage, required=True)
+
+    @app_info_namespace.expect(upload_parser)
+    def post(self, application_id:int):
+        """update data to be evaluated"""
+        args = self.upload_parser.parse_args()
+        file = args['file']
+        eval_data_path = "eval-{0:%Y%m%d%H%M%S}".format(datetime.datetime.utcnow())
+
+        sobj = Service.query.filter_by(application_id=application_id).first_or_404()
+
+        drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
+        response_body = drucker_dashboard_application.run_upload_evaluation_data(file, eval_data_path)
+
+        if response_body['status']:
+            eobj = EvaluationData(application_id=application_id, data_path=eval_data_path)
+            db.session.add(eobj)
+            db.session.commit()
+            db.session.close()
+
+        return response_body
+
+@app_info_namespace.route('/<int:application_id>/evaluation/<int:eval_data_id>')
+class ApiEvaluation(Resource):
+    def delete(self, application_id:int, eval_data_id:int):
+        """delete data to be evaluated"""
+        eval_data_query = db.session.query.filter(application_id=application_id,
+                                                  evaluation_data_id=eval_data_id)
+        if not eval_data_query.exists():
+            abort(404)
+
+        eval_data_query.delete()
+        db.session.flush()
+        db.session.commit()
+        db.session.close()
+
+        return {"status": True, "message": "Success."}
