@@ -3,7 +3,7 @@ import warnings
 from flask import Flask
 from flask_testing import TestCase
 
-from models import db, Application, Service
+from models import db, Application, Service, Evaluation
 from app import initialize_app
 
 
@@ -62,3 +62,15 @@ def create_service_obj(
         return sobj
     else:
         return sobj_
+
+
+def create_eval_obj(
+        application_id,
+        data_path='my_data_path',
+        save=False):
+    eobj = Evaluation(application_id=application_id,
+                      data_path=data_path)
+    if save:
+        db.session.add(eobj)
+        db.session.commit()
+    return eobj

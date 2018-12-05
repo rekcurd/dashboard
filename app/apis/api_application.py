@@ -2,14 +2,11 @@ import uuid
 import datetime
 
 from flask_restplus import Namespace, fields, Resource, reqparse
-from flask import abort
 from werkzeug.datastructures import FileStorage
 
 from app import logger
 from models import db
-from models.application import Application
-from models.service import Service
-from models.evaluation_data import EvaluationData
+from models import Application, Service, Evaluation, EvaluationResult
 from core.drucker_dashboard_client import DruckerDashboardClient
 from apis.common import DatetimeToTimestamp
 
@@ -144,23 +141,26 @@ class ApiEvaluation(Resource):
         response_body = drucker_dashboard_application.run_upload_evaluation_data(file, eval_data_path)
 
         if response_body['status']:
-            eobj = EvaluationData(application_id=application_id, data_path=eval_data_path)
+            eobj = Evaluation(application_id=application_id, data_path=eval_data_path)
             db.session.add(eobj)
             db.session.commit()
             db.session.close()
 
         return response_body
 
-@app_info_namespace.route('/<int:application_id>/evaluation/<int:eval_data_id>')
+@app_info_namespace.route('/<int:application_id>/evaluation/<int:evaluation_id>')
 class ApiEvaluation(Resource):
-    def delete(self, application_id:int, eval_data_id:int):
+    def delete(self, application_id:int, evaluation_id:int):
         """delete data to be evaluated"""
-        eval_data_query = db.session.query.filter(application_id=application_id,
-                                                  evaluation_data_id=eval_data_id)
-        if not eval_data_query.exists():
-            abort(404)
+        eval_query = db.session.query(Evaluation)\
+            .filter(Evaluation.application_id == application_id,
+                    Evaluation.evaluation_id == evaluation_id)
+        if eval_query.one_or_none() is None:
+            return {"status": False}, 404
 
-        eval_data_query.delete()
+        eval_query.delete()
+        db.session.query(EvaluationResult)\
+            .filter(EvaluationResult.evaluation_id == evaluation_id).delete()
         db.session.flush()
         db.session.commit()
         db.session.close()

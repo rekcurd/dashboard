@@ -20,7 +20,7 @@ class EvaluationResult(db.Model):
     evaluation_result_id = Column(Integer, primary_key=True, autoincrement=True)
     service_id = Column(Integer, nullable=False)
     data_path = Column(String(512), nullable=False)
-    evalation_id = Column(Integer, ForeignKey('evaluations.evalation_id', ondelete="cascade"))
+    evaluation_id = Column(Integer, ForeignKey('evaluations.evaluation_id'), nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     @property

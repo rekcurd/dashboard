@@ -22,7 +22,7 @@ class Evaluation(db.Model):
     application_id = Column(Integer, nullable=False)
     data_path = Column(String(512), nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
-    evaluation_result = relationship('EvaluationResult', lazy='select', innerjoin=True)
+    evaluation_result = relationship('EvaluationResult', backref='evaluations', lazy='select', innerjoin=True)
 
     @property
     def serialize(self):
