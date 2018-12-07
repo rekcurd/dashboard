@@ -140,13 +140,17 @@ class ApiEvaluation(Resource):
         drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
         response_body = drucker_dashboard_application.run_upload_evaluation_data(file, eval_data_path)
 
-        if response_body['status']:
-            eobj = Evaluation(application_id=application_id, data_path=eval_data_path)
-            db.session.add(eobj)
-            db.session.commit()
-            db.session.close()
+        if not response_body['status']:
+            raise Exception('Failed to upload')
+        eobj = Evaluation(application_id=application_id, data_path=eval_data_path)
+        db.session.add(eobj)
+        db.session.flush()
+        evaluation_id = eobj.evaluation_id
+        db.session.commit()
+        db.session.close()
 
-        return response_body
+        return {"status": True, "evaluation_id": evaluation_id}
+
 
 @app_info_namespace.route('/<int:application_id>/evaluation/<int:evaluation_id>')
 class ApiEvaluation(Resource):

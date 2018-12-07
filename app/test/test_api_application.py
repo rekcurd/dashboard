@@ -21,7 +21,7 @@ class ApiEvaluationTest(BaseTestCase):
                                     content_type='multipart/form-data',
                                     data=dict(file=(BytesIO(b'my file contents'), "work_order.123")))
         self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json, {'status': 1, 'message': 'success'})
+        self.assertEqual(response.json, {'status': True, 'evaluation_id': 1})
 
     def test_delete(self):
         app_id = create_app_obj().application_id
