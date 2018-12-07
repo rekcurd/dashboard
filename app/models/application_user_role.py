@@ -9,9 +9,9 @@ from sqlalchemy.orm import relationship
 
 
 class Role(enum.Enum):
-    view = 1
-    edit = 2
-    admin = 3
+    viewer = 1
+    editor = 2
+    owner = 3
 
 
 class ApplicationUserRole(db.Model):
@@ -25,7 +25,7 @@ class ApplicationUserRole(db.Model):
 
     application_id = Column(Integer, ForeignKey('applications.application_id'), primary_key=True)
     user_id = Column(Integer, ForeignKey('users.user_id'), primary_key=True)
-    role = Column(Enum(Role), nullable=False, default=Role.view)
+    role = Column(Enum(Role), nullable=False, default=Role.viewer)
 
     application = relationship('Application', lazy='joined', innerjoin=True)
     user = relationship('User')

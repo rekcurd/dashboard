@@ -12,8 +12,9 @@ import {
   deleteKubernetesServicesDispatcher,
   syncKubernetesStatusDispatcher
 } from '@src/actions'
-import ServicesDeleteForm from './ServicesDeleteForm'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
+import ServicesDeleteForm from './ServicesDeleteForm'
+import { role } from '../Admin/constants'
 
 export enum ControlMode {
   VIEW_SERVICES_STATUS,
@@ -134,9 +135,9 @@ class Services extends React.Component<ServicesStatusProps, any> {
       [ControlMode.VIEW_SERVICES_STATUS]: onSubmitNothing,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
     }
-    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((role: UserRole) => {
-      return String(role.applicationId) === applicationId &&
-        (role.role === 'edit' || role.role === 'admin')
+    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
+      return String(userRole.applicationId) === applicationId &&
+        (userRole.role === role.editor || userRole.role === role.owner)
     })
 
     return (

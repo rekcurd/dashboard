@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router'
 import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 
-import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
+import { APIRequest, isAPISucceeded } from '@src/apis/Core'
 import { Model, Application, UserInfo, UserRole } from '@src/apis'
 import {
   addNotification,
@@ -12,8 +12,9 @@ import {
   deleteKubernetesModelsDispatcher,
 } from '@src/actions'
 import { AddModelFileModal } from '@components/App/Model/Modals/AddModelFileModal'
-import ModelsDeleteForm from './ModelsDeleteForm'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
+import ModelsDeleteForm from './ModelsDeleteForm'
+import { role } from '../Admin/constants'
 
 export enum ControlMode {
   VIEW_MODELS_STATUS,
@@ -108,9 +109,9 @@ class Models extends React.Component<ModelsStatusProps, any> {
       [ControlMode.VIEW_MODELS_STATUS]: onSubmitNothing,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
     }
-    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((role: UserRole) => {
-      return String(role.applicationId) === applicationId &&
-        (role.role === 'edit' || role.role === 'admin')
+    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
+      return String(userRole.applicationId) === applicationId &&
+        (userRole.role === role.editor || userRole.role === role.owner)
     })
 
     return (

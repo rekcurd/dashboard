@@ -10,6 +10,7 @@ import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import { saveAccessControlDispatcher, AddNotificationAction, addNotification } from '@src/actions'
 import { SingleFormField } from '@components/Common/Field/SingleFormField'
 import { required } from '@components/Common/Field/Validateors'
+import { role } from './constants'
 
 interface Props extends RouteComponentProps<{ applicationId: string }> {
   isModalOpen: boolean
@@ -71,11 +72,9 @@ class EditUserModal extends React.Component<EditUserModalProps> {
     )
   }
   private renderBodyForm(target: AccessControlList) {
-    const roles = [
-      { label: 'view',  value: 'view'  },
-      { label: 'edit',  value: 'edit'  },
-      { label: 'admin', value: 'admin' }
-    ]
+    const roles = Object.values(role).map((roleName: string) => {
+      return { label: roleName, value: roleName }
+    })
     return (
       <ModalBody>
         <Field

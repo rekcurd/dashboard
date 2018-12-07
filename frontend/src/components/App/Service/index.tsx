@@ -13,6 +13,7 @@ import {
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import ServiceDeployment from './ServiceDeployment'
 import ServiceDescription from './ServiceDescription'
+import { role } from '../Admin/constants'
 
 /**
  * Page for adding service
@@ -63,9 +64,9 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
     const { applicationId } = this.props.match.params
     const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
     if (userInfo) {
-      const canEdit: boolean = userInfo.roles.some((role: UserRole) => {
-        return String(role.applicationId) === applicationId &&
-          (role.role === 'edit' || role.role === 'admin')
+      const canEdit: boolean = userInfo.roles.some((userRole: UserRole) => {
+        return String(userRole.applicationId) === applicationId &&
+          (userRole.role === role.editor || userRole.role === role.owner)
       })
       if (!canEdit) {
         history.goBack()

@@ -11,6 +11,7 @@ import { saveAccessControlDispatcher, addNotification, AddNotificationAction, fe
 import { SingleFormField } from '@components/Common/Field/SingleFormField'
 import { required } from '@components/Common/Field/Validateors'
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
+import { role } from './constants'
 
 interface Props extends RouteComponentProps<{ applicationId: string }> {
   isModalOpen: boolean
@@ -93,11 +94,9 @@ class AddUserModal extends React.Component<AddUserModalProps> {
     )
   }
   private renderBodyForm(userInfos: UserInfo[]) {
-    const roles = [
-      { label: 'view',  value: 'view'  },
-      { label: 'edit',  value: 'edit'  },
-      { label: 'admin', value: 'admin' }
-    ]
+    const roles = Object.values(role).map((roleName: string) => {
+      return { label: roleName, value: roleName }
+    })
     const users = userInfos.map((v: UserInfo) => {
       return {
         label: v.user.userUid,

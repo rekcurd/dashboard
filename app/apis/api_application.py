@@ -8,7 +8,7 @@ from app import logger
 from auth import Auth
 from models import db
 from models.application import Application
-from models.application_user_role import ApplicationUserRole
+from models.application_user_role import ApplicationUserRole, Role
 from models.service import Service
 from models.user import User
 from core.drucker_dashboard_client import DruckerDashboardClient
@@ -101,7 +101,7 @@ class ApiApplications(Resource):
             roleObj = ApplicationUserRole(
                 application_id=aobj.application_id,
                 user_id=user_id,
-                role='admin')
+                role=Role.owner.name)
             db.session.add(roleObj)
             db.session.flush()
         sobj = db.session.query(Service).filter(

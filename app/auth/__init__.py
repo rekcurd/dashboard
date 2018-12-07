@@ -25,7 +25,7 @@ class Auth(object):
                 ApplicationUserRole.application_id == application_id,
                 ApplicationUserRole.user_id == user_id).one_or_none()
             if role is None:
-                # applications which don't have users are also accesssible as admin
+                # applications which don't have users are also accesssible as owner
                 roles = db.session.query(ApplicationUserRole).filter(
                     ApplicationUserRole.application_id == application_id).count()
                 if roles == 0:
@@ -33,7 +33,7 @@ class Auth(object):
                 return False
             if method == 'GET':
                 return True
-            elif role.role == Role.edit or role.role == Role.admin:
+            elif role.role == Role.editor or role.role == Role.owner:
                     return True
             return False
 
@@ -94,11 +94,12 @@ class Auth(object):
                 abort(404)
             application_roles = uobj.applications
             applications = [{'application_id': ar.application_id, 'role': ar.role.name} for ar in application_roles]
-            # applications which don't have users are also accesssible as admin
+            # applications which don't have users are also accesssible as owner
             application_ids = db.session.query(ApplicationUserRole.application_id).distinct().all()
             ids = [application_id for application_id, in application_ids]
             public_applications = db.session.query(Application).filter(~Application.application_id.in_(ids)).all()
-            applications += [{'application_id': app.application_id, 'role': 'admin'} for app in public_applications]
+            applications += [
+                {'application_id': app.application_id, 'role': Role.owner.name} for app in public_applications]
 
             return jsonify({'user': uobj.serialize, 'applications': applications}), 200
 

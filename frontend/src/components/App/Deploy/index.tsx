@@ -14,9 +14,10 @@ import {
   deleteKubernetesServicesDispatcher,
   syncKubernetesStatusDispatcher
 } from '@src/actions'
-import DeployStatusForm from './DeployStatusForm'
 import { AddModelFileModal } from '@components/App/Model/Modals/AddModelFileModal'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
+import DeployStatusForm from './DeployStatusForm'
+import { role } from '../Admin/constants'
 
 export enum ControlMode {
   VIEW_DEPLOY_STATUS,
@@ -168,9 +169,9 @@ class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
       [ControlMode.EDIT_DEPLOY_STATUS]: onSubmitDeployStatusChanges,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
     }
-    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((role: UserRole) => {
-      return String(role.applicationId) === applicationId &&
-        (role.role === 'edit' || role.role === 'admin')
+    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
+      return String(userRole.applicationId) === applicationId &&
+        (userRole.role === role.editor || userRole.role === role.owner)
     })
 
     // Render contents to control deploy status

@@ -1,8 +1,10 @@
 import * as React from 'react'
 import { NavLink, withRouter, RouteComponentProps } from 'react-router-dom'
 import { connect } from 'react-redux'
-import { APIRequest, APIRequestStatusList } from '@src/apis/Core'
+
 import { UserInfo, UserRole } from '@src/apis'
+import { APIRequest, APIRequestStatusList } from '@src/apis/Core'
+import { role } from '@components/App/Admin/constants'
 
 interface Props {
   applicationId: string
@@ -36,7 +38,7 @@ class SideMenu extends React.Component<SideMenuProps> {
     ]
     if (userInfoStatus.status === APIRequestStatusList.success) {
       userInfoStatus.result.roles.forEach((e: UserRole) => {
-        if (String(e.applicationId) === applicationId && e.role === 'admin') {
+        if (String(e.applicationId) === applicationId && e.role === role.owner) {
           menuContents.push({
             title: '',
             items: [

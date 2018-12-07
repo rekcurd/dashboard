@@ -42,14 +42,14 @@ def check_role(fn):
             ApplicationUserRole.application_id == application_id,
             ApplicationUserRole.user_id == user_id).one_or_none()
         if role is None:
-            # applications which don't have users are also accesssible as admin
+            # applications which don't have users are also accesssible as owner
             roles = db.session.query(ApplicationUserRole).filter(
                 ApplicationUserRole.application_id == application_id).count()
             if roles == 0:
                 pass
             else:
                 raise ApplicationUserRoleException
-        elif role.role != Role.admin:
+        elif role.role != Role.owner:
             raise ApplicationUserRoleException
         return fn(*args, **kwargs)
     return wrapper
@@ -87,20 +87,20 @@ class ApiApplicationIdACL(Resource):
         db.session.add(roleObj)
         db.session.flush()
 
-        # if role is added by first user, they will be admin
+        # if role is added by first user, they will be owner
         roles = db.session.query(ApplicationUserRole).filter(
             ApplicationUserRole.application_id == application_id).count()
         if roles <= 1:
             sender_id = get_jwt_identity()
             if uobj.user_id != sender_id:
-                adminObj = ApplicationUserRole(
+                ownerObj = ApplicationUserRole(
                     application_id=application_id,
                     user_id=sender_id,
-                    role='admin')
-                db.session.add(adminObj)
+                    role=Role.owner.name)
+                db.session.add(ownerObj)
                 db.session.flush()
             else:
-                roleObj.role = 'admin'
+                roleObj.role = Role.owner.name
 
         db.session.commit()
         db.session.close()
