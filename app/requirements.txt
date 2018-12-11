@@ -8,7 +8,7 @@ PyYAML==3.12
 SQLAlchemy==1.2.7
 PyMySQL==0.8.0
 flask-sqlalchemy==2.3.2
-kubernetes==v5.0.0
+kubernetes==v8.0.0
 flask-restplus==0.11.0
 Flask-Testing==0.7.1
 Flask-JWT-Simple==0.0.3

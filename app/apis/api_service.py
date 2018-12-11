@@ -167,7 +167,7 @@ class ApiApplicationIdServiceId(Resource):
             v1_service = core_vi.delete_namespaced_service(
                 name="{0}-service".format(sobj.service_name),
                 namespace=sobj.service_level,
-                #body=client.V1DeleteOptions() #FIXME add this after v6.0.0
+                body=client.V1DeleteOptions()
             )
             extensions_v1_beta = client.ExtensionsV1beta1Api()
             v1_beta1_ingress = extensions_v1_beta.delete_namespaced_ingress(
