@@ -115,11 +115,11 @@ class Auth(object):
             return {'message': 'Authorization failed'}, 401
 
     def user(self, user_info):
-        uobj = db.session.query(User).filter(User.user_uid == user_info['uid']).one_or_none()
+        uobj = db.session.query(User).filter(User.auth_id == user_info['uid']).one_or_none()
         if uobj is not None:
             return uobj.user_id
 
-        uobj = User(user_uid=user_info['uid'],
+        uobj = User(auth_id=user_info['uid'],
                     user_name=user_info['name'])
         db.session.add(uobj)
         db.session.flush()

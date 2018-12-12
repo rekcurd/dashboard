@@ -43,7 +43,7 @@ class ApiAccessControlTest(BaseTestCase):
         self.assertEqual(2, len(response.json))
 
         # other user become the owner of `aobj` and test user cannot access
-        uobj = create_user_obj(user_uid='test2', user_name='TEST USER 2', save=True)
+        uobj = create_user_obj(auth_id='test2', user_name='TEST USER 2', save=True)
         robj = create_application_user_role_obj(application_id=aobj.application_id, user_id=uobj.user_id, role=Role.owner)
         self.assertIsNotNone(robj)
 
@@ -56,7 +56,7 @@ class ApiAccessControlTest(BaseTestCase):
         headers = {'Authorization': 'Bearer {}'.format(token)}
         data = {'description': 'description'}
         aobj = create_app_obj()
-        uobj = create_user_obj(user_uid='test', user_name='TEST USER')
+        uobj = create_user_obj(auth_id='test', user_name='TEST USER')
         robj = create_application_user_role_obj(application_id=aobj.application_id, user_id=uobj.user_id, role=Role.viewer)
         self.assertIsNotNone(robj)
 
@@ -68,7 +68,7 @@ class ApiAccessControlTest(BaseTestCase):
         headers = {'Authorization': 'Bearer {}'.format(token)}
         data = {'description': 'description'}
         aobj = create_app_obj()
-        uobj = create_user_obj(user_uid='test', user_name='TEST USER')
+        uobj = create_user_obj(auth_id='test', user_name='TEST USER')
         robj = create_application_user_role_obj(application_id=aobj.application_id, user_id=uobj.user_id, role=Role.editor)
         self.assertIsNotNone(robj)
 
@@ -80,7 +80,7 @@ class ApiAccessControlTest(BaseTestCase):
         headers = {'Authorization': 'Bearer {}'.format(token)}
         data = {'description': 'description'}
         aobj = create_app_obj()
-        uobj = create_user_obj(user_uid='test', user_name='TEST USER')
+        uobj = create_user_obj(auth_id='test', user_name='TEST USER')
         robj = create_application_user_role_obj(application_id=aobj.application_id, user_id=uobj.user_id, role=Role.owner)
         self.assertIsNotNone(robj)
 
@@ -91,7 +91,7 @@ class ApiAccessControlTest(BaseTestCase):
         token = self._get_token()
         headers = {'Authorization': 'Bearer {}'.format(token)}
         aobj = create_app_obj()
-        uobj = create_user_obj(user_uid='test', user_name='TEST USER')
+        uobj = create_user_obj(auth_id='test', user_name='TEST USER')
         robj = create_application_user_role_obj(application_id=aobj.application_id, user_id=uobj.user_id)
         self.assertIsNotNone(robj)
 

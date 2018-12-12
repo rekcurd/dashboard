@@ -65,9 +65,9 @@ def create_service_obj(
         return sobj_
 
 
-def create_user_obj(user_uid, user_name, save=False):
-    uobj = User(user_uid=user_uid, user_name=user_name)
-    uobj_ = User.query.filter_by(user_uid=user_uid).one_or_none()
+def create_user_obj(auth_id, user_name, save=False):
+    uobj = User(auth_id=auth_id, user_name=user_name)
+    uobj_ = User.query.filter_by(auth_id=auth_id).one_or_none()
     if save and uobj_ is None:
         db.session.add(uobj)
         db.session.commit()

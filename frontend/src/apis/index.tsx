@@ -567,7 +567,7 @@ export async function userInfo(): Promise<UserInfo> {
   const convert = (result): UserInfo => {
     const roles: UserRole[] = result.applications.map((e) => new UserRole(e.application_id, e.role))
     return new UserInfo({
-      userUid: result.user.user_uid,
+      userUid: result.user.auth_id,
       userName: result.user.user_name,
     }, roles)
   }
@@ -581,7 +581,7 @@ export async function fetchAllUsers(): Promise<UserInfo[]> {
   const convert = (results) => {
     return results.map((result) => {
       return new UserInfo({
-        userUid: result.user_uid,
+        userUid: result.auth_id,
         userName: result.user_name
       }, [])
     })
@@ -595,7 +595,7 @@ export async function fetchAllUsers(): Promise<UserInfo[]> {
 export async function fetchAccessControlList(param: { applicationId: string }): Promise<AccessControlList[]> {
   const convert = (results: any): AccessControlList[] => {
     return results.map((result: any) => new AccessControlList(
-      result.user.user_uid,
+      result.user.auth_id,
       result.user.user_name,
       result.role
     ))

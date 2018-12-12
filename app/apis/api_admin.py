@@ -17,7 +17,7 @@ success_or_not = admin_info_namespace.model('Success', {
     )
 })
 user_info = admin_info_namespace.model('User', {
-    'user_uid': fields.String(required=True),
+    'auth_id': fields.String(required=True),
     'user_name': fields.String(required=True)
 })
 role_info = admin_info_namespace.model('Role', {
@@ -74,7 +74,7 @@ class ApiApplicationIdACL(Resource):
     def post(self, application_id):
         args = self.save_acl_parser.parse_args()
         uid = args['uid']
-        uobj = db.session.query(User).filter(User.user_uid == uid).one_or_none()
+        uobj = db.session.query(User).filter(User.auth_id == uid).one_or_none()
         if uobj is None:
             return {"status": False}, 400
 
@@ -109,7 +109,7 @@ class ApiApplicationIdACL(Resource):
     def patch(self, application_id):
         args = self.save_acl_parser.parse_args()
         uid = args['uid']
-        uobj = db.session.query(User).filter(User.user_uid == uid).one_or_none()
+        uobj = db.session.query(User).filter(User.auth_id == uid).one_or_none()
         if uobj is None:
             return {"status": False}, 400
         roleObj = db.session.query(ApplicationUserRole).filter(
@@ -125,7 +125,7 @@ class ApiApplicationIdACL(Resource):
     def delete(self, application_id):
         args = self.delete_acl_parser.parse_args()
         uid = args['uid']
-        uobj = db.session.query(User).filter(User.user_uid == uid).one_or_none()
+        uobj = db.session.query(User).filter(User.auth_id == uid).one_or_none()
         if uobj is None:
             return {"status": False}, 400
 

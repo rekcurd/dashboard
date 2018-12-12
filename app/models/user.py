@@ -14,12 +14,12 @@ class User(db.Model):
     __tablename__ = 'users'
     __table_args__ = (
         UniqueConstraint('user_id'),
-        UniqueConstraint('user_uid'),
+        UniqueConstraint('auth_id'),
         {'mysql_engine': 'InnoDB'}
     )
 
     user_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_uid = Column(String(512), nullable=True)
+    auth_id = Column(String(512), nullable=True)
     user_name = Column(String(512), nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     applications = relationship('ApplicationUserRole', lazy='select', innerjoin=True)
@@ -27,7 +27,7 @@ class User(db.Model):
     @property
     def serialize(self):
         return {
-            'user_uid': self.user_uid,
+            'auth_id': self.auth_id,
             'user_name': self.user_name,
             'register_date': self.register_date.strftime('%Y-%m-%d %H:%M:%S')
         }
