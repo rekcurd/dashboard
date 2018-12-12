@@ -11,7 +11,7 @@ from app import initialize_app
 class BaseTestCase(TestCase):
     def create_app(self):
         app = Flask(__name__)
-        initialize_app(app)
+        initialize_app(app, {})
         return app
 
     @classmethod

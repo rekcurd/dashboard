@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 from .base import BaseTestCase, create_app_obj, create_user_obj, create_application_user_role_obj
 from app import initialize_app
-from models import db
 from models.application_user_role import Role
 from utils.env_loader import config
 
