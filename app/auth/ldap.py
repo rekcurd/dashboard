@@ -1,8 +1,10 @@
 import ldap
 from app import logger
 
+from auth.authenticator import Authenticator
 
-class LdapAuthenticator(object):
+
+class LdapAuthenticator(Authenticator):
     def __init__(self, config):
         self.host = config['host']
         self.port = config['port']

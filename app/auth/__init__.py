@@ -8,11 +8,11 @@ from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
 from app import logger
 from auth.ldap import LdapAuthenticator
 from auth.exceptions import ApplicationUserRoleException
+from auth.authenticator import EmptyAuthenticator
 from models import db
 from models.user import User
 from models.application import Application
 from models.application_user_role import ApplicationUserRole, Role
-from utils.env_loader import config
 
 
 class Auth(object):
@@ -54,22 +54,23 @@ class Auth(object):
         return wrapper
 
     @staticmethod
-    def enabled():
+    def enabled(enabled=None):
+        if enabled is not None:
+            Auth.__enabled = enabled
         return Auth.__enabled
 
     def __init__(self, app=None):
         if app is not None:
             self.init_app(app)
+        self.authenticator = EmptyAuthenticator()
 
-    def init_app(self, app, api, **kwargs):
-        Auth.__enabled = True
+    def init_app(self, app, api, auth_conf):
         JWTManager(app)
 
-        auth_conf = config['auth']
         app.config['JWT_SECRET_KEY'] = auth_conf['secret']
 
         if 'ldap' in auth_conf:
-            authenticator = LdapAuthenticator(auth_conf['ldap'])
+            self.authenticator = LdapAuthenticator(auth_conf['ldap'])
 
         # Add endpoints
         @app.route('/api/login', methods=['POST'])
@@ -77,7 +78,7 @@ class Auth(object):
             params = request.get_json()
             username = params.get('username', None)
             password = params.get('password', None)
-            user_info = authenticator.auth_user(username, password)
+            user_info = self.authenticator.auth_user(username, password)
             if user_info is not None:
                 user_id = self.user(user_info)
                 ret = {'jwt': create_jwt(identity=user_id)}
