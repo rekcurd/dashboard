@@ -33,7 +33,7 @@ class ApiApplicationUsers(Resource):
         return User.query.all()
 
 
-def check_role(fn):
+def check_owner_role(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         application_id = kwargs.get('application_id')
@@ -55,7 +55,7 @@ def check_role(fn):
 
 @admin_info_namespace.route('/<int:application_id>/acl')
 class ApiApplicationIdACL(Resource):
-    method_decorators = [check_role]
+    method_decorators = [check_owner_role]
 
     save_acl_parser = reqparse.RequestParser()
     save_acl_parser.add_argument('uid', type=str, required=True, location='form')
