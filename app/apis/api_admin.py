@@ -45,9 +45,7 @@ def check_role(fn):
             # applications which don't have users are also accesssible as owner
             roles = db.session.query(ApplicationUserRole).filter(
                 ApplicationUserRole.application_id == application_id).count()
-            if roles == 0:
-                pass
-            else:
+            if roles != 0:
                 raise ApplicationUserRoleException
         elif role.role != Role.owner:
             raise ApplicationUserRoleException
