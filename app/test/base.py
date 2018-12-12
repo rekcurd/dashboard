@@ -3,7 +3,8 @@ import warnings
 from flask import Flask
 from flask_testing import TestCase
 
-from models import db, Application, Service
+from models import db, Application, Service, User, ApplicationUserRole
+from models.application_user_role import Role
 from app import initialize_app
 
 
@@ -62,3 +63,26 @@ def create_service_obj(
         return sobj
     else:
         return sobj_
+
+
+def create_user_obj(user_uid, user_name, save=False):
+    uobj = User(user_uid=user_uid, user_name=user_name)
+    uobj_ = User.query.filter_by(user_uid=user_uid).one_or_none()
+    if save and uobj_ is None:
+        db.session.add(uobj)
+        db.session.commit()
+        return uobj
+    else:
+        return uobj_
+
+
+def create_application_user_role_obj(application_id, user_id, role=Role.viewer, save=True):
+    robj = ApplicationUserRole(application_id=application_id, user_id=user_id, role=role)
+    robj_ = ApplicationUserRole.query.filter_by(application_id=application_id, user_id=user_id).one_or_none()
+    if save and robj_ is None:
+        db.session.add(robj)
+        db.session.commit()
+        return robj
+    else:
+        robj_.role = role
+        return robj_
