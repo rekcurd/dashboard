@@ -133,7 +133,7 @@ class ApiEvaluation(Resource):
         """update data to be evaluated"""
         args = self.upload_parser.parse_args()
         file = args['file']
-        eval_data_path = "eval-{0:%Y%m%d%H%M%S}".format(datetime.datetime.utcnow())
+        eval_data_path = "eval-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
 
         sobj = Service.query.filter_by(application_id=application_id).first_or_404()
 
