@@ -54,10 +54,12 @@ class Auth(object):
         return wrapper
 
     @staticmethod
-    def enabled(enabled=None):
-        if enabled is not None:
-            Auth.__enabled = enabled
+    def is_enabled():
         return Auth.__enabled
+
+    @staticmethod
+    def set_enabled(enabled):
+        Auth.__enabled = enabled
 
     def __init__(self, app=None):
         if app is not None:
