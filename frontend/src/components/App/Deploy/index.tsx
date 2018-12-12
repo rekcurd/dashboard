@@ -133,13 +133,17 @@ class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
   // Render methods
 
   render(): JSX.Element {
-    const { application, models, services, userInfoStatus } = this.props
+    const { application, models, services, userInfoStatus, settings } = this.props
+    const statuses: any = { models, services, application }
+    if (isAPISucceeded(settings) && settings.result.auth) {
+      statuses.userInfoStatus = userInfoStatus
+    }
     if ( this.props.match.params.applicationId === 'add' ) {
       return null
     }
     return (
       <APIRequestResultsRenderer
-        APIStatus={{ models, services, application, userInfoStatus }}
+        APIStatus={statuses}
         render={this.renderDeployStatus}
       />
     )
@@ -169,7 +173,7 @@ class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
       [ControlMode.EDIT_DEPLOY_STATUS]: onSubmitDeployStatusChanges,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
     }
-    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
+    const canEdit: boolean = fetchedResults.userInfoStatus && fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
       return String(userRole.applicationId) === applicationId &&
         (userRole.role === role.editor || userRole.role === role.owner)
     })
@@ -460,6 +464,7 @@ export interface StateProps {
   deleteKubernetesServicesStatus: APIRequest<boolean[]>
   syncKubernetesServicesStatusStatus: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
+  settings: APIRequest<any>
 }
 
 const mapStateToProps = (state): StateProps => {
@@ -471,6 +476,7 @@ const mapStateToProps = (state): StateProps => {
     deleteKubernetesServicesStatus: state.deleteKubernetesServicesReducer.deleteKubernetesServices,
     syncKubernetesServicesStatusStatus: state.syncKubernetesStatusReducer.syncKubernetesStatus,
     userInfoStatus: state.userInfoReducer.userInfo,
+    settings: state.settingsReducer.settings
   }
 }
 

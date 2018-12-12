@@ -75,13 +75,17 @@ class Models extends React.Component<ModelsStatusProps, any> {
   // Render methods
 
   render(): JSX.Element {
-    const { application, models, userInfoStatus } = this.props
+    const { application, models, userInfoStatus, settings } = this.props
+    const statuses: any = { application, models }
+    if (isAPISucceeded(settings) && settings.result.auth) {
+      statuses.userInfoStatus = userInfoStatus
+    }
     if ( this.props.match.params.applicationId === 'add' ) {
       return null
     }
     return (
       <APIRequestResultsRenderer
-        APIStatus={{ application, models, userInfoStatus }}
+        APIStatus={statuses}
         render={this.renderModels}
       />
     )
@@ -109,7 +113,7 @@ class Models extends React.Component<ModelsStatusProps, any> {
       [ControlMode.VIEW_MODELS_STATUS]: onSubmitNothing,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
     }
-    const canEdit: boolean = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
+    const canEdit: boolean = fetchedResults.userInfoStatus && fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
       return String(userRole.applicationId) === applicationId &&
         (userRole.role === role.editor || userRole.role === role.owner)
     })
@@ -309,6 +313,7 @@ export interface StateProps {
   models: APIRequest<Model[]>
   deleteKubernetesModelsStatus: APIRequest<boolean[]>
   userInfoStatus: APIRequest<UserInfo>
+  settings: APIRequest<any>
 }
 
 const mapStateToProps = (state): StateProps => {
@@ -317,6 +322,7 @@ const mapStateToProps = (state): StateProps => {
     models: state.fetchAllModelsReducer.models,
     deleteKubernetesModelsStatus: state.deleteKubernetesModelsReducer.deleteKubernetesModels,
     userInfoStatus: state.userInfoReducer.userInfo,
+    settings: state.settingsReducer.settings
   }
   return props
 }
