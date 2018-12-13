@@ -98,12 +98,16 @@ class ApiApplications(Resource):
             db.session.flush()
         if Auth.is_enabled():
             user_id = get_jwt_identity()
-            roleObj = ApplicationUserRole(
-                application_id=aobj.application_id,
-                user_id=user_id,
-                role=Role.owner.name)
-            db.session.add(roleObj)
-            db.session.flush()
+            role = db.session.query(ApplicationUserRole).filter(
+                ApplicationUserRole.application_id == aobj.application_id,
+                ApplicationUserRole.user_id == user_id).one_or_none()
+            if role is None:
+                roleObj = ApplicationUserRole(
+                    application_id=aobj.application_id,
+                    user_id=user_id,
+                    role=Role.owner.name)
+                db.session.add(roleObj)
+                db.session.flush()
         sobj = db.session.query(Service).filter(
             Service.service_name == service_name).one_or_none()
         if sobj is None:

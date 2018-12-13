@@ -1,6 +1,7 @@
 from flask import Flask
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
+import drucker_pb2
 from .base import BaseTestCase, create_app_obj, create_user_obj, create_application_user_role_obj
 from app import initialize_app
 from models.application_user_role import Role
@@ -33,6 +34,40 @@ class ApiAccessControlTest(BaseTestCase):
         response = self.client.get('/api/applications/', headers={'Authorization': 'Bearer {}'.format(token)})
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.json))
+
+    @patch('core.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
+    def test_create_appliction(self, mock):
+        token = self._get_token()
+        headers = {'Authorization': 'Bearer {}'.format(token)}
+
+        mock_stub_obj = Mock()
+        mock_stub_obj.ServiceInfo.return_value = drucker_pb2.ServiceInfoResponse()
+        mock.return_value = mock_stub_obj
+
+        data = {'host': 'localhost:5000'}
+        response = self.client.post('/api/applications/', headers=headers, data=data)
+        self.assertEqual(200, response.status_code)
+
+    @patch('core.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
+    def test_create_appliction_already_exist(self, mock):
+        token = self._get_token()
+        headers = {'Authorization': 'Bearer {}'.format(token)}
+
+        aobj = create_app_obj(kubernetes_id=None, save=True)
+        uobj = create_user_obj(auth_id='test', user_name='TEST USER')
+        robj = create_application_user_role_obj(application_id=aobj.application_id, user_id=uobj.user_id, role=Role.owner)
+        self.assertIsNotNone(robj)
+
+        # return same application_name
+        mock_stub_obj = Mock()
+        mock_stub_obj.ServiceInfo.return_value = drucker_pb2.ServiceInfoResponse(
+            application_name=aobj.application_name,
+            service_name='new-service-name')
+        mock.return_value = mock_stub_obj
+
+        data = {'host': 'localhost:5000'}
+        response = self.client.post('/api/applications/', headers=headers, data=data)
+        self.assertEqual(200, response.status_code)
 
     def test_get_applications_list(self):
         token = self._get_token()
