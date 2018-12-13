@@ -78,17 +78,11 @@ class ApiApplicationIdACL(Resource):
         if uobj is None:
             return {"status": False}, 400
 
-        roleObj = ApplicationUserRole(
-            application_id=application_id,
-            user_id=uobj.user_id,
-            role=args['role'])
-        db.session.add(roleObj)
-        db.session.flush()
-
+        role = args['role']
         # if role is added by first user, they will be owner
         roles = db.session.query(ApplicationUserRole).filter(
             ApplicationUserRole.application_id == application_id).count()
-        if roles <= 1:
+        if roles == 0:
             sender_id = get_jwt_identity()
             if uobj.user_id != sender_id:
                 ownerObj = ApplicationUserRole(
@@ -98,8 +92,14 @@ class ApiApplicationIdACL(Resource):
                 db.session.add(ownerObj)
                 db.session.flush()
             else:
-                roleObj.role = Role.owner.name
+                role = Role.owner.name
 
+        roleObj = ApplicationUserRole(
+            application_id=application_id,
+            user_id=uobj.user_id,
+            role=role)
+        db.session.add(roleObj)
+        db.session.flush()
         db.session.commit()
         db.session.close()
         return {"status": True, "message": "Success."}, 200
