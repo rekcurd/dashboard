@@ -2,6 +2,7 @@ from functools import wraps
 from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Resource, Namespace, fields, reqparse
 
+from auth import fetch_role
 from auth.exceptions import ApplicationUserRoleException
 from models import db
 from models.application_user_role import ApplicationUserRole, Role
@@ -36,20 +37,13 @@ class ApiApplicationUsers(Resource):
 def check_owner_role(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        application_id = kwargs.get('application_id')
         user_id = get_jwt_identity()
-        role = db.session.query(ApplicationUserRole).filter(
-            ApplicationUserRole.application_id == application_id,
-            ApplicationUserRole.user_id == user_id).one_or_none()
-        if role is None:
-            # applications which don't have users are also accesssible as owner
-            roles = db.session.query(ApplicationUserRole).filter(
-                ApplicationUserRole.application_id == application_id).count()
-            if roles != 0:
-                raise ApplicationUserRoleException
-        elif role.role != Role.owner:
+        application_id = kwargs.get('application_id')
+        role = fetch_role(application_id, user_id)
+        if role is not None and role == Role.owner:
+            return fn(*args, **kwargs)
+        else:
             raise ApplicationUserRoleException
-        return fn(*args, **kwargs)
     return wrapper
 
 

@@ -96,21 +96,30 @@ class Auth(object):
 auth = Auth()
 
 
+def fetch_role(user_id, application_id):
+    role = db.session.query(ApplicationUserRole).filter(
+        ApplicationUserRole.application_id == application_id,
+        ApplicationUserRole.user_id == user_id).one_or_none()
+    if role is None:
+        # applications which don't have users are also accesssible as owner
+        roles = db.session.query(ApplicationUserRole).filter(
+            ApplicationUserRole.application_id == application_id).count()
+        if roles == 0:
+            return Role.owner
+        else:
+            return None
+    else:
+        return role.role
+
+
 def auth_required(fn):
     def check_role(user_id, application_id, method):
-        role = db.session.query(ApplicationUserRole).filter(
-            ApplicationUserRole.application_id == application_id,
-            ApplicationUserRole.user_id == user_id).one_or_none()
+        role = fetch_role(user_id, application_id)
         if role is None:
-            # applications which don't have users are also accesssible as owner
-            roles = db.session.query(ApplicationUserRole).filter(
-                ApplicationUserRole.application_id == application_id).count()
-            if roles == 0:
-                return True
             return False
         if method == 'GET':
             return True
-        elif role.role == Role.editor or role.role == Role.owner:
+        elif role == Role.editor or role == Role.owner:
                 return True
         return False
 
