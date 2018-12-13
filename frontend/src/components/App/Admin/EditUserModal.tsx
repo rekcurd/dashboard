@@ -82,7 +82,6 @@ class EditUserModal extends React.Component<EditUserModalProps> {
           name='edit.user.role'
           component={SingleFormField} type='select'
           options={roles}
-          defaultValue={target.role.replace(/Role./, '')}
           className='form-control' id='userRole'
           validate={required}
           required

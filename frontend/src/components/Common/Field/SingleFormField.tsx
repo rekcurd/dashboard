@@ -15,7 +15,6 @@ interface CustomFormFieldProps {
   groupClassName?: string,
   disable?: boolean,
   options?: Array<{label: string, value: string, disabled: boolean}>
-  defaultValue?: string
   required?: boolean
   formText?: string | JSX.Element
 }
@@ -32,7 +31,6 @@ export const SingleFormField = ({
   groupClassName,
   disable,
   options = [] as Array<{label: string, value: string, disabled: boolean}>,
-  defaultValue,
   meta: { touched, error, warning, submitting },
   required,
   formText
@@ -57,7 +55,6 @@ export const SingleFormField = ({
     ? (<FormText color='muted'>{formText}</FormText>)
     : null
 
-  delete input.value
   return (
     <FormGroup className={`${groupClassName || ''} ${margin}`}>
       <Label for={id} className={`${requiredClass} text-info`}>{label}</Label>
@@ -67,7 +64,6 @@ export const SingleFormField = ({
         type={type}
         id={id}
         className={`${className}`}
-        defaultValue={defaultValue}
         valid={touched && isValid}
         invalid={touched && !isValid}
         disabled={submitting || disable}
