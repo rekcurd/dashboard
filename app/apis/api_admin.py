@@ -93,16 +93,24 @@ class ApiApplicationIdACL(Resource):
                 db.session.flush()
             else:
                 role = Role.owner.name
-
-        roleObj = ApplicationUserRole(
-            application_id=application_id,
-            user_id=uobj.user_id,
-            role=role)
-        db.session.add(roleObj)
-        db.session.flush()
-        db.session.commit()
-        db.session.close()
-        return {"status": True, "message": "Success."}, 200
+        try:
+            roleObj = db.session.query(ApplicationUserRole).filter(
+                ApplicationUserRole.application_id == application_id,
+                ApplicationUserRole.user_id == uobj.user_id).one_or_none()
+            if roleObj is None:
+                roleObj = ApplicationUserRole(
+                    application_id=application_id,
+                    user_id=uobj.user_id,
+                    role=role)
+                db.session.add(roleObj)
+                db.session.flush()
+                db.session.commit()
+                db.session.close()
+                return {"status": True, "message": "Success."}, 200
+            else:
+                return {"status": False, "message": "Already exist."}, 400
+        except Exception:
+            return {"status": False}, 400
 
     @admin_info_namespace.marshal_with(success_or_not)
     @admin_info_namespace.expect(save_acl_parser)

@@ -53,7 +53,7 @@ class AddUserModal extends React.Component<AddUserModalProps> {
     const { saveAccessControlStatus, reset, toggle, reload, submitting } = nextProps
     if (isModalOpen && submitting) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveAccessControlStatus)
-      const failed: boolean = isAPIFailed<boolean>(saveAccessControlStatus)
+      const failed: any = isAPIFailed<boolean>(saveAccessControlStatus) && saveAccessControlStatus.error
       if (succeeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully added user' })
         reset()
@@ -61,7 +61,8 @@ class AddUserModal extends React.Component<AddUserModalProps> {
         reload()
       }
       if (failed) {
-        nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+        const message: string = failed.message || 'Something went wrong. Try again later'
+        nextProps.addNotification({ color: 'error', message })
       }
     }
   }

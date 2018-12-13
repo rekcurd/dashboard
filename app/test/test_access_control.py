@@ -110,3 +110,41 @@ class ApiAccessControlTest(BaseTestCase):
         response = self.client.get('/api/applications/{}/acl'.format(aobj.application_id), headers=headers)
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.json))
+
+    def test_add_user_success(self):
+        token = self._get_token()
+        headers = {'Authorization': 'Bearer {}'.format(token)}
+        aobj = create_app_obj()
+        uobj = create_user_obj(auth_id='otheruser', user_name='OTHER USER', save=True)
+
+        data = {'uid': uobj.auth_id, 'role': Role.viewer.name}
+        response = self.client.post('/api/applications/{}/acl'.format(aobj.application_id), headers=headers, data=data)
+        self.assertEqual(200, response.status_code)
+
+    def test_add_user_with_invalid_role(self):
+        token = self._get_token()
+        headers = {'Authorization': 'Bearer {}'.format(token)}
+        aobj = create_app_obj()
+        uobj = create_user_obj(auth_id='otheruser', user_name='OTHER USER', save=True)
+
+        # invalid role
+        data = {'uid': uobj.auth_id, 'role': 'cracker'}
+        response = self.client.post('/api/applications/{}/acl'.format(aobj.application_id), headers=headers, data=data)
+        self.assertEqual(400, response.status_code)
+
+    def test_add_user_already_exist(self):
+        token = self._get_token()
+        headers = {'Authorization': 'Bearer {}'.format(token)}
+        aobj = create_app_obj()
+
+        uobj = create_user_obj(auth_id='test', user_name='TEST USER')
+        robj = create_application_user_role_obj(application_id=aobj.application_id, user_id=uobj.user_id, role=Role.owner, save=True)
+        self.assertIsNotNone(robj)
+        uobj = create_user_obj(auth_id='otheruser', user_name='OTHER USER', save=True)
+        robj = create_application_user_role_obj(application_id=aobj.application_id, user_id=uobj.user_id, save=True)
+        self.assertIsNotNone(robj)
+
+        data = {'uid': uobj.auth_id, 'role': Role.viewer.name}
+        response = self.client.post('/api/applications/{}/acl'.format(aobj.application_id), headers=headers, data=data)
+        self.assertEqual(400, response.status_code)
+        self.assertEqual('Already exist.', response.json['message'])
