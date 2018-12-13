@@ -5,7 +5,7 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
 from app import logger
-from auth import Auth
+from auth import auth
 from models import db
 from models.application import Application
 from models.application_user_role import ApplicationUserRole, Role
@@ -63,7 +63,7 @@ class ApiApplications(Resource):
     @app_info_namespace.marshal_list_with(app_info)
     def get(self):
         """get_applications"""
-        if Auth.is_enabled():
+        if auth.is_enabled():
             user_id = get_jwt_identity()
             uobj = db.session.query(User).filter(User.user_id == user_id).one()
             # applications which don't have users are also accessible
@@ -96,7 +96,7 @@ class ApiApplications(Resource):
                                description=description)
             db.session.add(aobj)
             db.session.flush()
-        if Auth.is_enabled():
+        if auth.is_enabled():
             user_id = get_jwt_identity()
             role = db.session.query(ApplicationUserRole).filter(
                 ApplicationUserRole.application_id == aobj.application_id,

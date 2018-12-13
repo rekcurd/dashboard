@@ -16,55 +16,17 @@ from models.application_user_role import ApplicationUserRole, Role
 
 
 class Auth(object):
-    __enabled = False
-
-    @staticmethod
-    def auth_required(fn):
-        def check_role(user_id, application_id, method):
-            role = db.session.query(ApplicationUserRole).filter(
-                ApplicationUserRole.application_id == application_id,
-                ApplicationUserRole.user_id == user_id).one_or_none()
-            if role is None:
-                # applications which don't have users are also accesssible as owner
-                roles = db.session.query(ApplicationUserRole).filter(
-                    ApplicationUserRole.application_id == application_id).count()
-                if roles == 0:
-                    return True
-                return False
-            if method == 'GET':
-                return True
-            elif role.role == Role.editor or role.role == Role.owner:
-                    return True
-            return False
-
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            if Auth.__enabled and request.path.startswith('/api/') and not request.path.startswith('/api/settings') and not request.path.startswith('/api/kubernetes/dump'):
-                @jwt_required
-                def run():
-                    application_id = kwargs.get('application_id')
-                    if application_id is not None:
-                        user_id = get_jwt_identity()
-                        if not check_role(user_id, application_id, request.method):
-                            raise ApplicationUserRoleException
-                    return fn(*args, **kwargs)
-                return run()
-            else:
-                return fn(*args, **kwargs)
-        return wrapper
-
-    @staticmethod
-    def is_enabled():
-        return Auth.__enabled
-
-    @staticmethod
-    def set_enabled(enabled):
-        Auth.__enabled = enabled
-
     def __init__(self, app=None):
+        self.__enabled = True
         if app is not None:
             self.init_app(app)
         self.authenticator = EmptyAuthenticator()
+
+    def is_enabled(self):
+        return self.__enabled
+
+    def set_enabled(self, enabled):
+        self.__enabled = enabled
 
     def init_app(self, app, api, auth_conf):
         JWTManager(app)
@@ -132,3 +94,38 @@ class Auth(object):
 
 
 auth = Auth()
+
+
+def auth_required(fn):
+    def check_role(user_id, application_id, method):
+        role = db.session.query(ApplicationUserRole).filter(
+            ApplicationUserRole.application_id == application_id,
+            ApplicationUserRole.user_id == user_id).one_or_none()
+        if role is None:
+            # applications which don't have users are also accesssible as owner
+            roles = db.session.query(ApplicationUserRole).filter(
+                ApplicationUserRole.application_id == application_id).count()
+            if roles == 0:
+                return True
+            return False
+        if method == 'GET':
+            return True
+        elif role.role == Role.editor or role.role == Role.owner:
+                return True
+        return False
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if auth.is_enabled() and request.path.startswith('/api/') and not request.path.startswith('/api/settings') and not request.path.startswith('/api/kubernetes/dump'):
+            @jwt_required
+            def run():
+                application_id = kwargs.get('application_id')
+                if application_id is not None:
+                    user_id = get_jwt_identity()
+                    if not check_role(user_id, application_id, request.method):
+                        raise ApplicationUserRoleException
+                return fn(*args, **kwargs)
+            return run()
+        else:
+            return fn(*args, **kwargs)
+    return wrapper

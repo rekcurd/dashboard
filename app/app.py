@@ -41,10 +41,9 @@ def initialize_app(flask_app: Flask, config=config) -> None:
 
     api.init_app(flask_app)
     if 'auth' in config:
-        Auth.set_enabled(True)
         auth.init_app(flask_app, api, config['auth'])
     else:
-        Auth.set_enabled(False)
+        auth.set_enabled(False)
 
     CORS(flask_app)
 
