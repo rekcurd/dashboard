@@ -4,21 +4,24 @@ import { Dispatch } from 'redux'
 import { withRouter, RouteComponentProps } from 'react-router'
 import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
 
-import { AccessControlList, Application, UserInfo } from '@src/apis'
+import { AccessControlList, Application, saveAccessControl, UserInfo } from '@src/apis'
 import { APIRequest, isAPISucceeded } from '@src/apis/Core'
 import {
+  saveAccessControlDispatcher,
   addNotification,
   AddNotificationAction,
   fetchAccessControlListDispatcher,
   fetchApplicationByIdDispatcher,
   deleteAccessControlDispatcher,
 } from '@src/actions'
+
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 
 import AddUserModal from './AddUserModal'
-import EditUserModal from './EditUserModal'
+import { EditUserRoleModal } from './EditUserRoleModal'
 
 interface StateProps {
+  saveAccessControlStatus: APIRequest<boolean>
   accessControlList: APIRequest<AccessControlList>
   application: APIRequest<Application>
   userInfoStatus: APIRequest<UserInfo>
@@ -26,6 +29,7 @@ interface StateProps {
 }
 
 interface DispatchProps {
+  saveAccessControl: (params) => Promise<void>
   addNotification: (params) => AddNotificationAction
   fetchAccessControlList: (applicationId: string) => Promise<void>
   fetchApplicationById: (id: string) => Promise<void>
@@ -91,6 +95,7 @@ class Admin extends React.Component<AdminProps, AdminState> {
     return this.renderContent(application.name, acl, userInfo)
   }
   renderContent(applicationName: string, acl: AccessControlList[], userInfo: UserInfo) {
+    const { match } = this.props
     const { isAddUserModalOpen, isEditUserModalOpen, editTarget } = this.state
     const tableBody = acl.map((e: AccessControlList, i: number) => {
       const isMyself: boolean = e.userUid === userInfo.user.userUid
@@ -142,11 +147,15 @@ class Admin extends React.Component<AdminProps, AdminState> {
           reload={this.reload}
           acl={acl}
         />
-        <EditUserModal
+        <EditUserRoleModal
+          applicationId={match.params.applicationId}
           isModalOpen={isEditUserModalOpen}
           toggle={this.toggleEditUserModalOpen}
           reload={this.reload}
           target={editTarget}
+          saveAccessControl={saveAccessControl}
+          saveAccessControlStatus={this.props.saveAccessControlStatus}
+          addNotification={addNotification}
         />
         {this.renderConfirmRemoveUserModal()}
         <h3>
@@ -243,6 +252,7 @@ export default withRouter(
   connect(
     (state: any): StateProps => {
       return {
+        saveAccessControlStatus: state.saveAccessControlReducer.saveAccessControl,
         accessControlList: state.fetchAccessControlListReducer.accessControlList,
         application: state.fetchApplicationByIdReducer.applicationById,
         userInfoStatus: state.userInfoReducer.userInfo,
@@ -251,6 +261,7 @@ export default withRouter(
     },
     (dispatch: Dispatch): DispatchProps => {
       return {
+        saveAccessControl: (params) => saveAccessControlDispatcher(dispatch, params),
         addNotification: (params) => dispatch(addNotification(params)),
         fetchAccessControlList: (applicationId: string) => fetchAccessControlListDispatcher(dispatch, { applicationId }),
         fetchApplicationById: (id: string) => fetchApplicationByIdDispatcher(dispatch, { id }),
