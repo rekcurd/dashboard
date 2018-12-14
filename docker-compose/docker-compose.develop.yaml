@@ -26,6 +26,7 @@ services:
       dockerfile: ./app/Dockerfile
     volumes:
       - ../app:/root/drucker-dashboard
+      - ~/.aws:/root/.aws
     environment:
       FLASK_DEBUG: "True"
       PYTHONIOENCODING: "utf-8"

@@ -25,7 +25,15 @@ https://github.com/drucker/drucker-parent
 $ git clone https://github.com/drucker/drucker-dashboard.git drucker-dashboard
 ```
 
+## Preparation for AWS setting
+If you run Drucker on Kubernetes on AWS (such as EKS), you need to configure aws-cli setting.  
+Follow the [official document](https://docs.aws.amazon.com/streams/latest/dev/kinesis-tutorial-cli-installation.html).  
+
+**Drucker-Dashboard docker container will mount the configuration files,  
+so the IAM account used by configuration needs to have enogh permissions to access to Kubernetes resources on AWS.**
+
 ## Run it!
+
 ```
 # For dev
 $ docker-compose -f docker-compose/docker-compose.develop.yaml up
