@@ -4,7 +4,7 @@ import { Dispatch } from 'redux'
 import { withRouter, RouteComponentProps } from 'react-router'
 import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
 
-import { AccessControlList, Application, saveAccessControl, UserInfo } from '@src/apis'
+import { AccessControlList, Application, UserInfo } from '@src/apis'
 import { APIRequest, isAPISucceeded } from '@src/apis/Core'
 import {
   saveAccessControlDispatcher,
@@ -95,7 +95,7 @@ class Admin extends React.Component<AdminProps, AdminState> {
     return this.renderContent(application.name, acl, userInfo)
   }
   renderContent(applicationName: string, acl: AccessControlList[], userInfo: UserInfo) {
-    const { match } = this.props
+    const { match, saveAccessControl } = this.props
     const { isAddUserModalOpen, isEditUserModalOpen, editTarget } = this.state
     const tableBody = acl.map((e: AccessControlList, i: number) => {
       const isMyself: boolean = e.userUid === userInfo.user.userUid
