@@ -1,13 +1,11 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { Field } from 'redux-form'
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
 import { AccessControlList } from '@src/apis'
 import { SingleFormField } from '@components/Common/Field/SingleFormField'
 import { required } from '@components/Common/Field/Validateors'
 import { role } from './constants'
-
 
 class EditUserRoleFieldsImpl extends React.Component<EditUserRoleFieldsProps> {
   constructor(props: EditUserRoleFieldsProps) {

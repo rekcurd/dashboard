@@ -2,18 +2,18 @@ import * as React from 'react'
 import {reduxForm, InjectedFormProps} from 'redux-form'
 import { connect } from 'react-redux'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form } from 'reactstrap'
-import { AccessControlList } from '@src/apis'
-import { EditUserRoleFields } from './EditUserRoleFields'
-import { APIRequest, isAPIFailed, isAPISucceeded } from "@src/apis/Core";
 
+import { AccessControlList } from '@src/apis'
+import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
+import { EditUserRoleFields } from './EditUserRoleFields'
 
 class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps> {
-  constructor(props) {
+  constructor(props: EditUserRoleModalProps) {
     super(props)
     this.onCancel = this.onCancel.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
   }
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps: EditUserRoleModalProps) {
     const { isModalOpen } = this.props
     const { saveAccessControlStatus, reset, toggle, reload, submitting } = nextProps
     if (isModalOpen && submitting) {
@@ -110,7 +110,7 @@ const generateInitialValues = (props: CustomProps) => (
 
 export const EditUserRoleModal =
   connect(
-    (state: any, extraProps: CustomProps) => ({
+    (state: any, extraProps: CustomProps): StateProps => ({
       ...extraProps,
       ...state.form,
       initialValues: generateInitialValues(extraProps)

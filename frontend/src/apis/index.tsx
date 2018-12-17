@@ -1,5 +1,5 @@
 import * as APICore from './Core'
-import { apiConvert } from "@components/App/Admin/constants";
+import { apiConvert } from '@components/App/Admin/constants'
 
 export class Application {
   constructor(
