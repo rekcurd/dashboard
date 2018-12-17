@@ -1,4 +1,5 @@
 import * as APICore from './Core'
+import { apiConvert } from "@components/App/Admin/constants";
 
 export class Application {
   constructor(
@@ -597,7 +598,7 @@ export async function fetchAccessControlList(param: { applicationId: string }): 
     return results.map((result: any) => new AccessControlList(
       result.user.auth_id,
       result.user.user_name,
-      result.role
+      apiConvert(result.role)
     ))
   }
   return APICore.getRequest(
