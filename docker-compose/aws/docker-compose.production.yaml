@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   dashboard-frontend:
-    container_name: drucker-dashboard-frontend
+    container_name: drucker-dashboard-frontend-for-aws
     build:
       context: ..
       dockerfile: ./frontend/Dockerfile
@@ -23,12 +23,13 @@ services:
       - "${DRUCKER_DASHBOARD_FRONTEND_PORT:-8080}:${DRUCKER_DASHBOARD_FRONTEND_PORT:-8080}"
     restart: always
   dashboard-backend:
-    container_name: drucker-dashboard-backend
+    container_name: drucker-dashboard-backend-for-aws
     build:
       context: ..
-      dockerfile: ./app/Dockerfile
+      dockerfile: ./app/Dockerfile_aws
     volumes:
       - ../app:/root/drucker-dashboard
+      - ~/.aws:/root/.aws
     environment:
       FLASK_DEBUG: "False"
       PYTHONIOENCODING: "utf-8"
