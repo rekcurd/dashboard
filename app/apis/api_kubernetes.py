@@ -294,8 +294,9 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
         refresh_all = True
         applist = set()
         for i in ret.items:
-            if i.metadata.labels.get("drucker-worker", "False") == "True":
-                application_name = i.metadata.labels["app"]
+            labels = i.metadata.labels
+            if labels is not None and labels.get("drucker-worker", "False") == "True":
+                application_name = labels["app"]
                 applist.add(application_name)
     """Application"""
     for application_name in applist:
@@ -313,10 +314,11 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
             db.session.flush()
     """Service"""
     for i in ret.items:
-        if i.metadata.labels.get("drucker-worker", "False") == "False":
+        labels = i.metadata.labels
+        if labels is None or labels.get("drucker-worker", "False") == "False":
             continue
-        application_name = i.metadata.labels["app"]
-        service_name = i.metadata.labels["sel"]
+        application_name = labels["app"]
+        service_name = labels["sel"]
         service_level = i.metadata.namespace
         host = i.spec.rules[0].host
         aobj = db.session.query(Application).filter(
