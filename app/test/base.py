@@ -45,6 +45,7 @@ def create_app_obj(kubernetes_id=1, save=False):
 
 def create_service_obj(
         application_id,
+        model_id=3,
         service_name='drucker-test-app-development-20180628151929',
         service_level='development',
         host='localhost:5000',
@@ -53,6 +54,7 @@ def create_service_obj(
                    service_name=service_name,
                    service_level=service_level,
                    host=host,
+                   model_id=model_id,
                    display_name=service_name)
     sobj_ = Service.query.filter_by(
         service_name=service_name).one_or_none()

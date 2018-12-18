@@ -27,7 +27,7 @@ class ApiEvaluationTest(BaseTestCase):
         app_id = create_app_obj().application_id
         eobj = create_eval_obj(app_id, save=True)
         sobj = create_service_obj(app_id)
-        robj = EvaluationResult(service_id=sobj.service_id,
+        robj = EvaluationResult(model_id=sobj.model_id,
                                 data_path='my_result_path',
                                 evaluation_id=eobj.evaluation_id)
         db.session.add(robj)

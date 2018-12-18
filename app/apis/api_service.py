@@ -215,7 +215,7 @@ class ApiEvaluate(Resource):
         response_body = drucker_dashboard_application.run_evaluate_model(eobj.data_path, eval_result_path)
 
         if response_body['status']:
-            robj = EvaluationResult(service_id=service_id, data_path=eval_result_path, evaluation_id=eobj.evaluation_id)
+            robj = EvaluationResult(model_id=sobj.model_id, data_path=eval_result_path, evaluation_id=eobj.evaluation_id)
             db.session.add(robj)
             db.session.commit()
             db.session.close()

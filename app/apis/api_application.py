@@ -165,7 +165,6 @@ class ApiEvaluation(Resource):
         eval_query.delete()
         db.session.query(EvaluationResult)\
             .filter(EvaluationResult.evaluation_id == evaluation_id).delete()
-        db.session.flush()
         db.session.commit()
         db.session.close()
 
