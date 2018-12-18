@@ -33,7 +33,7 @@ def configure_app(flask_app: Flask, db_url: str) -> None:
 def initialize_app(flask_app: Flask, config=config) -> None:
     from models import db, db_url
     from apis import api
-    from auth import Auth, auth
+    from auth import auth
 
     if not os.path.isdir(DIR_KUBE_CONFIG):
         os.makedirs(DIR_KUBE_CONFIG)
@@ -42,8 +42,6 @@ def initialize_app(flask_app: Flask, config=config) -> None:
     api.init_app(flask_app)
     if 'auth' in config:
         auth.init_app(flask_app, api, config['auth'])
-    else:
-        auth.set_enabled(False)
 
     CORS(flask_app)
 
