@@ -155,7 +155,7 @@ class Admin extends React.Component<AdminProps, AdminState> {
           target={editTarget}
           saveAccessControl={saveAccessControl}
           saveAccessControlStatus={this.props.saveAccessControlStatus}
-          addNotification={addNotification}
+          addNotification={this.props.addNotification}
         />
         {this.renderConfirmRemoveUserModal()}
         <h3>
