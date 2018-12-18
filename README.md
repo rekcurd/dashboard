@@ -26,7 +26,7 @@ $ git clone https://github.com/drucker/drucker-dashboard.git drucker-dashboard
 ```
 
 ## Run it!
-### For non-AWS users
+### General users
 
 ```
 # For dev
