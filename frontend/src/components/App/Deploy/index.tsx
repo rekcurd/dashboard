@@ -173,10 +173,13 @@ class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
       [ControlMode.EDIT_DEPLOY_STATUS]: onSubmitDeployStatusChanges,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
     }
-    const canEdit: boolean = fetchedResults.userInfoStatus && fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
-      return String(userRole.applicationId) === applicationId &&
-        (userRole.role === role.editor || userRole.role === role.owner)
-    })
+    let canEdit: boolean = true
+    if (fetchedResults.userInfoStatus) {
+      canEdit = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
+        return String(userRole.applicationId) === applicationId &&
+          (userRole.role === role.editor || userRole.role === role.owner)
+      })
+    }
 
     // Render contents to control deploy status
     switch (controlMode) {
