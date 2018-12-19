@@ -68,9 +68,10 @@ def create_service_obj(
 
 def create_eval_obj(
         application_id,
+        checksum='abcde',
         data_path='my_data_path',
         save=False):
-    eobj = Evaluation(checksum='abcde',
+    eobj = Evaluation(checksum=checksum,
                       application_id=application_id,
                       data_path=data_path)
     if save:

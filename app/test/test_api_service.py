@@ -47,9 +47,9 @@ class ApiEvaluateTest(BaseTestCase):
         aobj = create_app_obj()
         sobj = create_service_obj(aobj.application_id)
         model_id = sobj.model_id
-        create_eval_obj(aobj.application_id, save=True)
-        create_eval_obj(aobj.application_id, save=True)
-        create_eval_obj(aobj.application_id, save=True)
+        create_eval_obj(aobj.application_id, checksum='12345', save=True)
+        create_eval_obj(aobj.application_id, checksum='6789', save=True)
+        create_eval_obj(aobj.application_id, checksum='abc', save=True)
         newest_eval_id = create_eval_obj(aobj.application_id, save=True).evaluation_id
 
         response = self.client.post(f'/api/applications/{aobj.application_id}/services/{sobj.service_id}/evaluate')

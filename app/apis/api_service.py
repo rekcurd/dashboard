@@ -213,8 +213,8 @@ class ApiEvaluate(Resource):
             service_id=service_id).first_or_404()
 
         robj = db.session.query(EvaluationResult)\
-            .filter(EvaluationResult.model_id == sobj.model_id)\
-            .filter(EvaluationResult.evaluation_id == eobj.evaluation_id).one_or_none()
+            .filter(EvaluationResult.model_id == sobj.model_id,
+                    EvaluationResult.evaluation_id == eobj.evaluation_id).one_or_none()
         if robj is not None and args.get('overwrite', False):
             return json.loads(robj.result)
 
