@@ -1,9 +1,9 @@
 from unittest.mock import patch, Mock
 
 import drucker_pb2
-from .base import BaseTestCase, create_app_obj, create_service_obj, create_eval_obj
+from .base import BaseTestCase, create_app_obj, create_service_obj, create_eval_obj, create_eval_result_obj
 from io import BytesIO
-from models import db, EvaluationResult, Evaluation
+from models import EvaluationResult, Evaluation
 
 
 class ApiEvaluationTest(BaseTestCase):
@@ -27,11 +27,7 @@ class ApiEvaluationTest(BaseTestCase):
         app_id = create_app_obj().application_id
         eobj = create_eval_obj(app_id, save=True)
         sobj = create_service_obj(app_id)
-        robj = EvaluationResult(model_id=sobj.model_id,
-                                data_path='my_result_path',
-                                evaluation_id=eobj.evaluation_id)
-        db.session.add(robj)
-        db.session.commit()
+        create_eval_result_obj(model_id=sobj.model_id, evaluation_id=eobj.evaluation_id, save=True)
         response = self.client.delete(f'/api/applications/{app_id}/evaluation/{eobj.evaluation_id}')
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, {'status': True, 'message': 'Success.'})

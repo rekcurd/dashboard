@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 
@@ -190,6 +191,7 @@ class ApiApplicationIdServiceId(Resource):
 class ApiEvaluate(Resource):
     eval_parser = reqparse.RequestParser()
     eval_parser.add_argument('evaluation_id', location='form', type=int, required=False)
+    eval_parser.add_argument('overwrite', location='form', type=bool, required=False)
 
     @srv_info_namespace.expect(eval_parser)
     def post(self, application_id:int, service_id:int):
@@ -210,13 +212,27 @@ class ApiEvaluate(Resource):
             application_id=application_id,
             service_id=service_id).first_or_404()
 
+        robj = db.session.query(EvaluationResult)\
+            .filter(EvaluationResult.model_id == sobj.model_id)\
+            .filter(EvaluationResult.evaluation_id == eobj.evaluation_id).one_or_none()
+        if robj is not None and args.get('overwrite', False):
+            return json.loads(robj.result)
+
         eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
         drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
         response_body = drucker_dashboard_application.run_evaluate_model(eobj.data_path, eval_result_path)
 
         if response_body['status']:
-            robj = EvaluationResult(model_id=sobj.model_id, data_path=eval_result_path, evaluation_id=eobj.evaluation_id)
-            db.session.add(robj)
+            result = json.dumps(response_body)
+            if robj is None:
+                robj = EvaluationResult(model_id=sobj.model_id,
+                                        data_path=eval_result_path,
+                                        evaluation_id=eobj.evaluation_id,
+                                        result=result)
+                db.session.add(robj)
+            else:
+                robj.data_path = eval_result_path
+                robj.result = result
             db.session.commit()
             db.session.close()
 

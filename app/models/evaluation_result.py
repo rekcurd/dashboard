@@ -1,6 +1,6 @@
 import datetime
 from sqlalchemy import (
-    Column, Integer, DateTime,
+    Column, Integer, DateTime, Text,
     UniqueConstraint, ForeignKey, String
 )
 
@@ -21,6 +21,7 @@ class EvaluationResult(db.Model):
     model_id = Column(Integer, nullable=False)
     data_path = Column(String(512), nullable=False)
     evaluation_id = Column(Integer, ForeignKey('evaluations.evaluation_id'), nullable=False)
+    result = Column(Text, nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     @property
@@ -30,5 +31,6 @@ class EvaluationResult(db.Model):
             'model_id': self.model_id,
             'data_path': self.data_path,
             'evaluation_id': self.evaluation_id,
+            'result': self.result,
             'register_date': self.register_date.strftime('%Y-%m-%d %H:%M:%S'),
         }
