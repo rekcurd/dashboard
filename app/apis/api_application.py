@@ -9,6 +9,7 @@ from models import db
 from models import Application, Service, Evaluation, EvaluationResult
 from core.drucker_dashboard_client import DruckerDashboardClient
 from apis.common import DatetimeToTimestamp
+from utils.hash_util import HashUtil
 
 
 app_info_namespace = Namespace('applications', description='Application Endpoint.')
@@ -133,6 +134,14 @@ class ApiEvaluation(Resource):
         """update data to be evaluated"""
         args = self.upload_parser.parse_args()
         file = args['file']
+        checksum = HashUtil.checksum(file)
+
+        eobj = db.session.query(Evaluation).filter(
+            Evaluation.application_id == application_id,
+            Evaluation.checksum == checksum).one_or_none()
+        if eobj is not None:
+            return {"status": True, "evaluation_id": eobj.evaluation_id}
+
         eval_data_path = "eval-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
 
         sobj = Service.query.filter_by(application_id=application_id).first_or_404()
@@ -142,7 +151,7 @@ class ApiEvaluation(Resource):
 
         if not response_body['status']:
             raise Exception('Failed to upload')
-        eobj = Evaluation(application_id=application_id, data_path=eval_data_path)
+        eobj = Evaluation(checksum=checksum, application_id=application_id, data_path=eval_data_path)
         db.session.add(eobj)
         db.session.flush()
         evaluation_id = eobj.evaluation_id

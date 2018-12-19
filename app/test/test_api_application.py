@@ -17,9 +17,20 @@ class ApiEvaluationTest(BaseTestCase):
         mock_stub_class.return_value = mock_stub_obj
         aobj = create_app_obj()
         create_service_obj(aobj.application_id)
-        response = self.client.post(f'/api/applications/{aobj.application_id}/evaluation',
-                                    content_type='multipart/form-data',
-                                    data=dict(file=(BytesIO(b'my file contents'), "work_order.123")))
+
+        url = f'/api/applications/{aobj.application_id}/evaluation'
+        content_type = 'multipart/form-data'
+        file_content = b'my file contents'
+        response = self.client.post(url,
+                                    content_type=content_type,
+                                    data={'file': (BytesIO(file_content), "file.txt")})
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(response.json, {'status': True, 'evaluation_id': 1})
+
+        # duplication check
+        response = self.client.post(url,
+                                    content_type=content_type,
+                                    data={'file': (BytesIO(file_content), "file.txt")})
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, {'status': True, 'evaluation_id': 1})
 

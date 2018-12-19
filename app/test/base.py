@@ -70,7 +70,8 @@ def create_eval_obj(
         application_id,
         data_path='my_data_path',
         save=False):
-    eobj = Evaluation(application_id=application_id,
+    eobj = Evaluation(checksum='abcde',
+                      application_id=application_id,
                       data_path=data_path)
     if save:
         db.session.add(eobj)
