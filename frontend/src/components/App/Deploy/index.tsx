@@ -145,6 +145,7 @@ class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
       <APIRequestResultsRenderer
         APIStatus={statuses}
         render={this.renderDeployStatus}
+        applicationId={this.props.match.params.applicationId}
       />
     )
   }
@@ -154,8 +155,9 @@ class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
    * with fetched API results
    *
    * @param fetchedResults Fetched data from APIs
+   * @param canEdit Boolean value of user's editor permission
    */
-  renderDeployStatus(fetchedResults): JSX.Element {
+  renderDeployStatus(fetchedResults, canEdit): JSX.Element {
     const { controlMode } = this.state
     const {
       onSubmitDeployStatusChanges,
@@ -172,13 +174,6 @@ class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
       [ControlMode.VIEW_DEPLOY_STATUS]: onSubmitDeployStatusChanges, // Dummy to render form
       [ControlMode.EDIT_DEPLOY_STATUS]: onSubmitDeployStatusChanges,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
-    }
-    let canEdit: boolean = true
-    if (fetchedResults.userInfoStatus) {
-      canEdit = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
-        return String(userRole.applicationId) === applicationId &&
-          (userRole.role === role.editor || userRole.role === role.owner)
-      })
     }
 
     // Render contents to control deploy status
