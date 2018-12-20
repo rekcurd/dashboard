@@ -3,7 +3,7 @@ import warnings
 from flask import Flask
 from flask_testing import TestCase
 
-from models import db, Application, Service
+from models import db, Application, Service, Evaluation, EvaluationResult
 from app import initialize_app
 
 
@@ -45,6 +45,7 @@ def create_app_obj(kubernetes_id=1, save=False):
 
 def create_service_obj(
         application_id,
+        model_id=3,
         service_name='drucker-test-app-development-20180628151929',
         service_level='development',
         host='localhost:5000',
@@ -53,6 +54,7 @@ def create_service_obj(
                    service_name=service_name,
                    service_level=service_level,
                    host=host,
+                   model_id=model_id,
                    display_name=service_name)
     sobj_ = Service.query.filter_by(
         service_name=service_name).one_or_none()
@@ -62,3 +64,33 @@ def create_service_obj(
         return sobj
     else:
         return sobj_
+
+
+def create_eval_obj(
+        application_id,
+        checksum='abcde',
+        data_path='my_data_path',
+        save=False):
+    eobj = Evaluation(checksum=checksum,
+                      application_id=application_id,
+                      data_path=data_path)
+    if save:
+        db.session.add(eobj)
+        db.session.commit()
+    return eobj
+
+
+def create_eval_result_obj(
+        model_id,
+        evaluation_id,
+        data_path='my_data_path',
+        result='{}',
+        save=False):
+    robj = EvaluationResult(model_id=model_id,
+                            data_path='my_result_path',
+                            evaluation_id=evaluation_id,
+                            result=result)
+    if save:
+        db.session.add(robj)
+        db.session.commit()
+    return robj

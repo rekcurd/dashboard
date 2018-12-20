@@ -42,3 +42,4 @@ from models.application import Application
 from models.service import Service
 from models.model import Model
 from models.evaluation import Evaluation
+from models.evaluation_result import EvaluationResult
