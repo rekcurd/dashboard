@@ -15,19 +15,20 @@ Rekcurd dashboard can control Kubernetes. Access `localhost:8080/settings/kubern
 
 <img src="./img/kubernetes-register.png" width="480">
 
+The fields you may fill is below.
 |Category |Field |Description |
 |:---|:---|:---|
 |Basic |Name |Must be unique. If empty, automatically generated. |
-| |Host Config File * |Choose kubeconfig file. Follow the [link](https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/) to generate your kubeconfig file. |
-| |DNS Name * |You can access your application with http://<app name>-<service level>.<DNS name>. |
-| |Description * |Write short description of your new Kubernetes host. |
-|Database (MySQL) |Host * |Host. |
-| |Port Number * |Port. |
-| |DB Name * |DB name. |
-| |User * |User. |
-| |Password * |Password. |
-|Model storage |Directory of model on host node * |Directry of host node for ML models. Recommend that you mount cloud storage (e.g. AWS S3, GCS, WebDAV) on this directory. Otherwise you cannot share the models between Pods. |
-| |Directory of model on pod * |Directry of pod for ML models. This directory mounts the above directory. |
+| |Host Config File* |Choose kubeconfig file. Follow the [link](https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/) to generate your kubeconfig file. |
+| |DNS Name* |You can access your application with http://<app name>-<service level>.<DNS name>. |
+| |Description* |Write short description of your new Kubernetes host. |
+|Database (MySQL) |Host* |Host. |
+| |Port Number* |Port. |
+| |DB Name* |DB name. |
+| |User* |User. |
+| |Password* |Password. |
+|Model storage |Directory of model on host node* |Directry of host node for ML models. Recommend that you mount cloud storage (e.g. AWS S3, GCS, WebDAV) on this directory. Otherwise you cannot share the models between Pods. |
+| |Directory of model on pod* |Directry of pod for ML models. This directory mounts the above directory. |
 
 *Required
 
@@ -39,27 +40,27 @@ Access `localhost:8080/applications/add`, and you can deploy your [Rekcurdize](h
 
 |Category |Field |Description |
 |:---|:---|:---|
-|Basic |Application Type * |Application type of your application, Kubernetes or none. |
-| |Kubernetes Host * |Kubernetes host in which your application is deployed. |
-| |Name * |Name of application, must be unique. |
-| |Service Level * |Choose from development/staging/production/beta/sandbox. |
-| |Service Port * |Port number accepted on your application. |
-| |Container Image * |Image location of Docker registry. You can use our official container image `rekcurd/rekcurd:python-latest`. |
-| |Git URL * |Git repository URL of your Rekcurdize ML service. |
-| |Git Branch * |Git branch name of your Rekcurdize ML service. |
-| |Boot Script * |Script file name for booting application on your git repository home. |
-| |CPU Request * |Minimum CPU request for running application. |
-| |CPU Limit * |Maximum CPU limit for running application. |
-| |Memory Request * |Minimum memory requrest for running application. |
-| |Memory Limit * |Maximum memory limit for running application. |
-|Policy |Replica default * |Default number of pod you want to boot. |
-| |Replica minimum * |Minimum number of pod you want to keep. |
-| |Replica maximum * |Maximum number of pod you want to keep. |
-| |Autoscale Threshold CPU Maximum * |Threshold for auto scaling. If the workload exceeds this threshold, Kubernetes automatically deploy the Pod. |
-| |Rolling Update max surge * |Maximum number of serged pod when deploying. Recommendation is "ceil(0.25 * <replicas_default>)". |
-| |Rolling Update max unavailable * |Maximum number of unavailable pod when deploying. Recommendation is "floor(0.25 * <replicas_default>)". |
-| |Rolling Update wait seconds * |Minimum wait seconds when deploying. Recommendation is "actual boot time + alpha [second]". |
-|Memo |Memo * |You can write here. |
+|Basic |Application Type* |Application type of your application, Kubernetes or none. |
+| |Kubernetes Host* |Kubernetes host in which your application is deployed. |
+| |Name* |Name of application, must be unique. |
+| |Service Level* |Choose from development/staging/production/beta/sandbox. |
+| |Service Port* |Port number accepted on your application. |
+| |Container Image* |Image location of Docker registry. You can use our official container image `rekcurd/rekcurd:python-latest`. |
+| |Git URL* |Git repository URL of your Rekcurdize ML service. |
+| |Git Branch* |Git branch name of your Rekcurdize ML service. |
+| |Boot Script* |Script file name for booting application on your git repository home. |
+| |CPU Request* |Minimum CPU request for running application. |
+| |CPU Limit* |Maximum CPU limit for running application. |
+| |Memory Request* |Minimum memory requrest for running application. |
+| |Memory Limit* |Maximum memory limit for running application. |
+|Policy |Replica default* |Default number of pod you want to boot. |
+| |Replica minimum* |Minimum number of pod you want to keep. |
+| |Replica maximum* |Maximum number of pod you want to keep. |
+| |Autoscale Threshold CPU Maximum* |Threshold for auto scaling. If the workload exceeds this threshold, Kubernetes automatically deploy the Pod. |
+| |Rolling Update max surge* |Maximum number of serged pod when deploying. Recommendation is "ceil(0.25 * <replicas_default>)". |
+| |Rolling Update max unavailable* |Maximum number of unavailable pod when deploying. Recommendation is "floor(0.25 * <replicas_default>)". |
+| |Rolling Update wait seconds* |Minimum wait seconds when deploying. Recommendation is "actual boot time + alpha [second]". |
+|Memo |Memo* |You can write here. |
 
 *Required
 
