@@ -71,7 +71,7 @@ Access `localhost:8080/applications/add`, and you can deploy your [Rekcurdize](h
 
 When you click an application link on top menu, you can access an application dashboard. This dashboard shows you all services and models. Service is the Kubernetes service, model is the ML model.
 
-In the side menu on dashboard, there are three links; `Dashboard`, `Services` and `Models`. `Dashboard` is here. `[Services](#service-details)` is the page which lists all existing services. `[Models](#model-details)` is the page which lists all existing models.
+In the side menu on dashboard, there are three links; `Dashboard`, `Services` and `Models`. `Dashboard` is here. [`Services`](#service-details) is the page which lists all existing services. [`Models`](#model-details) is the page which lists all existing models.
 
 In the body, `Add Model` is the function of [uploading ML model](#upload-ml-model), `Add Service` is the function of [deploying ML module](#deploy-application) and `Sync` starts to import the existing Rekcurd services of this application. `Switch models` is the function of [switching ML model of the Rekcurd service](#switch-ml-model). The checkbox of services/models is for [deleting service/model](#delete-servicemodel).
 
