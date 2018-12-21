@@ -16,6 +16,7 @@ Rekcurd dashboard can control Kubernetes. Access `localhost:8080/settings/kubern
 <img src="./img/kubernetes-register.png" width="480">
 
 The fields you may fill is below.
+
 |Category |Field |Description |
 |:---|:---|:---|
 |Basic |Name |Must be unique. If empty, automatically generated. |
