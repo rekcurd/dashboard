@@ -11,7 +11,7 @@ In our docker-compose file, Rekcurd dashboard is launched on `localhost:8080`. T
 ## Register Kubernetes
 <img src="./img/kubernetes-top.png" width="480">
 
-Rekcurd dashboard can control Kubernetes. Access `localhost:8080/settings/kubernetes/hosts`, and you can find your registered Kubernetes clusters there. "Sync All" starts to import the existing Rekcurd services on Kubernetes, and after that you can manage your all Rekcurd services by Rekcurd dashboard. "Add Host" can register new Kubernetes cluster on Rekcurd dashboard.
+Rekcurd dashboard can control Kubernetes. Access `localhost:8080/settings/kubernetes/hosts`, and you can find your registered Kubernetes clusters there. `Sync All` starts to import the existing Rekcurd services on Kubernetes, and after that you can manage your all Rekcurd services by Rekcurd dashboard. `Add Host` can register new Kubernetes cluster on Rekcurd dashboard.
 
 <img src="./img/kubernetes-register.png" width="480">
 
@@ -61,7 +61,7 @@ Access `localhost:8080/applications/add`, and you can deploy your [Rekcurdize](h
 | |Rolling Update max surge* |Maximum number of serged pod when deploying. Recommendation is "ceil(0.25 * <replicas_default>)". |
 | |Rolling Update max unavailable* |Maximum number of unavailable pod when deploying. Recommendation is "floor(0.25 * <replicas_default>)". |
 | |Rolling Update wait seconds* |Minimum wait seconds when deploying. Recommendation is "actual boot time + alpha [second]". |
-|Memo |Memo* |You can write here. |
+|Memo |Memo |You can write here. |
 
 *Required
 
@@ -71,21 +71,21 @@ Access `localhost:8080/applications/add`, and you can deploy your [Rekcurdize](h
 
 When you click an application link on top menu, you can access an application dashboard. This dashboard shows you all services and models. Service is the Kubernetes service, model is the ML model.
 
-In the side menu on dashboard, there are three links; "Dashboard", "Services" and "Models". "Dashboard" is here. "[Services](#service-details)" is the page which lists all existing services. "[Models](#model-details)" is the page which lists all existing models.
+In the side menu on dashboard, there are three links; `Dashboard`, `Services` and `Models`. `Dashboard` is here. `[Services](#service-details)` is the page which lists all existing services. `[Models](#model-details)` is the page which lists all existing models.
 
-In the body, "Add Model" is the function of [uploading ML model](#upload-ml-model), "Add Service" is the function of [deploying ML module](#deploy-application) and "Sync" starts to import the existing Rekcurd services of this application. "Switch models" is the function of [switching ML model of the Rekcurd service](#switch-ml-model). The checkbox of services/models is for [deleting service/model](#delete-servicemodel).
+In the body, `Add Model` is the function of [uploading ML model](#upload-ml-model), `Add Service` is the function of [deploying ML module](#deploy-application) and `Sync` starts to import the existing Rekcurd services of this application. `Switch models` is the function of [switching ML model of the Rekcurd service](#switch-ml-model). The checkbox of services/models is for [deleting service/model](#delete-servicemodel).
 
 
 ## Service details
 <img src="./img/service-top.png" width="480">
 
-This page lists all existing services. You can [edit service configurations](#edit-service-configurations) by clicking the service name. You will find the access point of its Rekcurd ML service on "Host". It is convenient to use [Rekcurd client](https://github.com/rekcurd/drucker-client) which is a kind of SDK for all Rekcurd services.
+This page lists all existing services. You can [edit service configurations](#edit-service-configurations) by clicking the service name. You will find the access point of its Rekcurd ML service on `Host`. It is convenient to use [Rekcurd client](https://github.com/rekcurd/drucker-client) which is a kind of SDK for all Rekcurd services.
 
 
 ## Edit service configurations
 <img src="./img/service-edit.png" width="480">
 
-You can edit your service's configuration. "Update Service Description" is just a label for the display. "Rolling-update Service" is the trigger to request rolling update to Kubernetes. You don't need to change the configurations when you want to make a request of the rolling update.
+You can edit your service's configuration. `Update Service Description` is just a label for the display. `Rolling-update Service` is the trigger to request rolling update to Kubernetes. You don't need to change the configurations when you want to make a request of the rolling update.
 
 
 ## Model details
@@ -103,13 +103,13 @@ You can upload the ML model. Choose a model file and write a description. We rec
 ## Switch ML model
 <img src="./img/model-switch.png" width="480">
 
-You can switch the model of the service by clicking radio button. After requesting "Save Changes", Rekcurd dashboard will make a request of rolling update to Kubernetes. "Discard change" is doing nothing.
+You can switch the model of the service by clicking radio button. After requesting `Save Changes`, Rekcurd dashboard will make a request of rolling update to Kubernetes. `Discard change` is doing nothing.
 
 
 ## Delete service/model
 <img src="./img/service-delete-1.png" width="480">
 
-You can delete the existing services and models. After pushing "Delete Services/Models", the notification will arise. "Discard change" is doing nothing.
+You can delete the existing services and models. After pushing `Delete Services/Models`, the notification will arise. `Discard change` is doing nothing.
 
 <img src="./img/service-delete-2.png" width="480">
 
