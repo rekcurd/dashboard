@@ -16,20 +16,16 @@ from models.application_user_role import ApplicationUserRole, Role
 
 
 class Auth(object):
-    def __init__(self, app=None):
-        self.__enabled = True
-        if app is not None:
-            self.init_app(app)
+    def __init__(self):
+        self.__enabled = False
         self.authenticator = EmptyAuthenticator()
 
     def is_enabled(self):
         return self.__enabled
 
-    def set_enabled(self, enabled):
-        self.__enabled = enabled
-
     def init_app(self, app, api, auth_conf):
         JWTManager(app)
+        self.__enabled = True
 
         app.config['JWT_SECRET_KEY'] = auth_conf['secret']
 
