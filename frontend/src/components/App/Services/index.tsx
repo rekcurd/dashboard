@@ -113,6 +113,7 @@ class Services extends React.Component<ServicesStatusProps, any> {
       <APIRequestResultsRenderer
         APIStatus={statuses}
         render={this.renderServices}
+        applicationId={this.props.match.params.applicationId}
       />
     )
   }
@@ -122,8 +123,9 @@ class Services extends React.Component<ServicesStatusProps, any> {
    * with fetched API results
    *
    * @param fetchedResults Fetched data from APIs
+   * @param canEdit Boolean value of user's editor permission
    */
-  renderServices(fetchedResults) {
+  renderServices(fetchedResults, canEdit) {
     const { controlMode } = this.state
     const {
       onSubmitNothing,
@@ -138,13 +140,6 @@ class Services extends React.Component<ServicesStatusProps, any> {
     const onSubmitMap = {
       [ControlMode.VIEW_SERVICES_STATUS]: onSubmitNothing,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
-    }
-    let canEdit: boolean = true
-    if (fetchedResults.userInfoStatus) {
-      canEdit = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
-        return String(userRole.applicationId) === applicationId &&
-          (userRole.role === role.editor || userRole.role === role.owner)
-      })
     }
 
     return (

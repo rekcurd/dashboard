@@ -87,6 +87,7 @@ class Models extends React.Component<ModelsStatusProps, any> {
       <APIRequestResultsRenderer
         APIStatus={statuses}
         render={this.renderModels}
+        applicationId={this.props.match.params.applicationId}
       />
     )
   }
@@ -96,8 +97,9 @@ class Models extends React.Component<ModelsStatusProps, any> {
    * with fetched API results
    *
    * @param fetchedResults Fetched data from APIs
+   * @param canEdit Boolean value of user's editor permission
    */
-  renderModels(fetchedResults) {
+  renderModels(fetchedResults, canEdit) {
     const { controlMode } = this.state
     const {
       onSubmitNothing,
@@ -112,13 +114,6 @@ class Models extends React.Component<ModelsStatusProps, any> {
     const onSubmitMap = {
       [ControlMode.VIEW_MODELS_STATUS]: onSubmitNothing,
       [ControlMode.SELECT_TARGETS]: onSubmitDelete,
-    }
-    let canEdit: boolean = true
-    if (fetchedResults.userInfoStatus) {
-      canEdit = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
-        return String(userRole.applicationId) === applicationId &&
-          (userRole.role === role.editor || userRole.role === role.owner)
-      })
     }
 
     return (
