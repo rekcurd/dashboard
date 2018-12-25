@@ -103,19 +103,15 @@ ENV/
 # PyCharm
 .idea/
 
-# grpc file
-app/drucker_pb2.py
-app/drucker_pb2_grpc.py
-
 # sqlite
-app/db.sqlite3
-app/test/db.test.sqlite3
+db.sqlite3
+db.test.sqlite3
 
 # DB migration
-app/migrations/
+drucker_dashboard/migrations/
 
 # Kube config
-app/kube-config/
+drucker_dashboard/kube-config/
 
 # Mac OS temporary file
 .DS_Store
