@@ -146,6 +146,7 @@ interface ModelsDeleteFormCustomProps {
   applicationId
   mode: ControlMode
   models: Model[]
+  canEdit: boolean
   onSubmit: (e) => Promise<void>
   changeMode: (mode: ControlMode) => void
 }

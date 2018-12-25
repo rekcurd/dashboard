@@ -46,8 +46,11 @@ class DeployStatusForm extends React.Component<DeployStatusFormProps, {}> {
   }
 
   renderSwitchModelsButton = () => {
-    const { mode, changeMode } = this.props
+    const { mode, changeMode, canEdit } = this.props
 
+    if (!canEdit) {
+      return null
+    }
     switch (mode) {
       case ControlMode.EDIT_DEPLOY_STATUS:
       case ControlMode.SELECT_TARGETS:
@@ -178,6 +181,7 @@ interface DeployStatusFormCustomProps {
   models
   services: Service[]
   deployStatus
+  canEdit: boolean
   onSubmit: (e) => Promise<void>
   changeMode: (mode: ControlMode) => void
 }

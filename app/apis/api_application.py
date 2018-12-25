@@ -1,12 +1,14 @@
 import uuid
 import datetime
 
+from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
 from app import logger
+from auth import auth
 from models import db
-from models import Application, Service, Evaluation, EvaluationResult
+from models import Application, Service, Evaluation, EvaluationResult, ApplicationUserRole, Role, User
 from core.drucker_dashboard_client import DruckerDashboardClient
 from apis.common import DatetimeToTimestamp
 from utils.hash_util import HashUtil
@@ -60,6 +62,14 @@ class ApiApplications(Resource):
     @app_info_namespace.marshal_list_with(app_info)
     def get(self):
         """get_applications"""
+        if auth.is_enabled():
+            user_id = get_jwt_identity()
+            uobj = db.session.query(User).filter(User.user_id == user_id).one()
+            # applications which don't have users are also accessible
+            application_ids = db.session.query(ApplicationUserRole.application_id).distinct().all()
+            ids = [application_id for application_id, in application_ids]
+            applications = db.session.query(Application).filter(~Application.application_id.in_(ids)).all()
+            return [assoc.application for assoc in uobj.applications] + applications
         return Application.query.all()
 
     @app_info_namespace.marshal_with(success_or_not)
@@ -85,6 +95,18 @@ class ApiApplications(Resource):
                                description=description)
             db.session.add(aobj)
             db.session.flush()
+        if auth.is_enabled():
+            user_id = get_jwt_identity()
+            role = db.session.query(ApplicationUserRole).filter(
+                ApplicationUserRole.application_id == aobj.application_id,
+                ApplicationUserRole.user_id == user_id).one_or_none()
+            if role is None:
+                roleObj = ApplicationUserRole(
+                    application_id=aobj.application_id,
+                    user_id=user_id,
+                    role=Role.owner.name)
+                db.session.add(roleObj)
+                db.session.flush()
         sobj = db.session.query(Service).filter(
             Service.service_name == service_name).one_or_none()
         if sobj is None:

@@ -24,13 +24,17 @@ import {
   APIRequestUnauthorized,
   loginActionCreators,
   userInfoActionCreators,
-  settingsActionCreators
+  fetchAccessControlListActionCreators,
+  saveAccessControlActionCreators,
+  deleteAccessControlActionCreators,
+  settingsActionCreators,
+  fetchAllUsersActionCreators
 } from '@src/actions'
 import { APIRequest, APIRequestStatusList} from '@src/apis/Core'
 import {
   Application, Model, Service, SwitchModelParam,
   ModelResponse, KubernetesHost, FetchServicesParam,
-  FetchModelsParam, LoginParam, AuthToken, UserInfo
+  FetchModelsParam, LoginParam, AuthToken, UserInfo, AccessControlList
 } from '@src/apis'
 
 export class AppState {
@@ -57,6 +61,10 @@ export class AppState {
     public settings: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
     public login: APIRequest<AuthToken> = { status: APIRequestStatusList.notStarted },
     public userInfo: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
+    public accessControlList: APIRequest<AccessControlList[]> = { status: APIRequestStatusList.notStarted },
+    public allUsers: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
+    public saveAccessControl: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
+    public deleteAccessControl: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     // Notification status
     public notification = { toasts: [], id: -1 },
     public navigation = { login: false }
@@ -128,6 +136,10 @@ export const syncKubernetesStatusReducer
 export const settingsReducer = APIRequestReducerCreator<{}, any>(settingsActionCreators, 'settings')
 export const loginReducer = APIRequestReducerCreator<LoginParam, AuthToken>(loginActionCreators, 'login')
 export const userInfoReducer = APIRequestReducerCreator<{}, UserInfo>(userInfoActionCreators, 'userInfo')
+export const fetchAllUsersStatusReducer = APIRequestReducerCreator<{}, UserInfo[]>(fetchAllUsersActionCreators, 'allUsers')
+export const fetchAccessControlListReducer = APIRequestReducerCreator<{}, AccessControlList[]>(fetchAccessControlListActionCreators, 'accessControlList')
+export const saveAccessControlReducer = APIRequestReducerCreator<{}, boolean>(saveAccessControlActionCreators, 'saveAccessControl')
+export const deleteAccessControlReducer = APIRequestReducerCreator<{}, boolean>(deleteAccessControlActionCreators, 'deleteAccessControl')
 
 /**
  * Notification with toasts

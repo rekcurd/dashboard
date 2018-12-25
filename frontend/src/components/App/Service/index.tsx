@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { withRouter, RouteComponentProps, Link } from 'react-router-dom'
+import { withRouter, RouteComponentProps } from 'react-router-dom'
 import { Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Service, Application } from '@src/apis'
+import { Service, Application, UserInfo, UserRole } from '@src/apis'
 import {
   fetchApplicationByIdDispatcher,
   saveServiceDispatcher,
@@ -13,6 +13,7 @@ import {
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import ServiceDeployment from './ServiceDeployment'
 import ServiceDescription from './ServiceDescription'
+import { role } from '../Admin/constants'
 
 /**
  * Page for adding service
@@ -49,7 +50,6 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
         this.setState({ notified: true })
       }
     }
-
   }
 
   componentWillMount() {
@@ -57,6 +57,21 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
     const { fetchApplicationById } = this.props
 
     fetchApplicationById({id: applicationId})
+  }
+
+  componentDidMount() {
+    const { userInfoStatus, history } = this.props
+    const { applicationId } = this.props.match.params
+    const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
+    if (userInfo) {
+      const canEdit: boolean = userInfo.roles.some((userRole: UserRole) => {
+        return String(userRole.applicationId) === applicationId &&
+          (userRole.role === role.editor || userRole.role === role.owner)
+      })
+      if (!canEdit) {
+        history.goBack()
+      }
+    }
   }
 
   render() {
@@ -106,6 +121,7 @@ interface StateProps {
   service: APIRequest<Service>
   application: APIRequest<Application>
   saveServiceStatus: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
 }
 
 interface CustomProps {
@@ -117,6 +133,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     application: state.fetchApplicationByIdReducer.applicationById,
     service: state.fetchServiceByIdReducer.serviceById,
     saveServiceStatus: state.saveServiceReducer.saveService,
+    userInfoStatus: state.userInfoReducer.userInfo,
     ...state.form,
     ...extraProps
   }
