@@ -1,11 +1,10 @@
 import datetime
-
-from werkzeug.datastructures import FileStorage
+import json
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 
 from app import logger
-from models import db, Kubernetes, Application, Service, Evaluation
+from models import db, Kubernetes, Application, Service, EvaluationResult, Evaluation
 from core.drucker_dashboard_client import DruckerDashboardClient
 
 from apis.common import DatetimeToTimestamp
@@ -167,7 +166,7 @@ class ApiApplicationIdServiceId(Resource):
             v1_service = core_vi.delete_namespaced_service(
                 name="{0}-service".format(sobj.service_name),
                 namespace=sobj.service_level,
-                #body=client.V1DeleteOptions() #FIXME add this after v6.0.0
+                body=client.V1DeleteOptions()
             )
             extensions_v1_beta = client.ExtensionsV1beta1Api()
             v1_beta1_ingress = extensions_v1_beta.delete_namespaced_ingress(
@@ -190,26 +189,50 @@ class ApiApplicationIdServiceId(Resource):
 
 @srv_info_namespace.route('/<int:application_id>/services/<int:service_id>/evaluate')
 class ApiEvaluate(Resource):
-    upload_parser = reqparse.RequestParser()
-    upload_parser.add_argument('file', location='files', type=FileStorage, required=True)
+    eval_parser = reqparse.RequestParser()
+    eval_parser.add_argument('evaluation_id', location='form', type=int, required=False)
+    eval_parser.add_argument('overwrite', location='form', type=bool, required=False)
 
-    @srv_info_namespace.expect(upload_parser)
+    @srv_info_namespace.expect(eval_parser)
     def post(self, application_id:int, service_id:int):
         """evaluate"""
-        args = self.upload_parser.parse_args()
-        file = args['file']
-        eval_data_path = "eval-{0:%Y%m%d%H%M%S}".format(datetime.datetime.utcnow())
+        args = self.eval_parser.parse_args()
+        eval_id = args.get('evaluation_id', None)
+        if eval_id:
+            eobj = Evaluation.query.filter_by(
+                application_id=application_id,
+                evaluation_id=eval_id).first_or_404()
+        else:
+            # if evaluation_id is not given, use the lastest one.
+            eobj = Evaluation.query\
+                .filter_by(application_id=application_id)\
+                .order_by(Evaluation.register_date.desc()).first_or_404()
 
         sobj = Service.query.filter_by(
             application_id=application_id,
             service_id=service_id).first_or_404()
 
+        robj = db.session.query(EvaluationResult)\
+            .filter(EvaluationResult.model_id == sobj.model_id,
+                    EvaluationResult.evaluation_id == eobj.evaluation_id).one_or_none()
+        if robj is not None and args.get('overwrite', False):
+            return json.loads(robj.result)
+
+        eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
         drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
-        response_body = drucker_dashboard_application.run_evaluate_model(file, eval_data_path)
+        response_body = drucker_dashboard_application.run_evaluate_model(eobj.data_path, eval_result_path)
 
         if response_body['status']:
-            eobj = Evaluation(service_id=service_id, data_path=eval_data_path)
-            db.session.add(eobj)
+            result = json.dumps(response_body)
+            if robj is None:
+                robj = EvaluationResult(model_id=sobj.model_id,
+                                        data_path=eval_result_path,
+                                        evaluation_id=eobj.evaluation_id,
+                                        result=result)
+                db.session.add(robj)
+            else:
+                robj.data_path = eval_result_path
+                robj.result = result
             db.session.commit()
             db.session.close()
 

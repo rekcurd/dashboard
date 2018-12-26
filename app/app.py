@@ -14,6 +14,7 @@ sys.path.append(str(root_path))
 from flask import Flask
 from flask_cors import CORS
 from logger.logger_jsonlogger import SystemLogger
+from utils.env_loader import DIR_KUBE_CONFIG, config
 
 
 logger = SystemLogger(logger_name="drucker_dashboard")
@@ -29,11 +30,10 @@ def configure_app(flask_app: Flask, db_url: str) -> None:
     flask_app.config['MAX_CONTENT_LENGTH'] = int(os.getenv("FLASK_MAX_CONTENT_LENGTH", "1073741824"))
 
 
-def initialize_app(flask_app: Flask) -> None:
+def initialize_app(flask_app: Flask, config=config) -> None:
     from models import db, db_url
     from apis import api
     from auth import auth
-    from utils.env_loader import DIR_KUBE_CONFIG, config
 
     if not os.path.isdir(DIR_KUBE_CONFIG):
         os.makedirs(DIR_KUBE_CONFIG)
@@ -41,7 +41,7 @@ def initialize_app(flask_app: Flask) -> None:
 
     api.init_app(flask_app)
     if 'auth' in config:
-        auth.init_app(flask_app, api)
+        auth.init_app(flask_app, api, config['auth'])
 
     CORS(flask_app)
 

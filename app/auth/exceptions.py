@@ -1,0 +1,2 @@
+class ApplicationUserRoleException(Exception):
+    pass

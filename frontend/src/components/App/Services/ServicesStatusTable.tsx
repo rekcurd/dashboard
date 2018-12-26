@@ -64,13 +64,13 @@ class ServicesStatusTable extends React.Component<ServicesStatusProps, {tooltipO
    * @param services Services to be shown (Currently show all, but should be filtered)
    */
   renderTableBody = (services) => {
-    const { mode, applicationType, applicationId } = this.props
+    const { applicationType, applicationId, canEdit } = this.props
 
     // Button to delete Service (for deleting k8s services)
     const deleteCheckButton = (serviceName: string, serviceId: string) => {
       return (
         <Row>
-          { applicationType === 'kubernetes' ?
+          { applicationType === 'kubernetes' && canEdit ?
             <Field
               name={`delete.services.${serviceId}`}
               component={CustomCheckBox}
@@ -132,6 +132,7 @@ interface ServicesStatusFormCustomProps {
   applicationId
   services: Service[],
   mode: ControlMode,
+  canEdit: boolean
 }
 
 export interface DispatchProps {

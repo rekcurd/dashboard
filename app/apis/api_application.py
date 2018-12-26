@@ -1,13 +1,17 @@
 import uuid
+import datetime
 
+from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse
+from werkzeug.datastructures import FileStorage
 
 from app import logger
+from auth import auth
 from models import db
-from models.application import Application
-from models.service import Service
+from models import Application, Service, Evaluation, EvaluationResult, ApplicationUserRole, Role, User
 from core.drucker_dashboard_client import DruckerDashboardClient
 from apis.common import DatetimeToTimestamp
+from utils.hash_util import HashUtil
 
 
 app_info_namespace = Namespace('applications', description='Application Endpoint.')
@@ -58,6 +62,14 @@ class ApiApplications(Resource):
     @app_info_namespace.marshal_list_with(app_info)
     def get(self):
         """get_applications"""
+        if auth.is_enabled():
+            user_id = get_jwt_identity()
+            uobj = db.session.query(User).filter(User.user_id == user_id).one()
+            # applications which don't have users are also accessible
+            application_ids = db.session.query(ApplicationUserRole.application_id).distinct().all()
+            ids = [application_id for application_id, in application_ids]
+            applications = db.session.query(Application).filter(~Application.application_id.in_(ids)).all()
+            return [assoc.application for assoc in uobj.applications] + applications
         return Application.query.all()
 
     @app_info_namespace.marshal_with(success_or_not)
@@ -83,6 +95,18 @@ class ApiApplications(Resource):
                                description=description)
             db.session.add(aobj)
             db.session.flush()
+        if auth.is_enabled():
+            user_id = get_jwt_identity()
+            role = db.session.query(ApplicationUserRole).filter(
+                ApplicationUserRole.application_id == aobj.application_id,
+                ApplicationUserRole.user_id == user_id).one_or_none()
+            if role is None:
+                roleObj = ApplicationUserRole(
+                    application_id=aobj.application_id,
+                    user_id=user_id,
+                    role=Role.owner.name)
+                db.session.add(roleObj)
+                db.session.flush()
         sobj = db.session.query(Service).filter(
             Service.service_name == service_name).one_or_none()
         if sobj is None:
@@ -121,3 +145,58 @@ class ApiApplications(Resource):
         db.session.commit()
         db.session.close()
         return response_body
+
+@app_info_namespace.route('/<int:application_id>/evaluation')
+class ApiEvaluation(Resource):
+    upload_parser = reqparse.RequestParser()
+    upload_parser.add_argument('file', location='files', type=FileStorage, required=True)
+
+    @app_info_namespace.expect(upload_parser)
+    def post(self, application_id:int):
+        """update data to be evaluated"""
+        args = self.upload_parser.parse_args()
+        file = args['file']
+        checksum = HashUtil.checksum(file)
+
+        eobj = db.session.query(Evaluation).filter(
+            Evaluation.application_id == application_id,
+            Evaluation.checksum == checksum).one_or_none()
+        if eobj is not None:
+            return {"status": True, "evaluation_id": eobj.evaluation_id}
+
+        eval_data_path = "eval-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
+
+        sobj = Service.query.filter_by(application_id=application_id).first_or_404()
+
+        drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
+        response_body = drucker_dashboard_application.run_upload_evaluation_data(file, eval_data_path)
+
+        if not response_body['status']:
+            raise Exception('Failed to upload')
+        eobj = Evaluation(checksum=checksum, application_id=application_id, data_path=eval_data_path)
+        db.session.add(eobj)
+        db.session.flush()
+        evaluation_id = eobj.evaluation_id
+        db.session.commit()
+        db.session.close()
+
+        return {"status": True, "evaluation_id": evaluation_id}
+
+
+@app_info_namespace.route('/<int:application_id>/evaluation/<int:evaluation_id>')
+class ApiEvaluation(Resource):
+    def delete(self, application_id:int, evaluation_id:int):
+        """delete data to be evaluated"""
+        eval_query = db.session.query(Evaluation)\
+            .filter(Evaluation.application_id == application_id,
+                    Evaluation.evaluation_id == evaluation_id)
+        if eval_query.one_or_none() is None:
+            return {"status": False}, 404
+
+        eval_query.delete()
+        db.session.query(EvaluationResult)\
+            .filter(EvaluationResult.evaluation_id == evaluation_id).delete()
+        db.session.commit()
+        db.session.close()
+
+        return {"status": True, "message": "Success."}

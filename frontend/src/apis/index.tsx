@@ -1,4 +1,5 @@
 import * as APICore from './Core'
+import { apiConvert } from '@components/App/Admin/constants'
 
 export class Application {
   constructor(
@@ -27,9 +28,28 @@ export class AuthToken {
   ) { }
 }
 
+export class UserRole {
+  constructor(
+    public applicationId: number,
+    public role: string = ''
+  ) { }
+}
+
 export class UserInfo {
   constructor(
-    public user?: string
+    public user: {
+      userUid: string
+      userName: string
+    },
+    public roles: UserRole[],
+  ) { }
+}
+
+export class AccessControlList {
+  constructor(
+    public userUid: string,
+    public userName: string,
+    public role: string,
   ) { }
 }
 
@@ -546,12 +566,68 @@ export async function settings(): Promise<any> {
 
 export async function userInfo(): Promise<UserInfo> {
   const convert = (result): UserInfo => {
-    return {
-      user: result.user
-    }
+    const roles: UserRole[] = result.applications.map((e) => new UserRole(e.application_id, e.role))
+    return new UserInfo({
+      userUid: result.user.auth_id,
+      userName: result.user.user_name,
+    }, roles)
   }
   return APICore.getRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/credential`,
     convert
+  )
+}
+
+export async function fetchAllUsers(): Promise<UserInfo[]> {
+  const convert = (results) => {
+    return results.map((result) => {
+      return new UserInfo({
+        userUid: result.auth_id,
+        userName: result.user_name
+      }, [])
+    })
+  }
+  return APICore.getRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/users`,
+    convert
+  )
+}
+
+export async function fetchAccessControlList(param: { applicationId: string }): Promise<AccessControlList[]> {
+  const convert = (results: any): AccessControlList[] => {
+    return results.map((result: any) => new AccessControlList(
+      result.user.auth_id,
+      result.user.user_name,
+      apiConvert(result.role)
+    ))
+  }
+  return APICore.getRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${param.applicationId}/acl`,
+    convert
+  )
+}
+
+export async function saveAccessControl(params): Promise<boolean> {
+  const convert = (result) => result.status
+  return APICore.formDataRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/acl`,
+    { ...params },
+    convert,
+    params.mode === 'add' ? 'POST' : 'PATCH'
+  )
+}
+
+export async function deleteAccessControl(params): Promise<boolean> {
+  const convert = (result) => result.status
+  const body = new FormData()
+  body.append('uid', params.userUid)
+  const options = {
+    method: 'DELETE',
+    body
+  }
+  return APICore.rawRequest(
+    `${process.env.API_HOST}:${process.env.API_PORT}/api/applications/${params.applicationId}/acl`,
+    convert,
+    options
   )
 }
