@@ -20,7 +20,7 @@ def patch_stub(func):
 class ApiEvaluateTest(BaseTestCase):
     """Tests for ApiEvaluate.
     """
-    default_response = {'accuracy': 0.0, 'fvalue': 0.0, 'num': 0,
+    default_response = {'accuracy': 0.0, 'fvalue': 0.0, 'num': 0, 'result_id': 1,
                         'option': {}, 'precision': 0.0, 'recall': 0.0, 'status': True}
 
     def setUp(self):
@@ -85,4 +85,4 @@ class ApiEvaluateTest(BaseTestCase):
         eobj = db.session.query(EvaluationResult)\
             .filter(EvaluationResult.model_id == model_id,
                     EvaluationResult.evaluation_id == evaluation_id).one()
-        self.assertEqual(json.loads(eobj.result), self.default_response)
+        self.assertEqual(eobj.result, self.default_response)

@@ -216,7 +216,7 @@ class ApiEvaluate(Resource):
             .filter(EvaluationResult.model_id == sobj.model_id,
                     EvaluationResult.evaluation_id == eobj.evaluation_id).one_or_none()
         if robj is not None and args.get('overwrite', False):
-            return json.loads(robj.result)
+            return robj.result
 
         eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
         drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
@@ -233,6 +233,8 @@ class ApiEvaluate(Resource):
             else:
                 robj.data_path = eval_result_path
                 robj.result = result
+            db.session.flush()
+            response_body = robj.result
             db.session.commit()
             db.session.close()
 
