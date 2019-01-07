@@ -4,8 +4,8 @@ from flask import Flask
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
-from app import initialize_app
-from models import db
+from drucker_dashboard.app import initialize_app
+from .models import db
 
 
 app = Flask(__name__)

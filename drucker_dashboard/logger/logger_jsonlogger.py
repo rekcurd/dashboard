@@ -6,9 +6,9 @@ import time
 import logging
 from socket import gethostname
 from pythonjsonlogger import jsonlogger
-from logger.logger_interface import SystemLoggerInterface
+from .logger_interface import SystemLoggerInterface
 
-class SystemLogger(SystemLoggerInterface):
+class JsonSystemLogger(SystemLoggerInterface):
     class JsonFormatter(jsonlogger.JsonFormatter):
         def parse(self):
             return [

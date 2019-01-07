@@ -1,11 +1,9 @@
 import datetime
-
+from .dao import db
 from sqlalchemy import (
     Column, Integer, String, DateTime,
     Text, UniqueConstraint
 )
-
-from models import db
 
 
 class Service(db.Model):

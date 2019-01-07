@@ -1,11 +1,10 @@
 import datetime
+from .dao import db
 from sqlalchemy import (
     Column, Integer, DateTime,
     String, UniqueConstraint
 )
 from sqlalchemy.orm import relationship
-
-from models import db
 
 
 class Evaluation(db.Model):

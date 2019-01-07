@@ -1,16 +1,16 @@
 from unittest.mock import patch, Mock
 
-import drucker_pb2
+from drucker_dashboard.protobuf import drucker_pb2
 from .base import BaseTestCase, create_app_obj, create_service_obj, create_eval_obj, create_eval_result_obj
 from io import BytesIO
-from models import EvaluationResult, Evaluation
+from drucker_dashboard.models import EvaluationResult, Evaluation
 
 
 class ApiEvaluationTest(BaseTestCase):
     """Tests for ApiEvaluation.
     """
 
-    @patch('core.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
+    @patch('drucker_dashboard.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
     def test_post(self, mock_stub_class):
         mock_stub_obj = Mock()
         mock_stub_obj.UploadEvaluationData.return_value = drucker_pb2.UploadEvaluationDataResponse(status=1, message='success')

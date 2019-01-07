@@ -5,15 +5,9 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 
 from werkzeug.datastructures import FileStorage
 
-from app import logger
-from models import db
-from models.kubernetes import Kubernetes
-from models.application import Application
-from models.service import Service
-from models.model import Model
-from core.drucker_dashboard_client import DruckerDashboardClient
-from utils.env_loader import DIR_KUBE_CONFIG, DRUCKER_GRPC_VERSION
-from apis.common import DatetimeToTimestamp, kubernetes_cpu_to_float
+from . import api, logger, DatetimeToTimestamp, kubernetes_cpu_to_float
+from drucker_dashboard import DruckerDashboardClient
+from drucker_dashboard.models import db, Kubernetes, Application, Service, Model
 
 
 kube_info_namespace = Namespace('kubernetes', description='Kubernetes Endpoint.')
@@ -672,7 +666,7 @@ def create_or_update_drucker_on_kubernetes(
         spec=client.V1beta1IngressSpec(
             rules=[
                 client.V1beta1IngressRule(
-                    host="{0}-{1}-{2}.{3}".format(app_name,DRUCKER_GRPC_VERSION,service_level,app_dns_name),
+                    host="{0}-{1}-{2}.{3}".format(app_name, api.dashboard_config.DRUCKER_GRPC_VERSION, service_level, app_dns_name),
                     http=client.V1beta1HTTPIngressRuleValue(
                         paths=[
                             client.V1beta1HTTPIngressPath(
@@ -835,7 +829,7 @@ def dump_drucker_on_kubernetes(
     config_path = kobj.config_path
     from kubernetes import client, config
     config.load_kube_config(config_path)
-    save_dir = pathlib.Path(DIR_KUBE_CONFIG, kobj.display_name, aobj.application_name)
+    save_dir = pathlib.Path(api.dashboard_config.DIR_KUBE_CONFIG, kobj.display_name, aobj.application_name)
     save_dir.mkdir(parents=True, exist_ok=True)
     api_client = client.ApiClient()
 
@@ -848,7 +842,7 @@ def dump_drucker_on_kubernetes(
     )
     json.dump(api_client.sanitize_for_serialization(v1_deployment),
               pathlib.Path(
-                  DIR_KUBE_CONFIG,
+                  api.dashboard_config.DIR_KUBE_CONFIG,
                   kobj.display_name,
                   aobj.application_name,
                   "{0}-deployment.json".format(sobj.service_name)).open("w", encoding='utf-8'),
@@ -862,7 +856,7 @@ def dump_drucker_on_kubernetes(
     )
     json.dump(api_client.sanitize_for_serialization(v1_service),
               pathlib.Path(
-                  DIR_KUBE_CONFIG,
+                  api.dashboard_config.DIR_KUBE_CONFIG,
                   kobj.display_name,
                   aobj.application_name,
                   "{0}-service.json".format(sobj.service_name)).open("w", encoding='utf-8'),
@@ -876,7 +870,7 @@ def dump_drucker_on_kubernetes(
     )
     json.dump(api_client.sanitize_for_serialization(v1_beta1_ingress),
               pathlib.Path(
-                  DIR_KUBE_CONFIG,
+                  api.dashboard_config.DIR_KUBE_CONFIG,
                   kobj.display_name,
                   aobj.application_name,
                   "{0}-ingress.json".format(sobj.service_name)).open("w", encoding='utf-8'),
@@ -890,7 +884,7 @@ def dump_drucker_on_kubernetes(
     )
     json.dump(api_client.sanitize_for_serialization(v1_horizontal_pod_autoscaler),
               pathlib.Path(
-                  DIR_KUBE_CONFIG,
+                  api.dashboard_config.DIR_KUBE_CONFIG,
                   kobj.display_name,
                   aobj.application_name,
                   "{0}-autoscaling.json".format(sobj.service_name)).open("w", encoding='utf-8'),
@@ -905,7 +899,7 @@ def dump_drucker_on_kubernetes(
     )
     json.dump(api_client.sanitize_for_serialization(v2_beta1_horizontal_pod_autoscaler),
               pathlib.Path(
-                  DIR_KUBE_CONFIG,
+                  api.dashboard_config.DIR_KUBE_CONFIG,
                   kobj.display_name, 
                   aobj.application_name,
                   "{0}-autoscaling.json".format(sobj.service_name)).open("w", encoding='utf-8'),
@@ -935,7 +929,7 @@ class ApiKubernetes(Resource):
     def post(self):
         """add_kubernetes"""
         args = kube_file_parser.parse_args()
-        config_path = "{0}/{1}.config".format(DIR_KUBE_CONFIG,uuid.uuid4().hex)
+        config_path = "{0}/{1}.config".format(api.dashboard_config.DIR_KUBE_CONFIG, uuid.uuid4().hex)
         dns_name = args['dns_name']
         display_name = args['display_name']
         if display_name is None:
@@ -1041,7 +1035,7 @@ class ApiKubernetesId(Resource):
         kobj.db_mysql_user = db_mysql_user
         kobj.db_mysql_password = db_mysql_password
 
-        config_path = "{0}/{1}".format(DIR_KUBE_CONFIG,uuid.uuid4().hex)
+        config_path = "{0}/{1}".format(api.dashboard_config.DIR_KUBE_CONFIG, uuid.uuid4().hex)
         file.save(config_path)
         try:
             from kubernetes import client, config
@@ -1078,7 +1072,7 @@ class ApiKubernetesIdApplication(Resource):
     kube_app_deploy = kube_deploy_parser.copy()
     kube_app_deploy.remove_argument('service_model_assignment')
 
-    from apis.api_application import app_info
+    from .api_application import app_info
     @kube_info_namespace.marshal_list_with(app_info)
     def get(self, kubernetes_id:int):
         """get Kubernetes applications"""
@@ -1103,7 +1097,7 @@ class ApiKubernetesIdApplicationIdServices(Resource):
     kube_srv_deploy = kube_deploy_parser.copy()
     kube_srv_deploy.remove_argument('app_name')
 
-    from apis.api_service import srv_info
+    from .api_service import srv_info
     @kube_info_namespace.marshal_list_with(srv_info)
     def get(self, kubernetes_id:int, application_id:int):
         """get_kubernetes_service"""

@@ -2,16 +2,16 @@ from unittest.mock import patch, Mock
 from copy import deepcopy
 import json
 
-import drucker_pb2
+from drucker_dashboard.protobuf import drucker_pb2
 from .base import BaseTestCase, create_app_obj, create_service_obj, create_eval_obj, create_eval_result_obj
-from models import EvaluationResult, db
+from drucker_dashboard.models import EvaluationResult, db
 
 
 def patch_stub(func):
     def inner_method(*args, **kwargs):
         mock_stub_obj = Mock()
         mock_stub_obj.EvaluateModel.return_value = drucker_pb2.EvaluateModelResponse()
-        with patch('core.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub',
+        with patch('drucker_dashboard.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub',
                    new=Mock(return_value=mock_stub_obj)):
             return func(*args, **kwargs)
     return inner_method
@@ -20,11 +20,9 @@ def patch_stub(func):
 class ApiEvaluateTest(BaseTestCase):
     """Tests for ApiEvaluate.
     """
+
     default_response = {'accuracy': 0.0, 'fvalue': 0.0, 'num': 0,
                         'option': {}, 'precision': 0.0, 'recall': 0.0, 'status': True}
-
-    def setUp(self):
-        super().setUp()
 
     @patch_stub
     def test_post(self):

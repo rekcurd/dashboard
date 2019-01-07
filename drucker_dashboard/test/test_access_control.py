@@ -1,24 +1,19 @@
 from flask import Flask
 from unittest.mock import patch, Mock
 
-import drucker_pb2
+from drucker_dashboard.protobuf import drucker_pb2
 from .base import BaseTestCase, create_app_obj, create_user_obj, create_application_user_role_obj
-from app import initialize_app
-from models.application_user_role import Role
-from utils.env_loader import config
+from drucker_dashboard.app import initialize_app
+from drucker_dashboard.models import Role
 
 
 class ApiAccessControlTest(BaseTestCase):
     def create_app(self):
         app = Flask(__name__)
-        conf = config.copy()
-        conf['auth'] = {
-            'secret': 'test-secret',
-        }
-        initialize_app(app, conf)
+        initialize_app(app, "drucker_dashboard/test/test-auth-settings.yml")
         return app
 
-    @patch('auth.authenticator.EmptyAuthenticator.auth_user')
+    @patch('drucker_dashboard.auth.authenticator.EmptyAuthenticator.auth_user')
     def _get_token(self, mock):
         mock.return_value = {'uid': 'test', 'name': 'TEST USER'}
         response = self.client.post('/api/login', content_type='application/json', data='{}')
@@ -35,7 +30,7 @@ class ApiAccessControlTest(BaseTestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.json))
 
-    @patch('core.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
+    @patch('drucker_dashboard.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
     def test_create_appliction(self, mock):
         token = self._get_token()
         headers = {'Authorization': 'Bearer {}'.format(token)}
@@ -48,7 +43,7 @@ class ApiAccessControlTest(BaseTestCase):
         response = self.client.post('/api/applications/', headers=headers, data=data)
         self.assertEqual(200, response.status_code)
 
-    @patch('core.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
+    @patch('drucker_dashboard.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
     def test_create_appliction_already_exist(self, mock):
         token = self._get_token()
         headers = {'Authorization': 'Bearer {}'.format(token)}

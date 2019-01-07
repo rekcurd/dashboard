@@ -5,9 +5,10 @@ import sys
 import logging
 from socket import gethostname
 from fluent import handler
-from logger.logger_interface import SystemLoggerInterface
+from .logger_interface import SystemLoggerInterface
 
-class SystemLogger(SystemLoggerInterface):
+
+class FluentSystemLogger(SystemLoggerInterface):
 
     def __init__(self, logger_name:str='drucker_dashboard', log_level:int=logging.NOTSET) -> None:
         """

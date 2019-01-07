@@ -1,18 +1,23 @@
+# coding: utf-8
+
+
 import traceback
+
 from functools import wraps
 from flask import jsonify, request, abort
 from flask_jwt_simple import JWTManager, create_jwt, get_jwt_identity, jwt_required
 from jwt.exceptions import PyJWTError
 from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
 
-from app import logger
-from auth.ldap import LdapAuthenticator
-from auth.exceptions import ApplicationUserRoleException
-from auth.authenticator import EmptyAuthenticator
-from models import db
-from models.user import User
-from models.application import Application
-from models.application_user_role import ApplicationUserRole, Role
+try:
+    from my_dashboard_logger import logger
+except ImportError:
+    from drucker_dashboard.logger import logger
+
+from .ldap import LdapAuthenticator
+from .exceptions import ApplicationUserRoleException
+from .authenticator import EmptyAuthenticator
+from drucker_dashboard.models import db, User, Application, ApplicationUserRole, Role
 
 
 class Auth(object):
@@ -25,12 +30,15 @@ class Auth(object):
 
     def init_app(self, app, api, auth_conf):
         JWTManager(app)
-        self.__enabled = True
 
-        app.config['JWT_SECRET_KEY'] = auth_conf['secret']
-
-        if 'ldap' in auth_conf:
-            self.authenticator = LdapAuthenticator(auth_conf['ldap'])
+        if auth_conf is None:
+            self.__enabled = False
+            self.authenticator = EmptyAuthenticator()
+        else:
+            self.__enabled = True
+            app.config['JWT_SECRET_KEY'] = auth_conf['secret']
+            if 'ldap' in auth_conf:
+                self.authenticator = LdapAuthenticator(auth_conf['ldap'])
 
         # Add endpoints
         @app.route('/api/login', methods=['POST'])
@@ -64,7 +72,6 @@ class Auth(object):
 
             return jsonify({'user': uobj.serialize, 'applications': applications}), 200
 
-        # Add error handlers
         @api.errorhandler(NoAuthorizationError)
         @api.errorhandler(InvalidHeaderError)
         @api.errorhandler(PyJWTError)

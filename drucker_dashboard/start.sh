@@ -9,9 +9,6 @@ echo "$ECHO_PREFIX Start.."
 
 echo "$ECHO_PREFIX   Start installing libraries"
 pip install -r requirements.txt
-pip install -r ./drucker-grpc-proto/requirements.txt
-sh ./drucker-grpc-proto/run_codegen.sh
-cp ./drucker-grpc-proto/protobuf/*.py .
 echo "$ECHO_PREFIX   End installing libraries"
 
 echo "$ECHO_PREFIX   Start DB migration"

@@ -1,23 +1,22 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-#
-# DO NOT EDIT HERE!!
-import sys
+
+
 import os
-import pathlib
-
-
-root_path = pathlib.Path(os.path.abspath(__file__)).parent
-sys.path.append(str(root_path))
-
 
 from flask import Flask
 from flask_cors import CORS
-from logger.logger_jsonlogger import SystemLogger
-from utils.env_loader import DIR_KUBE_CONFIG, config
+
+try:
+    from my_dashboard_logger import logger
+except ImportError:
+    from drucker_dashboard.logger import logger
+
+from drucker_dashboard.utils import DruckerDashboardConfig
+from drucker_dashboard.models import db
+from drucker_dashboard.apis import api
+from drucker_dashboard.auth import auth
 
 
-logger = SystemLogger(logger_name="drucker_dashboard")
 app = Flask(__name__)
 
 
@@ -30,21 +29,14 @@ def configure_app(flask_app: Flask, db_url: str) -> None:
     flask_app.config['MAX_CONTENT_LENGTH'] = int(os.getenv("FLASK_MAX_CONTENT_LENGTH", "1073741824"))
 
 
-def initialize_app(flask_app: Flask, config=config) -> None:
-    from models import db, db_url
-    from apis import api
-    from auth import auth
-
-    if not os.path.isdir(DIR_KUBE_CONFIG):
-        os.makedirs(DIR_KUBE_CONFIG)
-    configure_app(flask_app, db_url())
-
-    api.init_app(flask_app)
-    if 'auth' in config:
-        auth.init_app(flask_app, api, config['auth'])
-
+def initialize_app(flask_app: Flask, config_file: str = "./settings.yml") -> None:
+    config = DruckerDashboardConfig(config_file)
+    if not os.path.isdir(config.DIR_KUBE_CONFIG):
+        os.makedirs(config.DIR_KUBE_CONFIG)
+    configure_app(flask_app, config.DB_URL)
+    api.init_app(flask_app, dashboard_config=config)
+    auth.init_app(flask_app, api, config.AUTH_CONFIG)
     CORS(flask_app)
-
     db.init_app(flask_app)
     db.create_all(app=flask_app)
 

@@ -3,12 +3,10 @@ import json
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 
-from app import logger
-from models import db, Kubernetes, Application, Service, EvaluationResult, Evaluation
-from core.drucker_dashboard_client import DruckerDashboardClient
-
-from apis.common import DatetimeToTimestamp
-from apis.api_kubernetes import update_dbs_kubernetes, switch_drucker_service_model_assignment
+from . import logger, DatetimeToTimestamp
+from .api_kubernetes import update_dbs_kubernetes, switch_drucker_service_model_assignment
+from drucker_dashboard import DruckerDashboardClient
+from drucker_dashboard.models import db, Kubernetes, Application, Service, EvaluationResult, Evaluation
 
 
 srv_info_namespace = Namespace('services', description='Service Endpoint.')

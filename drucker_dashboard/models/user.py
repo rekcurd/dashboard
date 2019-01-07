@@ -1,10 +1,10 @@
 import datetime
+from .dao import db
 from sqlalchemy import (
     Column, Integer, String, DateTime,
     UniqueConstraint
 )
 from sqlalchemy.orm import relationship
-from models import db
 
 
 class User(db.Model):

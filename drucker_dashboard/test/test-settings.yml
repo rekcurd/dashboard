@@ -1,0 +1,2 @@
+use.db: sqlite
+kube.datadir: kube-config

@@ -5,13 +5,11 @@ from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
-from app import logger
-from auth import auth
-from models import db
-from models import Application, Service, Evaluation, EvaluationResult, ApplicationUserRole, Role, User
-from core.drucker_dashboard_client import DruckerDashboardClient
-from apis.common import DatetimeToTimestamp
-from utils.hash_util import HashUtil
+from . import api, logger
+from drucker_dashboard import DruckerDashboardClient
+from drucker_dashboard.models import db, Application, Service, Evaluation, EvaluationResult, ApplicationUserRole, Role, User
+from drucker_dashboard.apis import DatetimeToTimestamp
+from drucker_dashboard.utils import HashUtil
 
 
 app_info_namespace = Namespace('applications', description='Application Endpoint.')
@@ -62,7 +60,7 @@ class ApiApplications(Resource):
     @app_info_namespace.marshal_list_with(app_info)
     def get(self):
         """get_applications"""
-        if auth.is_enabled():
+        if api.dashboard_config.IS_ACTIVATE_AUTH:
             user_id = get_jwt_identity()
             uobj = db.session.query(User).filter(User.user_id == user_id).one()
             # applications which don't have users are also accessible
@@ -95,7 +93,7 @@ class ApiApplications(Resource):
                                description=description)
             db.session.add(aobj)
             db.session.flush()
-        if auth.is_enabled():
+        if api.dashboard_config.IS_ACTIVATE_AUTH:
             user_id = get_jwt_identity()
             role = db.session.query(ApplicationUserRole).filter(
                 ApplicationUserRole.application_id == aobj.application_id,

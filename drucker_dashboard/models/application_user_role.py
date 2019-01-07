@@ -1,5 +1,5 @@
 import enum
-from models import db
+from .dao import db
 from sqlalchemy import (
     Column, Integer,
     Enum,

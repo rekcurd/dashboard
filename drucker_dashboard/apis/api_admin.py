@@ -2,11 +2,9 @@ from functools import wraps
 from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Resource, Namespace, fields, reqparse
 
-from auth import fetch_role
-from auth.exceptions import ApplicationUserRoleException
-from models import db
-from models.application_user_role import ApplicationUserRole, Role
-from models.user import User
+from drucker_dashboard.auth import fetch_role, ApplicationUserRoleException
+from drucker_dashboard.models import db, ApplicationUserRole, Role, User
+
 
 admin_info_namespace = Namespace('admin', description='Admin Endpoint.')
 success_or_not = admin_info_namespace.model('Success', {

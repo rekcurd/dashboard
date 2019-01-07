@@ -1,14 +1,18 @@
-# coding: utf-8
+# Copyright 2018 The Drucker Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+__project__ = 'drucker_dashboard'
+__version__ = "0.4.4a"
 
-import sys
-import os
-import pathlib
-
-
-root_path = pathlib.Path(os.path.abspath(__file__)).parent
-sys.path.append(str(root_path))
-
-
-from .drucker_pb2 import *
-from .drucker_pb2_grpc import *
+from .drucker_dashboard_client import DruckerDashboardClient

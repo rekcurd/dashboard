@@ -1,10 +1,9 @@
 import datetime
+from .dao import db
 from sqlalchemy import (
     Column, Integer, DateTime, Text,
     UniqueConstraint, ForeignKey, String
 )
-
-from models import db
 
 
 class EvaluationResult(db.Model):

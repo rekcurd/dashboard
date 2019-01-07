@@ -1,22 +1,62 @@
-import traceback
-from flask_restplus import Api
-from app import logger
-from apis.api_kubernetes import kube_info_namespace
-from apis.api_application import app_info_namespace
-from apis.api_service import srv_info_namespace
-from apis.api_model import mdl_info_namespace
-from apis.api_misc import misc_info_namespace
-from apis.api_admin import admin_info_namespace
-from auth import auth_required
-from kubernetes.client.rest import ApiException
-from models import db
+# coding: utf-8
 
-api = Api(
+
+import traceback
+
+from flask_restplus import Api
+from flask_restplus.utils import default_id
+from kubernetes.client.rest import ApiException
+
+try:
+    from my_dashboard_logger import logger
+except ImportError:
+    from drucker_dashboard.logger import logger
+
+from drucker_dashboard.auth import auth_required
+from drucker_dashboard.models import db
+
+
+class DruckerDashboardApi(Api):
+    def __init__(self, app=None, version='1.0', title=None, description=None,
+                 terms_url=None, license=None, license_url=None,
+                 contact=None, contact_url=None, contact_email=None,
+                 authorizations=None, security=None, doc='/', default_id=default_id,
+                 default='default', default_label='Default namespace', validate=None,
+                 tags=None, prefix='', ordered=False,
+                 default_mediatype='application/json', decorators=None,
+                 catch_all_404s=False, serve_challenge_on_401=False, format_checker=None,
+                 **kwargs):
+        super().__init__(app=app, version=version, title=title, description=description,
+                         terms_url=terms_url, license=license, license_url=license_url,
+                         contact=contact, contact_url=contact_url, contact_email=contact_email,
+                         authorizations=authorizations, security=security, doc=doc, default_id=default_id,
+                         default=default, default_label=default_label, validate=validate,
+                         tags=tags, prefix=prefix, ordered=ordered,
+                         default_mediatype=default_mediatype, decorators=decorators,
+                         catch_all_404s=catch_all_404s, serve_challenge_on_401=serve_challenge_on_401, format_checker=format_checker,
+                         **kwargs)
+        self.dashboard_config = None
+
+    def init_app(self, app, **kwargs):
+        super().init_app(app, **kwargs)
+        self.dashboard_config = kwargs.get('dashboard_config')
+
+
+api = DruckerDashboardApi(
     version='1.0',
     title='Drucker dashboard API',
     description='Drucker dashboard API',
     decorators=[auth_required]
 )
+
+
+from .common import DatetimeToTimestamp, kubernetes_cpu_to_float
+from .api_kubernetes import kube_info_namespace
+from .api_application import app_info_namespace
+from .api_service import srv_info_namespace
+from .api_model import mdl_info_namespace
+from .api_misc import misc_info_namespace
+from .api_admin import admin_info_namespace
 
 
 @api.errorhandler(ApiException)

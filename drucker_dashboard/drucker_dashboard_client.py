@@ -6,11 +6,10 @@
 import traceback, types
 import grpc
 
-import drucker_pb2
-import drucker_pb2_grpc
+from .protobuf import drucker_pb2, drucker_pb2_grpc
 
-from logger.logger_interface import SystemLoggerInterface
-from utils.protobuf_util import ProtobufUtil
+from .logger.logger_interface import SystemLoggerInterface
+from .utils.protobuf_util import ProtobufUtil
 from werkzeug.datastructures import FileStorage
 from protobuf_to_dict import protobuf_to_dict
 

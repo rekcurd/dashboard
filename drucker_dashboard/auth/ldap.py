@@ -1,7 +1,7 @@
 import ldap
-from app import logger
 
-from auth.authenticator import Authenticator
+from . import logger
+from .authenticator import Authenticator
 
 
 class LdapAuthenticator(Authenticator):
