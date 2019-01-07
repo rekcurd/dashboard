@@ -107,11 +107,11 @@ ENV/
 db.sqlite3
 db.test.sqlite3
 
-# DB migration
-drucker_dashboard/migrations/
-
 # Kube config
 drucker_dashboard/kube-config/
+
+# frontend
+drucker_dashboard/static/
 
 # Mac OS temporary file
 .DS_Store

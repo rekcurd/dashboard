@@ -3,7 +3,7 @@
 
 import os
 
-from flask import Flask
+from flask import Flask, render_template
 from flask_cors import CORS
 
 try:
@@ -17,7 +17,13 @@ from drucker_dashboard.apis import api
 from drucker_dashboard.auth import auth
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
+
+
+@app.route('/')
+@app.route('/applications')
+def root_url():
+    return render_template('index.html')
 
 
 def configure_app(flask_app: Flask, db_url: str) -> None:

@@ -46,6 +46,7 @@ api = DruckerDashboardApi(
     version='1.0',
     title='Drucker dashboard API',
     description='Drucker dashboard API',
+    doc='/doc/',
     decorators=[auth_required]
 )
 

@@ -4,8 +4,8 @@ import merge from 'webpack-merge';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import common from './webpack.config.babel';
 
-const src = path.resolve(__dirname, '../src');
-const dist = path.resolve(__dirname, '../dist');
+const src = path.resolve(__dirname, '..', 'src');
+const dist = path.resolve(__dirname, '..', '..', 'drucker_dashboard', 'static', 'dist');
 
 const prodConfig = {
   mode: 'production',
@@ -20,6 +20,8 @@ const prodConfig = {
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify('production'),
+        API_HOST: JSON.stringify(process.env.API_HOST || 'http://localhost'),
+        API_PORT: JSON.stringify(process.env.API_PORT || '18080')
       }
     }),
     new HtmlWebpackPlugin({
