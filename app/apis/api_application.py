@@ -1,15 +1,12 @@
 import uuid
-import datetime
 
 from flask_restplus import Namespace, fields, Resource, reqparse
-from werkzeug.datastructures import FileStorage
 
 from app import logger
 from models import db
-from models import Application, Service, Evaluation, EvaluationResult
+from models import Application, Service
 from core.drucker_dashboard_client import DruckerDashboardClient
 from apis.common import DatetimeToTimestamp
-from utils.hash_util import HashUtil
 
 
 app_info_namespace = Namespace('applications', description='Application Endpoint.')
