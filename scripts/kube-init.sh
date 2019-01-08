@@ -30,11 +30,20 @@ else
 fi
 docker --version
 
+# Get the latest stable version of kubernetes
+K8S_VERSION=$(curl -sS https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+echo "K8S_VERSION : ${K8S_VERSION}"
+
 echo "Starting docker service"
 sudo systemctl enable docker.service
 sudo systemctl start docker.service --ignore-dependencies
 echo "Checking docker service"
 sudo docker ps
+
+echo "Download Kubernetes CLI"
+wget -O kubectl "http://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl"
+sudo chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
 
 echo "Download minikube from minikube project"
 wget -O minikube "https://storage.googleapis.com/minikube/releases/v0.30.0/minikube-linux-amd64"

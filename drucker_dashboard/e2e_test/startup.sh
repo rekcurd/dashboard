@@ -10,26 +10,29 @@ configure_cluster () {
     ready=false
     echo "Start to configure $cluster_name"
     minikube start -p $cluster_name --kubernetes-version v1.9.4
-    while [ $timeout -gt 0 ];
-    do
-        # The first kubectl check API server is ready
-        # The second one check minikube node is ready
-        if [[ ( $(kubectl get nodes) ) && ( -z "$(kubectl get nodes | grep " Ready ")" ) ]]
-        then
-            ready=true
-            break
-        fi
-        sleep 1
-        timeout=$((timeout - 1))
+
+    MINIKUBE_OK="false"
+    echo "Waiting for minikube to start..."
+    # this for loop waits until kubectl can access the api server that Minikube has created
+    for i in {1..90}; do # timeout for 3 minutes
+       kubectl get po &> /dev/null
+       if [ $? -ne 1 ]; then
+          MINIKUBE_OK="true"
+          break
+       fi
+       sleep 2
     done
-    if [ ready ];
-    then
+
+    # Shut down CI if minikube did not start and show logs
+    if [ $MINIKUBE_OK == "false" ]; then
+        echo "  minikube did not start"
+        sudo minikube logs
+        die $LINENO "minikube did not start"
+    else
+        echo "  minikube start successfully"
         minikube addons enable ingress -p $cluster_name
         kubectl label nodes $cluster_name host=development --overwrite
         kubectl create namespace development
-    else
-        echo "The cluster fails to start. Please check the log of minikube."
-        exit 1
     fi
 }
 
