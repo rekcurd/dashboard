@@ -11,6 +11,7 @@ class BaseTestCase(TestCase):
     def create_app(self):
         app = Flask(__name__)
         initialize_app(app)
+        app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
         return app
 
     @classmethod

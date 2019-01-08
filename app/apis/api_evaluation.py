@@ -1,7 +1,7 @@
 import datetime
+from itertools import chain
 
 from flask_restplus import Namespace, fields, Resource, reqparse
-from flask import stream_with_context, Response
 from werkzeug.datastructures import FileStorage
 
 from app import logger
@@ -80,7 +80,7 @@ class ApiEvaluation(Resource):
         return {"status": True, "message": "Success."}
 
 
-@eval_info_namespace.route('/<int:application_id>/evaluation_result/<int:evaluation_result_id>')
+@eval_info_namespace.route('/<int:application_id>/evaluation_result/<int:eval_result_id>')
 class ApiEvaluationResult(Resource):
 
     def get(self, application_id:int, eval_result_id:int):
@@ -96,7 +96,15 @@ class ApiEvaluationResult(Resource):
         eobj = eval_with_result.Evaluation
         robj = eval_with_result.EvaluationResult
 
-        return Response(stream_with_context(drucker_dashboard_application.run_evaluation_data(eobj.data_path, robj.data_path)))
+        response_body = list(drucker_dashboard_application.run_evaluation_data(eobj.data_path, robj.data_path))
+        if len(response_body) == 0:
+            return {"status": False, "message": "Result Not Found."}, 404
+
+        return {
+            'status': all(r['status'] for r in response_body),
+            'metrics': response_body[0]['metrics'],
+            'details': list(chain.from_iterable(r['detail'] for r in response_body))
+        }
 
     @eval_info_namespace.marshal_with(success_or_not)
     def delete(self, application_id:int, eval_result_id:int):

@@ -139,10 +139,31 @@ class DruckerDashboardClient:
                                     including_default_value_fields=True)
         return response
 
+    def __get_value_from_io(self, io:drucker_pb2.IO):
+        if io.WhichOneof('io_oneof') == 'str':
+            val = io.str.val
+        else:
+            val = io.tensor.val
+
+        if len(val) == 1:
+            return val[0]
+        else:
+            return list(val)
+
     @error_handling({"status": False})
     def run_evaluation_data(self, data_path:str, result_path:str):
         for raw_response in self.stub.EvaluationResult(data_path, result_path):
+            details = []
+            for detail in raw_response.detail:
+                details.append(dict(
+                    protobuf_to_dict(detail, including_default_value_fields=True),
+                    input=self.__get_value_from_io(detail.input),
+                    label=self.__get_value_from_io(detail.label),
+                    output=self.__get_value_from_io(detail.output),
+                    score=detail.score[0] if len(detail.score) == 1 else list(detail.score)
+                ))
             response = protobuf_to_dict(raw_response,
                                         including_default_value_fields=True)
+            response['detail'] = details
             response['status'] = True
             yield response
