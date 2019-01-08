@@ -1,55 +1,74 @@
 # -*- coding: utf-8 -*-
 
 
-import os
+import argparse
 
-from flask import Flask, render_template
-from flask_cors import CORS
-
-try:
-    from my_dashboard_logger import logger
-except ImportError:
-    from drucker_dashboard.logger import logger
-
-from drucker_dashboard.utils import DruckerDashboardConfig
-from drucker_dashboard.models import db
-from drucker_dashboard.apis import api
-from drucker_dashboard.auth import auth
+from drucker_dashboard import _version
+from drucker_dashboard.server import create_app
 
 
-app = Flask(__name__, static_folder='static')
+def server_handler(args):
+    app = create_app(args.settings)
+    app.run(host=args.host, port=args.port, threaded=True)
 
 
-@app.route('/')
-@app.route('/applications')
-def root_url():
-    return render_template('index.html')
+def db_handler(args):
+    import sys
+    from flask_script import Manager
+    from flask_migrate import Migrate, MigrateCommand
+    from drucker_dashboard.models import db
+
+    tmp = sys.argv[1:]
+    sys.argv = [sys.argv[0]]
+    for i, t in enumerate(tmp):
+        if t == 'db':
+            sys.argv.append(t)
+            sys.argv.append(tmp[i+1])
+            break
+    app = create_app(args.settings)
+    migrate = Migrate(app, db)
+    manager = Manager(app)
+    manager.add_command('db', MigrateCommand)
+    manager.run()
 
 
-def configure_app(flask_app: Flask, db_url: str) -> None:
-    flask_app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-    flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-    flask_app.config['DEBUG'] = os.getenv("FLASK_DEBUG", "True")
-    flask_app.config['SWAGGER_UI_DOC_EXPANSION'] = 'list'
-    flask_app.config['RESTPLUS_VALIDATE'] = True
-    flask_app.config['MAX_CONTENT_LENGTH'] = int(os.getenv("FLASK_MAX_CONTENT_LENGTH", "1073741824"))
+def create_parser():
+    parser = argparse.ArgumentParser(description='rekcurdui command')
+    parser.add_argument(
+        '--version', '-v', action='version', version=_version.__version__)
+    parser.add_argument(
+        '--settings', required=True, help='settings YAML')
+    subparsers = parser.add_subparsers()
 
+    # server
+    parser_server = subparsers.add_parser(
+        'server', help='see `rekcurdui server -h`')
+    parser_server.add_argument(
+        '-H', '--host', required=False, help='host', default='0.0.0.0')
+    parser_server.add_argument(
+        '-p', '--port', required=False, type=int, help='port', default=18080)
+    parser_server.set_defaults(handler=server_handler)
 
-def initialize_app(flask_app: Flask, config_file: str = "./settings.yml") -> None:
-    config = DruckerDashboardConfig(config_file)
-    if not os.path.isdir(config.DIR_KUBE_CONFIG):
-        os.makedirs(config.DIR_KUBE_CONFIG)
-    configure_app(flask_app, config.DB_URL)
-    api.init_app(flask_app, dashboard_config=config)
-    auth.init_app(flask_app, api, config.AUTH_CONFIG)
-    CORS(flask_app)
-    db.init_app(flask_app)
-    db.create_all(app=flask_app)
+    # db
+    parser_db = subparsers.add_parser(
+        'db', help='see `rekcurdui db -h`')
+    parser_db.add_argument(
+        'type', choices=['init', 'revision', 'migrate', 'edit', 'merge',
+                         'upgrade', 'downgrade', 'show', 'history', 'heads',
+                         'branches', 'current', 'stamp'])
+    parser_db.set_defaults(handler=db_handler)
+
+    return parser
 
 
 def main() -> None:
-    initialize_app(app)
-    app.run(host='0.0.0.0', port=18080, threaded=True)
+    parser = create_parser()
+    args = parser.parse_args()
+
+    if hasattr(args, 'handler'):
+        args.handler(args)
+    else:
+        parser.print_help()
 
 
 if __name__ == '__main__':

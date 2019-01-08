@@ -84,7 +84,6 @@ setup(
     entry_points={
         'console_scripts': [
             'reckurdui=drucker_dashboard.app:main',
-            'reckurd_manage=drucker_dashboard.manage:main',
         ],
     },
     cmdclass={
