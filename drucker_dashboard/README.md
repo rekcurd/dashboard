@@ -1,29 +1,19 @@
 # Drucker dashboard backend
-### Download
+## Edit settings.yml
 ```
-$ git clone https://github.com/drucker/drucker-dashboard.git drucker-dashboard
-```
-
-### Edit settings.yml
-```
-$ cd app
 $ vi settings.yml
 ```
 
-All you have to do is specify the DB (sqlite or MySQL) you want to use.
+## Run it!
+### DB
+```bash
+$ python app.py --settings settings.yml db init
+$ python app.py --settings settings.yml db migrate
+```
 
-### Run it!
-```
-$ cd app
-$ sh start.sh
+### Server
+```bash
+$ python app.py --settings settings.yml server
 ```
 
-### Test
-```
-$ cd app
-$ sh drucker-grpc-proto/run_codegen.sh
-$ cp drucker-grpc-proto/protobuf/drucker_pb2.py .
-$ cp drucker-grpc-proto/protobuf/drucker_pb2_grpc.py .
-$ python -m unittest test/test_api_service.py
-$ python -m unittest test/test_api_application.py
-```
+Launched on `http://0.0.0.0:18080` as a default.
