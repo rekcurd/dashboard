@@ -7,14 +7,18 @@ from .base import BaseTestCase, create_app_obj, create_service_obj, create_eval_
 from io import BytesIO
 from models import EvaluationResult, Evaluation, db
 
+default_metrics = {'accuracy': 0.0, 'fvalue': [0.0], 'num': 0,
+                   'option': {}, 'precision': [0.0], 'recall': [0.0]}
+
 
 def patch_stub(func):
     def inner_method(*args, **kwargs):
         mock_stub_obj = Mock()
-        mock_stub_obj.EvaluateModel.return_value = drucker_pb2.EvaluateModelResponse()
+        metrics = drucker_pb2.EvaluationMetrics(precision=[0.0], recall=[0.0], fvalue=[0.0])
+        mock_stub_obj.EvaluateModel.return_value = drucker_pb2.EvaluateModelResponse(metrics=metrics)
         mock_stub_obj.UploadEvaluationData.return_value = drucker_pb2.UploadEvaluationDataResponse(status=1, message='success')
         res = drucker_pb2.EvaluationResultResponse(
-            metrics=drucker_pb2.EvaluationMetrics(),
+            metrics=metrics,
             detail=[
                 drucker_pb2.EvaluationResultResponse.Detail(
                     input=drucker_pb2.IO(str=drucker_pb2.ArrString(val=['input'])),
@@ -81,9 +85,6 @@ class ApiEvaluationTest(BaseTestCase):
 class ApiEvaluationResultTest(BaseTestCase):
     """Tests for ApiEvaluationResult.
     """
-    default_response = {'accuracy': 0.0, 'fvalue': 0.0, 'num': 0,
-                        'option': {}, 'precision': 0.0, 'recall': 0.0}
-
     @patch_stub
     def test_get(self):
         app_id = create_app_obj().application_id
@@ -93,7 +94,7 @@ class ApiEvaluationResultTest(BaseTestCase):
         response = self.client.get(f'/api/applications/{app_id}/evaluation_result/{robj.evaluation_result_id}')
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json['status'], True)
-        self.assertEqual(response.json['metrics'], self.default_response)
+        self.assertEqual(response.json['metrics'], default_metrics)
         details = response.json['details']
         self.assertEqual(len(details), 4)
         self.assertEqual(details[0], {'input': 'input', 'label': 'test', 'output': 'test', 'score': 1.0, 'is_correct': True})
@@ -131,8 +132,7 @@ class ApiEvaluationResultTest(BaseTestCase):
 class ApiEvaluateTest(BaseTestCase):
     """Tests for ApiEvaluate.
     """
-    default_response = {'accuracy': 0.0, 'fvalue': 0.0, 'num': 0, 'result_id': 1,
-                        'option': {}, 'precision': 0.0, 'recall': 0.0, 'status': True}
+    default_response = dict(default_metrics, result_id=1, status=True)
 
     @patch_stub
     def test_post(self):

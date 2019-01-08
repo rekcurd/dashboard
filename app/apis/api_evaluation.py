@@ -14,12 +14,22 @@ from utils.hash_util import HashUtil
 
 eval_info_namespace = Namespace('evaluation', description='Evaluation Endpoint.')
 success_or_not = eval_info_namespace.model('Success', {
-    'status': fields.Boolean(
-        required=True
-    ),
-    'message': fields.String(
-        required=True
-    )
+    'status': fields.Boolean(required=True),
+    'message': fields.String(required=True)
+})
+eval_metrics = eval_info_namespace.model('Evaluation result', {
+    'num': fields.Integer(required=True, description='number of evaluated data'),
+    'accuracy': fields.Float(required=True, description='accuracy of evaluation'),
+    'fvalue': fields.List(fields.Float, required=True, description='F-value of evaluation'),
+    'precision': fields.List(fields.Float, required=True, description='precision of evaluation'),
+    'recall': fields.List(fields.Float, required=True, description='recall of evaluation'),
+    'option': fields.Raw(),
+    'status': fields.Boolean(required=True),
+    'result_id': fields.Integer(required=True, description='ID of evaluation result')
+})
+eval_data_upload = eval_info_namespace.model('Result of uploading evaluation data', {
+    'status': fields.Boolean(required=True),
+    'evaluation_id': fields.Integer(required=True, description='ID of uploaded data')
 })
 
 
@@ -29,6 +39,7 @@ class ApiEvaluation(Resource):
     upload_parser.add_argument('file', location='files', type=FileStorage, required=True)
 
     @eval_info_namespace.expect(upload_parser)
+    @eval_info_namespace.marshal_with(eval_data_upload)
     def post(self, application_id:int):
         """update data to be evaluated"""
         args = self.upload_parser.parse_args()
@@ -89,6 +100,7 @@ class ApiEvaluate(Resource):
     eval_parser.add_argument('overwrite', location='form', type=bool, required=False)
 
     @eval_info_namespace.expect(eval_parser)
+    @eval_info_namespace.marshal_with(eval_metrics)
     def post(self, application_id:int):
         """evaluate"""
         args = self.eval_parser.parse_args()
