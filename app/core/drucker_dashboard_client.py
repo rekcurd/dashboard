@@ -138,3 +138,11 @@ class DruckerDashboardClient:
         response = protobuf_to_dict(self.stub.UploadEvaluationData(request_iterator),
                                     including_default_value_fields=True)
         return response
+
+    @error_handling({"status": False})
+    def run_evaluation_data(self, data_path:str, result_path:str):
+        for raw_response in self.stub.EvaluationResult(data_path, result_path):
+            response = protobuf_to_dict(raw_response,
+                                        including_default_value_fields=True)
+            response['status'] = True
+            yield response

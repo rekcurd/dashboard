@@ -5,6 +5,7 @@ from apis.api_kubernetes import kube_info_namespace
 from apis.api_application import app_info_namespace
 from apis.api_service import srv_info_namespace
 from apis.api_model import mdl_info_namespace
+from apis.api_evaluation import eval_info_namespace
 from apis.api_misc import misc_info_namespace
 from auth import Auth
 from kubernetes.client.rest import ApiException
@@ -40,4 +41,5 @@ api.add_namespace(kube_info_namespace, path='/api/kubernetes')
 api.add_namespace(app_info_namespace, path='/api/applications')
 api.add_namespace(srv_info_namespace, path='/api/applications')
 api.add_namespace(mdl_info_namespace, path='/api/applications')
+api.add_namespace(eval_info_namespace, path='/api/applications')
 api.add_namespace(misc_info_namespace, path='/api')
