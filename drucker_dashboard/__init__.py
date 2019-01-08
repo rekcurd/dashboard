@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__project__ = 'drucker_dashboard'
-__version__ = "0.4.4a"
+from drucker_dashboard import _project
+from drucker_dashboard import _version
+
+__project__ = _project.__project__
+__version__ = _version.__version__
 
 from .drucker_dashboard_client import DruckerDashboardClient
