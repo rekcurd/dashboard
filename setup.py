@@ -83,7 +83,7 @@ setup(
     long_description=LONG_DESCRIPTION,
     entry_points={
         'console_scripts': [
-            'reckurdui=drucker_dashboard.app:main',
+            'rekcurdui=drucker_dashboard.app:main',
         ],
     },
     cmdclass={

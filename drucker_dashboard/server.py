@@ -17,7 +17,7 @@ from drucker_dashboard.apis import api
 from drucker_dashboard.auth import auth
 
 
-def create_app(config_file: str = "./settings.yml"):
+def create_app(config_file: str = "settings.yml"):
     """create_app."""
 
     app = Flask(__name__, static_folder='static')
