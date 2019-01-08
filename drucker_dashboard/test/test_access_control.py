@@ -1,17 +1,14 @@
-from flask import Flask
 from unittest.mock import patch, Mock
 
 from drucker_dashboard.protobuf import drucker_pb2
 from .base import BaseTestCase, create_app_obj, create_user_obj, create_application_user_role_obj
-from drucker_dashboard.app import initialize_app
+from drucker_dashboard.server import create_app
 from drucker_dashboard.models import Role
 
 
 class ApiAccessControlTest(BaseTestCase):
     def create_app(self):
-        app = Flask(__name__)
-        initialize_app(app, "drucker_dashboard/test/test-auth-settings.yml")
-        return app
+        return create_app("drucker_dashboard/test/test-auth-settings.yml")
 
     @patch('drucker_dashboard.auth.authenticator.EmptyAuthenticator.auth_user')
     def _get_token(self, mock):

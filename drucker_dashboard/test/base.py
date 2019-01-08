@@ -1,17 +1,14 @@
 import warnings
 
-from flask import Flask
 from flask_testing import TestCase
 
 from drucker_dashboard.models import db, Application, Service, Evaluation, EvaluationResult, User, ApplicationUserRole, Role
-from drucker_dashboard.app import initialize_app
+from drucker_dashboard.server import create_app
 
 
 class BaseTestCase(TestCase):
     def create_app(self):
-        app = Flask(__name__)
-        initialize_app(app, "drucker_dashboard/test/test-settings.yml")
-        return app
+        return create_app("drucker_dashboard/test/test-settings.yml")
 
     @classmethod
     def setUpClass(cls):
