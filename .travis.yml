@@ -10,6 +10,8 @@ matrix:
   - python: 3.6
     env: TOXENV=py36
   - python: 3.6
+    env: TOXENV=py36-functional
+  - python: 3.6
     env: TOXENV=coverage,codecov
 
 install:

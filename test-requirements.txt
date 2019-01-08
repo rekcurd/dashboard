@@ -4,3 +4,5 @@ pytest
 py==1.5.4
 codecov==2.0.15
 grpcio-testing==1.13.0
+drucker-client==0.4.3
+numpy==1.14.3
