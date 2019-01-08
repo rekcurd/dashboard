@@ -6,11 +6,7 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 from app import logger
 from auth import auth
 from models import db
-<<<<<<< HEAD
-from models import Application, Service
-=======
-from models import Application, Service, Evaluation, EvaluationResult, ApplicationUserRole, Role, User
->>>>>>> master
+from models import Application, Service, ApplicationUserRole, Role, User
 from core.drucker_dashboard_client import DruckerDashboardClient
 from apis.common import DatetimeToTimestamp
 
