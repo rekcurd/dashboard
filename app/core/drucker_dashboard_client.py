@@ -152,7 +152,8 @@ class DruckerDashboardClient:
 
     @error_handling({"status": False})
     def run_evaluation_data(self, data_path:str, result_path:str):
-        for raw_response in self.stub.EvaluationResult(data_path, result_path):
+        request = drucker_pb2.EvaluationResultRequest(data_path=data_path, result_path=result_path)
+        for raw_response in self.stub.EvaluationResult(request):
             details = []
             for detail in raw_response.detail:
                 details.append(dict(

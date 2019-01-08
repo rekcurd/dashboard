@@ -105,7 +105,7 @@ class ApiEvaluate(Resource):
         """evaluate"""
         args = self.eval_parser.parse_args()
         eval_id = args.get('evaluation_id', None)
-        service_id = args['service_id']
+        service_id = args.get('service_id')
         if eval_id:
             eobj = Evaluation.query.filter_by(
                 application_id=application_id,
@@ -115,7 +115,6 @@ class ApiEvaluate(Resource):
             eobj = Evaluation.query\
                 .filter_by(application_id=application_id)\
                 .order_by(Evaluation.register_date.desc()).first_or_404()
-
         sobj = Service.query.filter_by(
             application_id=application_id,
             service_id=service_id).first_or_404()
