@@ -52,13 +52,13 @@ class DeployStatusTable extends React.Component<DeployStatusProps, {tooltipOpen}
    * @param services Services to be shown (Currently show all, but should be filtered)
    */
   renderTableHead = (services) => {
-    const { mode, applicationType, applicationId } = this.props
+    const { mode, applicationType, applicationId, canEdit } = this.props
 
     // Button to delete Service (for deleting k8s services)
     const deleteCheckButton = (serviceName: string, serviceId: string) => {
       return (
         <Row>
-          { applicationType === 'kubernetes' ?
+          { applicationType === 'kubernetes' && canEdit ?
             <Field
               name={`delete.services.${serviceId}`}
               component={CustomCheckBox}
@@ -107,7 +107,7 @@ class DeployStatusTable extends React.Component<DeployStatusProps, {tooltipOpen}
    */
   renderTableBody = () => {
     const {
-      selectModelMode, models, applicationId, mode
+      selectModelMode, models, applicationId, mode, canEdit
     } = this.props
 
     const modelSelectCheckBox = (model: Model) => (
@@ -120,15 +120,18 @@ class DeployStatusTable extends React.Component<DeployStatusProps, {tooltipOpen}
     )
 
     const deleteCheckButton = (modelName: string, modelId: string) => {
+      const checkBox = (
+        <Field
+          name={`delete.models.${modelId}`}
+          component={CustomCheckBox}
+          id={`model-${modelId}`}
+          label=''
+          className='mr-1'
+        />
+      )
       return (
         <Row>
-          <Field
-            name={`delete.models.${modelId}`}
-            component={CustomCheckBox}
-            id={`model-${modelId}`}
-            label=''
-            className='mr-1'
-          />
+          {canEdit ? checkBox : null}
           <Link className='text-info' to={`/applications/${applicationId}/models/${modelId}/edit`}>
             {modelName}
           </Link>
@@ -238,6 +241,7 @@ interface DeployStatusFormCustomProps {
   deployStatus,
   mode: ControlMode,
   selectModelMode?: boolean
+  canEdit: boolean
 }
 
 export interface DispatchProps {

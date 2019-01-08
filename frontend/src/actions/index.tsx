@@ -10,9 +10,10 @@ import {
   uploadModel, switchModels, syncKubernetesStatus,
   deleteKubernetesHost, deleteKubernetesServices,
   deleteKubernetesModels,
-  settings, login, userInfo,
+  settings, login, userInfo, fetchAllUsers,
+  fetchAccessControlList, saveAccessControl, deleteAccessControl,
   SaveServiceParam, SaveModelParam, SwitchModelParam,
-  ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo
+  ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo, AccessControlList
 } from '@src/apis'
 import { Application, Model, Service } from '@src/apis'
 
@@ -219,6 +220,30 @@ export const userInfoActionCreators = new APIRequestActionCreators<{}, UserInfo>
 export const userInfoDispatcher = asyncAPIRequestDispatcherCreator<{}, UserInfo>(
   userInfoActionCreators,
   userInfo
+)
+
+export const fetchAllUsersActionCreators = new APIRequestActionCreators<{}, UserInfo[]>('ALL_USERS')
+export const fetchAllUsersDispatcher = asyncAPIRequestDispatcherCreator<{}, UserInfo[]>(
+  fetchAllUsersActionCreators,
+  fetchAllUsers
+)
+
+export const fetchAccessControlListActionCreators = new APIRequestActionCreators<any, AccessControlList[]>('FETCH_ACCESS_CONTROL_LIST')
+export const fetchAccessControlListDispatcher = asyncAPIRequestDispatcherCreator<any, AccessControlList[]>(
+  fetchAccessControlListActionCreators,
+  fetchAccessControlList
+)
+
+export const saveAccessControlActionCreators = new APIRequestActionCreators<{}, boolean>('SAVE_ACCESS_CONTROL')
+export const saveAccessControlDispatcher = asyncAPIRequestDispatcherCreator<{}, boolean>(
+  saveAccessControlActionCreators,
+  saveAccessControl
+)
+
+export const deleteAccessControlActionCreators = new APIRequestActionCreators<{}, boolean>('DELETE_ACCESS_CONTROL')
+export const deleteAccessControlDispatcher = asyncAPIRequestDispatcherCreator<{}, boolean>(
+  deleteAccessControlActionCreators,
+  deleteAccessControl
 )
 
 // Notification actions

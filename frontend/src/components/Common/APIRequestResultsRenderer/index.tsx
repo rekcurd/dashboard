@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
-import { isAPISucceeded, APIRequestStatusList, APIRequest } from '@src/apis/Core'
+import { isAPISucceeded, APIRequestStatusList } from '@src/apis/Core'
+import { UserRole } from "@src/apis";
+import { role } from "@components/App/Admin/constants";
 
 /**
  * Render component with API requests
@@ -10,8 +12,9 @@ import { isAPISucceeded, APIRequestStatusList, APIRequest } from '@src/apis/Core
 
 interface Props {
   APIStatus: {}
-  render: (result: any) => JSX.Element
+  render: (result: any, canEdit: boolean) => JSX.Element
   renderFailed?: () => JSX.Element
+  applicationId?: string
 }
 
 type RequestResultsPair = [APIRequestStatusList, any]
@@ -27,11 +30,20 @@ class APIRequestResults extends React.Component<Props & RouteComponentProps<{}>,
   }
 
   render() {
-    const { render, renderFailed } = this.props
+    const { render, renderFailed, applicationId } = this.props
     const currentStatus: RequestResultsPair = this.checkAllRequestResults()
 
     if (currentStatus[0] === APIRequestStatusList.success) {
-      return render(currentStatus[1])
+      const fetchedResults = currentStatus[1]
+      if (fetchedResults.userInfoStatus && applicationId) {
+        const canEdit = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
+          return String(userRole.applicationId) === applicationId &&
+            (userRole.role === role.editor || userRole.role === role.owner)
+        })
+        return render(fetchedResults, canEdit)
+      } else {
+        return render(fetchedResults, true)
+      }
     } else if (currentStatus[0] === APIRequestStatusList.fetching) {
       return (<div>Loading...</div>)
     }

@@ -1,5 +1,16 @@
 # Change Log
 
+## [Unreleased](https://github.com/rekcurd/drucker-dashboard/tree/HEAD)
+
+[Full Changelog](https://github.com/rekcurd/drucker-dashboard/compare/v0.3.7...HEAD)
+
+**Merged pull requests:**
+
+- Update readme [\#52](https://github.com/rekcurd/drucker-dashboard/pull/52) ([keigohtr](https://github.com/keigohtr))
+- change to run rekcurd on EKS [\#51](https://github.com/rekcurd/drucker-dashboard/pull/51) ([yuki-mt](https://github.com/yuki-mt))
+- separate evaluate and upload test data [\#50](https://github.com/rekcurd/drucker-dashboard/pull/50) ([yuki-mt](https://github.com/yuki-mt))
+- Access control [\#49](https://github.com/rekcurd/drucker-dashboard/pull/49) ([sugyan](https://github.com/sugyan))
+
 ## [v0.3.7](https://github.com/rekcurd/drucker-dashboard/tree/v0.3.7) (2018-11-28)
 [Full Changelog](https://github.com/rekcurd/drucker-dashboard/compare/v0.3.6...v0.3.7)
 

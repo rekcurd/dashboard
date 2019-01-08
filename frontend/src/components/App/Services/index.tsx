@@ -4,7 +4,7 @@ import { withRouter, RouteComponentProps } from 'react-router'
 import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Service, SynKubernetesStatusParam, Application } from '@src/apis'
+import { Service, SynKubernetesStatusParam, Application, UserInfo, UserRole } from '@src/apis'
 import {
   addNotification,
   fetchApplicationByIdDispatcher,
@@ -12,8 +12,9 @@ import {
   deleteKubernetesServicesDispatcher,
   syncKubernetesStatusDispatcher
 } from '@src/actions'
-import ServicesDeleteForm from './ServicesDeleteForm'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
+import ServicesDeleteForm from './ServicesDeleteForm'
+import { role } from '../Admin/constants'
 
 export enum ControlMode {
   VIEW_SERVICES_STATUS,
@@ -100,14 +101,19 @@ class Services extends React.Component<ServicesStatusProps, any> {
   // Render methods
 
   render(): JSX.Element {
-    const { application, services } = this.props
+    const { application, services, userInfoStatus, settings } = this.props
+    const statuses: any = { application, services }
+    if (isAPISucceeded(settings) && settings.result.auth) {
+      statuses.userInfoStatus = userInfoStatus
+    }
     if ( this.props.match.params.applicationId === 'add' ) {
       return null
     }
     return (
       <APIRequestResultsRenderer
-        APIStatus={{ application, services }}
+        APIStatus={statuses}
         render={this.renderServices}
+        applicationId={this.props.match.params.applicationId}
       />
     )
   }
@@ -117,8 +123,9 @@ class Services extends React.Component<ServicesStatusProps, any> {
    * with fetched API results
    *
    * @param fetchedResults Fetched data from APIs
+   * @param canEdit Boolean value of user's editor permission
    */
-  renderServices(fetchedResults) {
+  renderServices(fetchedResults, canEdit) {
     const { controlMode } = this.state
     const {
       onSubmitNothing,
@@ -144,17 +151,19 @@ class Services extends React.Component<ServicesStatusProps, any> {
           mode={controlMode}
           onSubmit={onSubmitMap[controlMode]}
           changeMode={changeMode}
+          canEdit={canEdit}
         />,
         name,
-        kubernetesId
+        kubernetesId,
+        canEdit
       )
     )
   }
 
-  renderContent = (content: JSX.Element, applicationName, kubernetesId): JSX.Element => {
+  renderContent = (content: JSX.Element, applicationName, kubernetesId, canEdit: boolean): JSX.Element => {
     return (
       <div className='pb-5'>
-        {this.renderTitle(applicationName, kubernetesId)}
+        {this.renderTitle(applicationName, kubernetesId, canEdit)}
         <h3>
           <i className='fas fa-server fa-fw mr-2'></i>
           Services
@@ -170,7 +179,7 @@ class Services extends React.Component<ServicesStatusProps, any> {
     )
   }
 
-  renderTitle = (applicationName, kubernetesId): JSX.Element => {
+  renderTitle = (applicationName, kubernetesId, canEdit: boolean): JSX.Element => {
     return (
       <Row className='align-items-center mb-5'>
         <Col xs='7'>
@@ -180,7 +189,7 @@ class Services extends React.Component<ServicesStatusProps, any> {
           </h1>
         </Col>
         <Col xs='5' className='text-right'>
-          {kubernetesId ? this.renderKubernetesControlButtons(kubernetesId) : null}
+          {kubernetesId && canEdit ? this.renderKubernetesControlButtons(kubernetesId) : null}
         </Col>
       </Row>
     )
@@ -340,6 +349,8 @@ export interface StateProps {
   services: APIRequest<Service[]>
   deleteKubernetesServicesStatus: APIRequest<boolean[]>
   syncKubernetesServicesStatusStatus: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
+  settings: APIRequest<any>
 }
 
 const mapStateToProps = (state): StateProps => {
@@ -347,7 +358,9 @@ const mapStateToProps = (state): StateProps => {
     application: state.fetchApplicationByIdReducer.applicationById,
     services: state.fetchAllServicesReducer.services,
     deleteKubernetesServicesStatus: state.deleteKubernetesServicesReducer.deleteKubernetesServices,
-    syncKubernetesServicesStatusStatus: state.syncKubernetesStatusReducer.syncKubernetesStatus
+    syncKubernetesServicesStatusStatus: state.syncKubernetesStatusReducer.syncKubernetesStatus,
+    userInfoStatus: state.userInfoReducer.userInfo,
+    settings: state.settingsReducer.settings
   }
   return props
 }
