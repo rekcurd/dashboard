@@ -2,6 +2,11 @@ import logging
 import os
 import pathlib
 
+import numpy as np
+
+from sklearn.dummy import DummyClassifier
+from sklearn.externals import joblib
+
 import shutil
 import subprocess
 import tempfile
@@ -42,7 +47,6 @@ worker_env = {env['name']: env['value'] for env in worker_container['env']}
 
 KubeSetting = namedtuple('KubeSetting', 'display_name description config_path dns_name ip db_mysql_host db_mysql_port db_mysql_dbname db_mysql_user db_mysql_password host_model_dir pod_model_dir')
 drucker_test1_ip = os.getenv('KUBE_IP1', get_minikube_ip('drucker-test1')).strip()
-drucker_test2_ip = os.getenv('KUBE_IP2', get_minikube_ip('drucker-test2')).strip()
 kube_setting1 = KubeSetting(display_name='drucker-test-kube-1',
                             description='Description 1',
                             config_path=os.getenv('KUBE_CONFIG_PATH1', '/tmp/kube-config-path1'),
@@ -57,9 +61,9 @@ kube_setting1 = KubeSetting(display_name='drucker-test-kube-1',
                             pod_model_dir=worker_env['DRUCKER_SERVICE_MODEL_DIR'])
 kube_setting2 = KubeSetting(display_name='drucker-test-kube-2',
                             description='Description 2',
-                            config_path=os.getenv('KUBE_CONFIG_PATH2', '/tmp/kube-config-path2'),
+                            config_path=os.getenv('KUBE_CONFIG_PATH1', '/tmp/kube-config-path1'),
                             dns_name='test-dns-2',
-                            ip=drucker_test2_ip,
+                            ip=drucker_test1_ip,
                             db_mysql_host='localhost',
                             db_mysql_port='3306',
                             db_mysql_dbname='drucker',
@@ -70,6 +74,17 @@ kube_setting2 = KubeSetting(display_name='drucker-test-kube-2',
 
 POSITIVE_MODEL_PATH = pathlib.Path(__file__).parent.joinpath('test-models').joinpath('positive.pkl')
 NEGATIVE_MODEL_PATH = pathlib.Path(__file__).parent.joinpath('test-models').joinpath('negative.pkl')
+if not pathlib.Path(POSITIVE_MODEL_PATH).exists():
+    positive_clf = DummyClassifier(strategy='constant', constant=1)
+    negative_clf = DummyClassifier(strategy='constant', constant=0)
+    model_dir = pathlib.Path(__file__).parent.joinpath('test-models')
+    model_dir.mkdir(exist_ok=True)
+    X = np.random.random(4).reshape(2, 2)
+    y = [0, 1]
+    positive_clf.fit(X, y)
+    negative_clf.fit(X, y)
+    joblib.dump(positive_clf, model_dir.joinpath('positive.pkl'))
+    joblib.dump(negative_clf, model_dir.joinpath('negative.pkl'))
 
 
 class BaseTestCase(TestCase):

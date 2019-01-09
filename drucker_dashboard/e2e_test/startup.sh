@@ -53,6 +53,8 @@ configure_cluster () {
         kubectl get serviceaccounts
         kubectl get services
         minikube addons enable ingress -p $cluster_name
+        kubectl label nodes --all host=development --overwrite
+        kubectl create namespace development
     else
         echo "  minikube did not start: $cluster_name"
         minikube logs
@@ -64,17 +66,6 @@ configure_cluster () {
 configure_cluster drucker-test1
 kubectl config view --flatten --minify > ${KUBE_CONFIG_PATH1:-/tmp/kube-config-path1}
 export KUBE_IP1=$(minikube ip -p drucker-test1)
-
-configure_cluster drucker-test2
-kubectl config view --flatten --minify > ${KUBE_CONFIG_PATH2:-/tmp/kube-config-path2}
-export KUBE_IP2=$(minikube ip -p drucker-test2)
-
-kubectl label nodes --all host=development --overwrite
-kubectl create namespace development
-
-# Generate test models
-echo "Generating ML model..."
-python generate_constant_model.py
 
 
 # Done
