@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Start startup.sh!"
+
 set -e
 TEST_FILE_DIRECTORY=$(dirname "$0")
 cd $TEST_FILE_DIRECTORY
@@ -27,7 +29,29 @@ configure_cluster () {
     # Shut down CI if minikube did not start and show logs
     if [ MINIKUBE_OK ]; then
         echo "  minikube start successfully: $cluster_name"
-        sleep 30
+        echo "  Dump Kubernetes Objects..."
+        kubectl get componentstatuses
+        kubectl get configmaps
+        kubectl get daemonsets
+        kubectl get deployments
+        kubectl get events
+        kubectl get endpoints
+        kubectl get horizontalpodautoscalers
+        kubectl get ingress
+        kubectl get jobs
+        kubectl get limitranges
+        kubectl get nodes
+        kubectl get namespaces
+        kubectl get pods
+        kubectl get persistentvolumes
+        kubectl get persistentvolumeclaims
+        kubectl get quota
+        kubectl get resourcequotas
+        kubectl get replicasets
+        kubectl get replicationcontrollers
+        kubectl get secrets
+        kubectl get serviceaccounts
+        kubectl get services
         minikube addons enable ingress -p $cluster_name
         kubectl label nodes $cluster_name host=development --overwrite
         kubectl create namespace development
@@ -49,4 +73,9 @@ export KUBE_IP2=$(minikube ip -p drucker-test2)
 
 
 # Generate test models
+echo "Generating ML model..."
 python generate_constant_model.py
+
+
+# Done
+echo "Finish startup.sh!"
