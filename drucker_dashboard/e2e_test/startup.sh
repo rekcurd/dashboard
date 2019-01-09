@@ -27,6 +27,7 @@ configure_cluster () {
     # Shut down CI if minikube did not start and show logs
     if [ MINIKUBE_OK ]; then
         echo "  minikube start successfully: $cluster_name"
+        sleep 10
         minikube addons enable ingress -p $cluster_name
         kubectl label nodes $cluster_name host=development --overwrite
         kubectl create namespace development
@@ -40,9 +41,11 @@ configure_cluster () {
 # Run test minikube clusters
 configure_cluster drucker-test1
 kubectl config view --flatten --minify > ${KUBE_CONFIG_PATH1:-/tmp/kube-config-path1}
+export KUBE_IP1=$(minikube ip -p drucker-test1)
 
 configure_cluster drucker-test2
 kubectl config view --flatten --minify > ${KUBE_CONFIG_PATH2:-/tmp/kube-config-path2}
+export KUBE_IP2=$(minikube ip -p drucker-test2)
 
 
 # Generate test models
