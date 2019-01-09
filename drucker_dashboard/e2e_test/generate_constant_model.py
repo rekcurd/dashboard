@@ -16,8 +16,8 @@ def main():
     y = [0, 1]
     positive_clf.fit(X, y)
     negative_clf.fit(X, y)
-    joblib.dump(positive_clf, model_dir.joinpath(f'positive.pkl'))
-    joblib.dump(negative_clf, model_dir.joinpath(f'negative.pkl'))
+    joblib.dump(positive_clf, model_dir.joinpath('positive.pkl'))
+    joblib.dump(negative_clf, model_dir.joinpath('negative.pkl'))
 
 
 if __name__ == "__main__":
