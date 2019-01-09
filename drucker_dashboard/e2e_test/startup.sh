@@ -53,7 +53,7 @@ configure_cluster () {
         kubectl get serviceaccounts
         kubectl get services
         minikube addons enable ingress -p $cluster_name
-        kubectl label nodes $cluster_name host=development --overwrite
+        kubectl label nodes --all host=development --overwrite
         kubectl create namespace development
     else
         echo "  minikube did not start: $cluster_name"
