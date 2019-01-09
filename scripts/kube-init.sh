@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -x
+CDIR=$PWD
 
 function clean_exit(){
     local error_code="$?"
@@ -71,6 +72,7 @@ sudo ../drucker_dashboard/e2e_test/startup.sh
 
 
 echo "Running tests..."
+cd $CDIR
 set -x -e
 # Yield execution to venv command
 $*
