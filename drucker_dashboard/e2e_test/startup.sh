@@ -27,7 +27,7 @@ configure_cluster () {
     # Shut down CI if minikube did not start and show logs
     if [ MINIKUBE_OK ]; then
         echo "  minikube start successfully: $cluster_name"
-        sleep 10
+        sleep 30
         minikube addons enable ingress -p $cluster_name
         kubectl label nodes $cluster_name host=development --overwrite
         kubectl create namespace development
