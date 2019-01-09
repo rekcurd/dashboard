@@ -30,6 +30,7 @@ configure_cluster () {
         minikube addons enable ingress -p $cluster_name
         kubectl label nodes $cluster_name host=development --overwrite
         kubectl create namespace development
+        sleep 10
     else
         echo "  minikube did not start: $cluster_name"
         minikube logs
