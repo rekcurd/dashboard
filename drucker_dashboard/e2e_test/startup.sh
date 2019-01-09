@@ -3,13 +3,15 @@
 set -e
 TEST_FILE_DIRECTORY=$(dirname "$0")
 cd $TEST_FILE_DIRECTORY
+export MINIKUBE_DRIVER=${MINIKUBE_DRIVER:-virtualbox}
+export MINIKUBE_BOOTSTRAPPER=${MINIKUBE_BOOTSTRAPPER:-localkube}
 
 configure_cluster () {
     cluster_name=$1
     timeout=60
     ready=false
     echo "Start to configure $cluster_name"
-    minikube start -p $cluster_name --kubernetes-version v1.9.4
+    minikube start --vm-driver $MINIKUBE_DRIVER -p $cluster_name --kubernetes-version v1.9.4 --bootstrapper $MINIKUBE_BOOTSTRAPPER --logtostderr
 
     MINIKUBE_OK=false
     echo "Waiting for minikube to start..."
