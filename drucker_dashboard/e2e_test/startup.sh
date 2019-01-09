@@ -30,7 +30,7 @@ configure_cluster () {
         kubectl create namespace development
     else
         echo "  minikube did not start: $cluster_name"
-        sudo minikube logs
+        minikube logs
         die $LINENO "minikube did not start"
     fi
 }

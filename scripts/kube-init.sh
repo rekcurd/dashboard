@@ -66,7 +66,7 @@ export MINIKUBE_DRIVER=${MINIKUBE_DRIVER:-none}
 echo "Starting minikube"
 TEST_FILE_DIRECTORY=$(dirname "$0")
 cd $TEST_FILE_DIRECTORY
-../drucker_dashboard/e2e_test/startup.sh
+sudo ../drucker_dashboard/e2e_test/startup.sh
 
 
 echo "Running tests..."
