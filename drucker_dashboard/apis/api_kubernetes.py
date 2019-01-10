@@ -5,7 +5,7 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 
 from werkzeug.datastructures import FileStorage
 
-from . import api, logger, DatetimeToTimestamp, kubernetes_cpu_to_float
+from . import api, DatetimeToTimestamp, kubernetes_cpu_to_float
 from drucker_dashboard import DruckerDashboardClient
 from drucker_dashboard.models import db, Kubernetes, Application, Service, Model
 
@@ -783,7 +783,7 @@ def switch_drucker_service_model_assignment(
     sobj = db.session.query(Service).filter(
         Service.application_id == application_id, Service.service_id==service_id).one()
     host = sobj.host
-    drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=host)
+    drucker_dashboard_application = DruckerDashboardClient(logger=api.logger, host=host)
     response_body = drucker_dashboard_application. \
         run_switch_service_model_assignment(model_path=model_path)
     if not response_body.get("status", True):

@@ -8,7 +8,7 @@ from drucker_dashboard.server import create_app
 
 
 def server_handler(args):
-    app = create_app(args.settings)
+    app = create_app(args.settings, args.logger)
     app.run(host=args.host, port=args.port, threaded=True)
 
 
@@ -25,7 +25,7 @@ def db_handler(args):
             sys.argv.append(t)
             sys.argv.append(tmp[i+1])
             break
-    app = create_app(args.settings)
+    app = create_app(args.settings, args.logger)
     migrate = Migrate(app, db)
     manager = Manager(app)
     manager.add_command('db', MigrateCommand)
@@ -38,6 +38,8 @@ def create_parser():
         '--version', '-v', action='version', version=_version.__version__)
     parser.add_argument(
         '--settings', required=True, help='settings YAML. See https://github.com/rekcurd/drucker-dashboard/blob/master/drucker_dashboard/settings.yml')
+    parser.add_argument(
+        '--logger', required=False, help='Python file of your custom logger. Need to inherit "logger_interface.py". See https://github.com/rekcurd/drucker-dashboard/blob/master/drucker_dashboard/logger/logger_interface.py', default=None)
     subparsers = parser.add_subparsers()
 
     # server

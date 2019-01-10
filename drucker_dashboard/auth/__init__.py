@@ -9,11 +9,6 @@ from flask_jwt_simple import JWTManager, create_jwt, get_jwt_identity, jwt_requi
 from jwt.exceptions import PyJWTError
 from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
 
-try:
-    from my_dashboard_logger import logger
-except ImportError:
-    from drucker_dashboard.logger import logger
-
 from .ldap import LdapAuthenticator
 from .exceptions import ApplicationUserRoleException
 from .authenticator import EmptyAuthenticator
@@ -24,12 +19,14 @@ class Auth(object):
     def __init__(self):
         self.__enabled = False
         self.authenticator = EmptyAuthenticator()
+        self.logger = None
 
     def is_enabled(self):
         return self.__enabled
 
-    def init_app(self, app, api, auth_conf):
+    def init_app(self, app, api, auth_conf, logger):
         JWTManager(app)
+        self.logger = logger
 
         if auth_conf is None:
             self.__enabled = False
@@ -38,7 +35,7 @@ class Auth(object):
             self.__enabled = True
             app.config['JWT_SECRET_KEY'] = auth_conf['secret']
             if 'ldap' in auth_conf:
-                self.authenticator = LdapAuthenticator(auth_conf['ldap'])
+                self.authenticator = LdapAuthenticator(auth_conf['ldap'], logger)
 
         # Add endpoints
         @app.route('/api/login', methods=['POST'])
@@ -77,8 +74,8 @@ class Auth(object):
         @api.errorhandler(PyJWTError)
         @api.errorhandler(ApplicationUserRoleException)
         def authorization_error_handler(error):
-            logger.error(error)
-            logger.error(traceback.format_exc())
+            self.logger.error(error)
+            self.logger.error(traceback.format_exc())
             return {'message': 'Authorization failed'}, 401
 
     def user(self, user_info):

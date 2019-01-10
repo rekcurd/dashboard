@@ -5,7 +5,7 @@ from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
-from . import api, logger
+from . import api
 from drucker_dashboard import DruckerDashboardClient
 from drucker_dashboard.models import db, Application, Service, Evaluation, EvaluationResult, ApplicationUserRole, Role, User
 from drucker_dashboard.apis import DatetimeToTimestamp
@@ -79,7 +79,7 @@ class ApiApplications(Resource):
         display_name = uuid.uuid4().hex
         description = args['description']
 
-        drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=host)
+        drucker_dashboard_application = DruckerDashboardClient(logger=api.logger, host=host)
         service_info = drucker_dashboard_application.run_service_info()
         application_name = service_info["application_name"]
         service_name = service_info["service_name"]
@@ -166,7 +166,7 @@ class ApiEvaluation(Resource):
 
         sobj = Service.query.filter_by(application_id=application_id).first_or_404()
 
-        drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
+        drucker_dashboard_application = DruckerDashboardClient(logger=api.logger, host=sobj.host)
         response_body = drucker_dashboard_application.run_upload_evaluation_data(file, eval_data_path)
 
         if not response_body['status']:

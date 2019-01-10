@@ -3,7 +3,7 @@ import json
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 
-from . import logger, DatetimeToTimestamp
+from . import api, DatetimeToTimestamp
 from .api_kubernetes import update_dbs_kubernetes, switch_drucker_service_model_assignment
 from drucker_dashboard import DruckerDashboardClient
 from drucker_dashboard.models import db, Kubernetes, Application, Service, EvaluationResult, Evaluation
@@ -217,7 +217,7 @@ class ApiEvaluate(Resource):
             return json.loads(robj.result)
 
         eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
-        drucker_dashboard_application = DruckerDashboardClient(logger=logger, host=sobj.host)
+        drucker_dashboard_application = DruckerDashboardClient(logger=api.logger, host=sobj.host)
         response_body = drucker_dashboard_application.run_evaluate_model(eobj.data_path, eval_result_path)
 
         if response_body['status']:

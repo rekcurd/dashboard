@@ -7,11 +7,6 @@ from flask_restplus import Api
 from flask_restplus.utils import default_id
 from kubernetes.client.rest import ApiException
 
-try:
-    from my_dashboard_logger import logger
-except ImportError:
-    from drucker_dashboard.logger import logger
-
 from drucker_dashboard.auth import auth_required
 from drucker_dashboard.models import db
 
@@ -36,10 +31,12 @@ class DruckerDashboardApi(Api):
                          catch_all_404s=catch_all_404s, serve_challenge_on_401=serve_challenge_on_401, format_checker=format_checker,
                          **kwargs)
         self.dashboard_config = None
+        self.logger = None
 
     def init_app(self, app, **kwargs):
         super().init_app(app, **kwargs)
         self.dashboard_config = kwargs.get('dashboard_config')
+        self.logger = kwargs.get('logger')
 
 
 api = DruckerDashboardApi(
@@ -62,16 +59,16 @@ from .api_admin import admin_info_namespace
 
 @api.errorhandler(ApiException)
 def api_exception_handler(error):
-    logger.error(str(error))
-    logger.error(traceback.format_exc())
+    api.logger.error(str(error))
+    api.logger.error(traceback.format_exc())
     return {'message': str(error)}, 400
 
 
 @api.errorhandler
 def default_error_handler(error):
     """:TODO: Use an appropriate error code."""
-    logger.error(str(error))
-    logger.error(traceback.format_exc())
+    api.logger.error(str(error))
+    api.logger.error(traceback.format_exc())
     db.session.rollback()
     db.session.close()
     return {'message': str(error)}, 500

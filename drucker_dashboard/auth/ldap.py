@@ -1,17 +1,17 @@
 import ldap
 
-from . import logger
 from .authenticator import Authenticator
 
 
 class LdapAuthenticator(Authenticator):
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self.host = config['host']
         self.port = config['port']
         self.bind_dn = config['bind_dn']
         self.bind_password = config['bind_password']
         self.search_filter = config['search_filter']
         self.search_base_dns = config['search_base_dns']
+        self.logger = logger
 
     def auth_user(self, username, password):
         lobj = ldap.initialize('ldap://{}:{}'.format(self.host, self.port))
@@ -28,8 +28,8 @@ class LdapAuthenticator(Authenticator):
                 }
             return None
         except IndexError:
-            logger.error('"{}" not found'.format(username))
+            self.logger.error('"{}" not found'.format(username))
             return None
         except ldap.LDAPError as e:
-            logger.error(e)
+            self.logger.error(e)
             return None
