@@ -12,7 +12,7 @@ const prodConfig = {
 
   output: {
     path: dist,
-    publicPath: '/'
+    publicPath: '/static/dist'
   },
 
   plugins: [

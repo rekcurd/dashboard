@@ -20,7 +20,7 @@ from drucker_dashboard.auth import auth
 def create_app(config_file: str = "settings.yml"):
     """create_app."""
 
-    app = Flask(__name__, static_folder='static')
+    app = Flask(__name__, static_folder='static', template_folder='static/dist')
 
     @app.route('/')
     @app.route('/login')
