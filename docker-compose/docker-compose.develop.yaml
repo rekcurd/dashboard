@@ -23,15 +23,15 @@ services:
     container_name: drucker-dashboard-backend-dev
     build:
       context: ..
-      dockerfile: ./app/Dockerfile
+      dockerfile: ./drucker_dashboard/Dockerfile
     volumes:
-      - ../app:/root/drucker-dashboard
+      - ../:/root/drucker-dashboard
     environment:
       FLASK_DEBUG: "True"
       PYTHONIOENCODING: "utf-8"
     command:
       - /bin/bash
       - -c
-      - "sh start.sh"
+      - "pip install -r requirements.txt && pip install -e . && cd drucker_dashboard && (rekcurdui --settings settings.yml db init || true) && (rekcurdui --settings settings.yml db migrate || true) && rekcurdui --settings settings.yml server"
     ports:
       - "18080:18080"
