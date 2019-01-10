@@ -84,10 +84,24 @@ See [docs](./docs/README.md).
 
 
 ## Unittest
+### Prerequisites
 ```bash
-$ sh drucker_dashboard/e2e_test/startup.sh
+$ pip install -r requirements.txt
+$ pip install -r test-requirements.txt
+```
+
+If you don't have VirtualBox, run it.
+```bash
+$ sudo yum install -y kernel-devel kernel-headers make patch gcc
+$ sudo wget https://download.virtualbox.org/virtualbox/rpm/el/virtualbox.repo -P /etc/yum.repos.d
+$ sudo yum install -y VirtualBox-5.2
+```
+
+### Test
+```bash
+$ sudo sh drucker_dashboard/e2e_test/startup.sh
 $ python -m unittest
-$ sh drucker_dashboard/e2e_test/cleanup.sh
+$ sudo sh drucker_dashboard/e2e_test/cleanup.sh
 ```
 
 

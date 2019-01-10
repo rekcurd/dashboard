@@ -37,7 +37,7 @@ def create_parser():
     parser.add_argument(
         '--version', '-v', action='version', version=_version.__version__)
     parser.add_argument(
-        '--settings', required=True, help='settings YAML. See https://github.com/rekcurd/drucker-dashboard/blob/master/drucker-dashboard/settings.yml')
+        '--settings', required=True, help='settings YAML. See https://github.com/rekcurd/drucker-dashboard/blob/master/drucker_dashboard/settings.yml')
     subparsers = parser.add_subparsers()
 
     # server
