@@ -18,21 +18,15 @@ def create_app(config_file: str = "settings.yml", logger_file: str = None):
     """create_app."""
 
     app = Flask(__name__, static_folder='static', template_folder='static/dist')
+    app.logger.disabled = True
+    for h in app.logger.handlers[:]:
+        app.logger.removeHandler(h)
 
     @app.route('/')
     @app.route('/login')
-    @app.route('/settings/kubernetes/hosts')
-    @app.route('/settings/kubernetes/hosts/add')
-    @app.route('/settings/kubernetes/hosts/<int:kubernetes_id>/edit')
+    @app.route('/settings/<path:path>')
     @app.route('/applications')
-    @app.route('/applications/add')
-    @app.route('/applications/<int:application_id>/dashboard')
-    @app.route('/applications/<int:application_id>/services')
-    @app.route('/applications/<int:application_id>/services/add')
-    @app.route('/applications/<int:application_id>/services/<int:service_id>/edit')
-    @app.route('/applications/<int:application_id>/models')
-    @app.route('/applications/<int:application_id>/models/<int:model_id>/edit')
-    @app.route('/applications/<int:application_id>/admin')
+    @app.route('/applications/<path:path>')
     def root_url(**kwargs):
         return render_template('index.html')
 
