@@ -49,12 +49,11 @@ def create_app(config_file: str = "settings.yml", logger_file: str = None):
         with open(logger_file, mode='rb') as f:
             exec(compile(f.read(), logger_file, 'exec'), l.__dict__)
         logger = l.__dict__.get("logger")
-        if not isinstance(logger, SystemLoggerInterface):
-            raise Exception("Invalid logger.")
         logger.info("Use custom logger.")
     except Exception as e:
         from drucker_dashboard.logger import logger
-        logger.error(str(e))
+        logger.info(str(e))
+        logger.info("Invalid logger.")
         logger.info("Use default logger.")
 
     # initialize applications
