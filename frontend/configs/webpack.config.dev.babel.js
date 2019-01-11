@@ -29,6 +29,8 @@ const devConfig = {
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify('development'),
+        API_HOST: JSON.stringify(process.env.API_HOST || 'http://localhost'),
+        API_PORT: JSON.stringify(process.env.API_PORT || '18080')
       }
     }),
     new HtmlWebpackPlugin({

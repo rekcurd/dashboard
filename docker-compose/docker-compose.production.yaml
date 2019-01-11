@@ -7,7 +7,7 @@ services:
       context: ..
       dockerfile: ./frontend/Dockerfile
     volumes:
-      - ../frontend:/root/drucker-dashboard
+      - ../:/root/drucker-dashboard
     environment:
       NODE_ENV: production
       API_HOST: ${API_HOST:-http://localhost}
@@ -16,7 +16,7 @@ services:
     command:
       - /bin/bash
       - -c
-      - "yarn install && yarn build && yarn run start:prod"
+      - "cd frontend && yarn install && yarn run build && yarn run start:prod"
     depends_on:
       - dashboard-backend
     ports:
@@ -26,16 +26,16 @@ services:
     container_name: drucker-dashboard-backend
     build:
       context: ..
-      dockerfile: ./app/Dockerfile
+      dockerfile: ./drucker_dashboard/Dockerfile
     volumes:
-      - ../app:/root/drucker-dashboard
+      - ../:/root/drucker-dashboard
     environment:
       FLASK_DEBUG: "False"
       PYTHONIOENCODING: "utf-8"
     command:
       - /bin/bash
       - -c
-      - "sh start.sh"
+      - "pip install -r requirements.txt && pip install -e . && cd drucker_dashboard && (rekcurdui --settings settings.yml db init || true) && (rekcurdui --settings settings.yml db migrate || true) && rekcurdui --settings settings.yml server"
     ports:
       - "18080:18080"
     restart: always
