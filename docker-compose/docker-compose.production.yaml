@@ -7,7 +7,7 @@ services:
       context: ..
       dockerfile: ./frontend/Dockerfile
     volumes:
-      - ../frontend:/root/drucker-dashboard
+      - ../:/root/drucker-dashboard
     environment:
       NODE_ENV: production
       API_HOST: ${API_HOST:-http://localhost}
@@ -16,7 +16,7 @@ services:
     command:
       - /bin/bash
       - -c
-      - "yarn install && yarn build && yarn run start:prod"
+      - "cd frontend && yarn install && yarn run build && yarn run start:prod"
     depends_on:
       - dashboard-backend
     ports:

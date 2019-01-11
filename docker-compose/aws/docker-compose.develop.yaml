@@ -7,14 +7,14 @@ services:
       context: ../..
       dockerfile: ./frontend/Dockerfile
     volumes:
-      - ../../frontend:/root/drucker-dashboard
+      - ../../:/root/drucker-dashboard
     environment:
       API_HOST: ${API_HOST:-http://localhost}
       API_PORT: 18080
     command:
       - /bin/bash
       - -c
-      - "yarn install && yarn run start"
+      - "cd frontend && yarn install && yarn run start"
     depends_on:
       - dashboard-backend-dev
     ports:
@@ -23,9 +23,9 @@ services:
     container_name: drucker-dashboard-backend-dev-for-aws
     build:
       context: ../..
-      dockerfile: ./app/Dockerfile_aws
+      dockerfile: ./drucker_dashboard/Dockerfile
     volumes:
-      - ../../app:/root/drucker-dashboard
+      - ../../:/root/drucker-dashboard
       - ~/.aws:/root/.aws
     environment:
       FLASK_DEBUG: "True"
@@ -33,6 +33,6 @@ services:
     command:
       - /bin/bash
       - -c
-      - "sh start.sh"
+      - "pip install -r requirements.txt && pip install -e . && cd drucker_dashboard && (rekcurdui --settings settings.yml db init || true) && (rekcurdui --settings settings.yml db migrate || true) && rekcurdui --settings settings.yml server"
     ports:
       - "18080:18080"
