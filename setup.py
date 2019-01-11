@@ -76,7 +76,8 @@ setup(
     package_data={
         'drucker_dashboard': [
             'templates/*',
-            'static/**/*'
+            'static/dist/*',
+            'static/dist/js/*'
         ],
     },
     include_package_data=True,

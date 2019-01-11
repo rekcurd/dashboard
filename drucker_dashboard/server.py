@@ -7,7 +7,6 @@ import types
 from flask import Flask, render_template
 from flask_cors import CORS
 
-from drucker_dashboard.logger.logger_interface import SystemLoggerInterface
 from drucker_dashboard.utils import DruckerDashboardConfig
 from drucker_dashboard.models import db
 from drucker_dashboard.apis import api
