@@ -1,0 +1,4 @@
+use.db: sqlite
+kube.datadir: test-kube-config
+auth:
+  secret: 'test-secret'

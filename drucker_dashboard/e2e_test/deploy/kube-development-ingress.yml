@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    ingress.kubernetes.io/ssl-passthrough: 'true'
+    ingress.zlab.co.jp/backend-config: '{"drucker-test-app-development-20180628151929-service":
+      {"5000": {"proto": "h2"}}}'
+    kubernetes.io/ingress.class: nghttpx
+  labels:
+    app: drucker-test-app
+    sel: drucker-test-app-development-20180628151929
+    drucker-worker: "True"
+  name: drucker-test-app-development-20180628151929-ingress
+  namespace: development
+spec:
+  rules:
+  - host: drucker-test-app-v2-development.test-dns
+    http:
+      paths:
+      - backend:
+          serviceName: drucker-test-app-development-20180628151929-service
+          servicePort: 5000

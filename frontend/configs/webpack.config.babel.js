@@ -49,8 +49,8 @@ export default {
       REACT_APP_CONFIG: JSON.stringify(require('./config.json')),
       'process.env': {
         NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
-        API_HOST: JSON.stringify(process.env.API_HOST),
-        API_PORT: JSON.stringify(process.env.API_PORT)
+        API_HOST: JSON.stringify(process.env.API_HOST || 'http://localhost'),
+        API_PORT: JSON.stringify(process.env.API_PORT || '18080')
       }
     })
   ],
