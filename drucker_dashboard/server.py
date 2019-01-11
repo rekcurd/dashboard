@@ -23,10 +23,7 @@ def create_app(config_file: str = "settings.yml", logger_file: str = None):
         app.logger.removeHandler(h)
 
     @app.route('/')
-    @app.route('/login')
-    @app.route('/settings/<path:path>')
-    @app.route('/applications')
-    @app.route('/applications/<path:path>')
+    @app.route('/<path:path>')
     def root_url(**kwargs):
         return render_template('index.html')
 
