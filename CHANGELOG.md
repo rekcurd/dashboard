@@ -1,8 +1,18 @@
 # Change Log
 
-## [Unreleased](https://github.com/rekcurd/drucker-dashboard/tree/HEAD)
+## [v0.4.4](https://github.com/rekcurd/drucker-dashboard/tree/v0.4.4) (2019-01-15)
+[Full Changelog](https://github.com/rekcurd/drucker-dashboard/compare/v0.3.8...v0.4.4)
 
-[Full Changelog](https://github.com/rekcurd/drucker-dashboard/compare/v0.3.7...HEAD)
+**Closed issues:**
+
+- Add access control [\#20](https://github.com/rekcurd/drucker-dashboard/issues/20)
+
+**Merged pull requests:**
+
+- Pipnize [\#54](https://github.com/rekcurd/drucker-dashboard/pull/54) ([keigohtr](https://github.com/keigohtr))
+
+## [v0.3.8](https://github.com/rekcurd/drucker-dashboard/tree/v0.3.8) (2018-12-26)
+[Full Changelog](https://github.com/rekcurd/drucker-dashboard/compare/v0.3.7...v0.3.8)
 
 **Merged pull requests:**
 
