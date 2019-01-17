@@ -347,9 +347,11 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
             Service.application_id == aobj.application_id).delete()
         db.session.flush()
     if refresh_all:
-        db.session.query(Application).filter(
+        aobjs = db.session.query(Application).filter(
             Application.confirm_date <= process_date,
-            Application.kubernetes_id == kubernetes_id).delete()
+            Application.kubernetes_id == kubernetes_id).all()
+        for obj in aobjs:
+            db.session.delete(obj)
         db.session.flush()
 
 
@@ -1060,7 +1062,7 @@ class ApiKubernetesId(Resource):
             application_id = res.application_id
             db.session.query(Model).filter(Model.application_id == application_id).delete()
             db.session.query(Service).filter(Service.application_id == application_id).delete()
-            db.session.query(Application).filter(Application.application_id == application_id).delete()
+            db.session.delete(res)
         db.session.query(Kubernetes).filter(Kubernetes.kubernetes_id == kubernetes_id).delete()
         response_body = {"status": True, "message": "Success."}
         db.session.commit()
