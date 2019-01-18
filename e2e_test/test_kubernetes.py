@@ -1,16 +1,13 @@
 import uuid
-import os
-import pathlib
 
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 
 from drucker_dashboard.models import db, Kubernetes, Application, Service, Model
-from drucker_dashboard.apis import api
 
-from drucker_dashboard.e2e_test.base import BaseTestCase
-from drucker_dashboard.e2e_test.base import kube_setting2, create_kube_obj, create_app_obj, create_service_obj, create_model_obj
-from drucker_dashboard.e2e_test.base import WorkerConfiguration
+from e2e_test.base import BaseTestCase
+from e2e_test.base import kube_setting2, create_kube_obj, create_app_obj, create_service_obj, create_model_obj
+from e2e_test.base import WorkerConfiguration
 
 
 def get_default_args():

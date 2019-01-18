@@ -2,10 +2,10 @@ import uuid
 
 from kubernetes import client as k8s_client, config as k8s_config
 
-from drucker_dashboard.e2e_test.base import BaseTestCase
-from drucker_dashboard.e2e_test.base import create_kube_obj
-from drucker_dashboard.e2e_test.base import WorkerConfiguration
-from drucker_dashboard.e2e_test.base import kube_setting1
+from e2e_test.base import BaseTestCase
+from e2e_test.base import create_kube_obj
+from e2e_test.base import WorkerConfiguration
+from e2e_test.base import kube_setting1
 from drucker_dashboard.models import db, Application
 
 class TestApiEvaluate(BaseTestCase):

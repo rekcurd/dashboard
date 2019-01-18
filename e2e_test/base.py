@@ -93,11 +93,11 @@ class BaseTestCase(TestCase):
     TESTING = True
 
     def create_app(self):
-        return create_app("drucker_dashboard/e2e_test/test-settings.yml")
+        return create_app("e2e_test/test-settings.yml")
 
     @classmethod
     def setUpClass(cls):
-        app = create_app("drucker_dashboard/e2e_test/test-settings.yml")
+        app = create_app("e2e_test/test-settings.yml")
         with app.app_context():
             kobj = create_kube_obj(first=True, save=True)
             stop_worker(kobj.config_path)
@@ -131,7 +131,7 @@ class BaseTestCase(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        app = create_app("drucker_dashboard/e2e_test/test-settings.yml")
+        app = create_app("e2e_test/test-settings.yml")
         with app.app_context():
             kobj = create_kube_obj(first=True, save=True)
             stop_worker(kobj.config_path)

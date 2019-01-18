@@ -68,7 +68,7 @@ export MINIKUBE_BOOTSTRAPPER=${MINIKUBE_BOOTSTRAPPER:-localkube}
 echo "Starting minikube"
 TEST_FILE_DIRECTORY=$(dirname "$0")
 cd $TEST_FILE_DIRECTORY
-sudo ../drucker_dashboard/e2e_test/startup.sh
+sudo ../e2e_test/startup.sh
 
 
 echo "Running tests..."

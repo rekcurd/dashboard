@@ -115,7 +115,7 @@ drucker_dashboard/static/
 
 # test
 test-kube-config/
-drucker_dashboard/e2e_test/test-models/
+e2e_test/test-models/
 
 # Mac OS temporary file
 .DS_Store

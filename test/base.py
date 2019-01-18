@@ -8,7 +8,7 @@ from drucker_dashboard.server import create_app
 
 class BaseTestCase(TestCase):
     def create_app(self):
-        return create_app("drucker_dashboard/test/test-settings.yml")
+        return create_app("test/test-settings.yml")
 
     @classmethod
     def setUpClass(cls):
