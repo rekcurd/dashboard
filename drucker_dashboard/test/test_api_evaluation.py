@@ -137,12 +137,11 @@ class ApiEvaluateTest(BaseTestCase):
     @patch_stub
     def test_post(self):
         aobj = create_app_obj()
-        sobj = create_service_obj(aobj.application_id)
-        model_id = sobj.model_id
+        model_id = create_service_obj(aobj.application_id).model_id
         evaluation_id = create_eval_obj(aobj.application_id, save=True).evaluation_id
 
         response = self.client.post(f'/api/applications/{aobj.application_id}/evaluate',
-                                    data={'evaluation_id': evaluation_id, 'service_id': sobj.service_id})
+                                    data={'evaluation_id': evaluation_id, 'model_id': model_id})
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, self.default_response)
         eobj_exists = db.session.query(EvaluationResult)\
@@ -153,15 +152,14 @@ class ApiEvaluateTest(BaseTestCase):
     @patch_stub
     def test_post_without_param(self):
         aobj = create_app_obj()
-        sobj = create_service_obj(aobj.application_id)
-        model_id = sobj.model_id
+        model_id = create_service_obj(aobj.application_id).model_id
         create_eval_obj(aobj.application_id, checksum='12345', save=True)
         create_eval_obj(aobj.application_id, checksum='6789', save=True)
         create_eval_obj(aobj.application_id, checksum='abc', save=True)
         newest_eval_id = create_eval_obj(aobj.application_id, save=True).evaluation_id
 
         response = self.client.post(f'/api/applications/{aobj.application_id}/evaluate',
-                                    data={'service_id': sobj.service_id})
+                                    data={'model_id': model_id})
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, self.default_response)
         eobj_exists = db.session.query(EvaluationResult)\
@@ -173,8 +171,7 @@ class ApiEvaluateTest(BaseTestCase):
     def test_post_duplicated(self):
         saved_response = deepcopy(self.default_response)
         aobj = create_app_obj()
-        sobj = create_service_obj(aobj.application_id)
-        model_id = sobj.model_id
+        model_id = create_service_obj(aobj.application_id).model_id
         evaluation_id = create_eval_obj(aobj.application_id, save=True).evaluation_id
         create_eval_result_obj(model_id=model_id,
                                evaluation_id=evaluation_id,
@@ -182,7 +179,7 @@ class ApiEvaluateTest(BaseTestCase):
                                save=True)
 
         url = f'/api/applications/{aobj.application_id}/evaluate'
-        data = {'evaluation_id': evaluation_id, 'service_id': sobj.service_id}
+        data = {'evaluation_id': evaluation_id, 'model_id': model_id}
         response = self.client.post(url, data=data)
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, saved_response)
@@ -196,3 +193,23 @@ class ApiEvaluateTest(BaseTestCase):
             .filter(EvaluationResult.model_id == model_id,
                     EvaluationResult.evaluation_id == evaluation_id).one()
         self.assertEqual(eobj.result, self.default_response)
+
+    @patch_stub
+    def test_post_not_found(self):
+        application_id = create_app_obj().application_id
+        model_id = create_service_obj(application_id).model_id
+        new_sobj = create_service_obj(application_id,
+                                      service_name='drucker-test-app-production-20180628151929',
+                                      service_level='production',
+                                      model_id=model_id + 1,
+                                      save=True)
+        evaluation_id = create_eval_obj(application_id, save=True).evaluation_id
+
+        response = self.client.post(f'/api/applications/{application_id}/evaluate',
+                                    data={'evaluation_id': evaluation_id, 'model_id': new_sobj.model_id})
+        self.assertEqual(404, response.status_code)
+
+        non_exist_model_id = 100
+        response = self.client.post(f'/api/applications/{application_id}/evaluate',
+                                    data={'evaluation_id': evaluation_id, 'model_id': non_exist_model_id})
+        self.assertEqual(404, response.status_code)

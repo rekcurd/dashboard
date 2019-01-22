@@ -2,6 +2,7 @@ import datetime
 import json
 from itertools import chain
 
+from flask import abort
 from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
@@ -94,7 +95,7 @@ class ApiEvaluation(Resource):
 @eval_info_namespace.route('/<int:application_id>/evaluate')
 class ApiEvaluate(Resource):
     eval_parser = reqparse.RequestParser()
-    eval_parser.add_argument('service_id', location='form', type=int, required=True)
+    eval_parser.add_argument('model_id', location='form', type=int, required=True)
     eval_parser.add_argument('evaluation_id', location='form', type=int, required=False)
     eval_parser.add_argument('overwrite', location='form', type=bool, required=False)
 
@@ -104,7 +105,7 @@ class ApiEvaluate(Resource):
         """evaluate"""
         args = self.eval_parser.parse_args()
         eval_id = args.get('evaluation_id', None)
-        service_id = args.get('service_id')
+        model_id = args.get('model_id')
         if eval_id:
             eobj = Evaluation.query.filter_by(
                 application_id=application_id,
@@ -114,9 +115,14 @@ class ApiEvaluate(Resource):
             eobj = Evaluation.query\
                 .filter_by(application_id=application_id)\
                 .order_by(Evaluation.register_date.desc()).first_or_404()
-        sobj = Service.query.filter_by(
-            application_id=application_id,
-            service_id=service_id).first_or_404()
+
+        # TODO: deploy a temporary service to evaluate, not use an existing service.
+        sobj = Service.query.filter(
+            Service.application_id == application_id,
+            Service.model_id == model_id,
+            Service.service_level != 'production').one_or_none()
+        if sobj is None:
+            raise abort(404, 'The model is not used in any services or used only in production.')
 
         robj = db.session.query(EvaluationResult)\
             .filter(EvaluationResult.model_id == sobj.model_id,
