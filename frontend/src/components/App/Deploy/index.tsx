@@ -360,7 +360,14 @@ class Deploy extends React.Component<DeployStatusProps, DeployStatusState> {
     const { applicationId } = this.props.match.params
 
     const apiParams: SwitchModelParam[] =
-      Object.entries(params.status)
+      Object.entries(params.switch)
+        .filter(
+          ([key, value]) => {
+            if (params.status[key] === value) {
+              return false
+            }
+            return true
+          })
         .map(
           ([key, value]): SwitchModelParam => (
             {
