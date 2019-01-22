@@ -183,7 +183,7 @@ class DeployStatusTable extends React.Component<DeployStatusProps, {tooltipOpen}
       return (
         <Field
           component={CustomRadioButton}
-          name={`status.${serviceId}`}
+          name={`switch.${serviceId}`}
           serviceId={serviceId}
           modelId={model.id}
         />
