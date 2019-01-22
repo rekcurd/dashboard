@@ -8,7 +8,7 @@ from drucker_dashboard.models import Role
 
 class ApiAccessControlTest(BaseTestCase):
     def create_app(self):
-        return create_app("drucker_dashboard/test/test-auth-settings.yml")
+        return create_app("test/test-auth-settings.yml")
 
     @patch('drucker_dashboard.auth.authenticator.EmptyAuthenticator.auth_user')
     def _get_token(self, mock):
