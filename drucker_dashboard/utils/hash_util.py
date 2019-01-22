@@ -19,5 +19,6 @@ class HashUtil:
             hash_md5 = hashlib.md5()
             for chunk in iter(lambda: f.read(chunk_size), b''):
                 hash_md5.update(chunk)
+            f.seek(0)
 
         return hash_md5.hexdigest()

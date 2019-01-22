@@ -55,6 +55,7 @@ from .api_service import srv_info_namespace
 from .api_model import mdl_info_namespace
 from .api_misc import misc_info_namespace
 from .api_admin import admin_info_namespace
+from .api_evaluation import eval_info_namespace
 
 
 @api.errorhandler(ApiException)
@@ -79,4 +80,5 @@ api.add_namespace(app_info_namespace, path='/api/applications')
 api.add_namespace(srv_info_namespace, path='/api/applications')
 api.add_namespace(mdl_info_namespace, path='/api/applications')
 api.add_namespace(admin_info_namespace, path='/api/applications')
+api.add_namespace(eval_info_namespace, path='/api/applications')
 api.add_namespace(misc_info_namespace, path='/api')
