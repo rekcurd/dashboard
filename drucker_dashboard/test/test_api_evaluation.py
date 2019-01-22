@@ -50,7 +50,7 @@ class ApiEvaluationTest(BaseTestCase):
     def test_post(self):
         aobj = create_app_obj()
 
-        url = f'/api/applications/{aobj.application_id}/evaluation'
+        url = f'/api/applications/{aobj.application_id}/evaluations'
         content_type = 'multipart/form-data'
         file_content = b'my file contents'
         response = self.client.post(url,
@@ -71,13 +71,13 @@ class ApiEvaluationTest(BaseTestCase):
         eobj = create_eval_obj(app_id, save=True)
         sobj = create_service_obj(app_id)
         create_eval_result_obj(model_id=sobj.model_id, evaluation_id=eobj.evaluation_id, save=True)
-        response = self.client.delete(f'/api/applications/{app_id}/evaluation/{eobj.evaluation_id}')
+        response = self.client.delete(f'/api/applications/{app_id}/evaluations/{eobj.evaluation_id}')
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, {'status': True, 'message': 'Success.'})
         self.assertEqual(Evaluation.query.all(), [])
         self.assertEqual(EvaluationResult.query.all(), [])
 
-        response = self.client.delete(f'/api/applications/{app_id}/evaluation/101')
+        response = self.client.delete(f'/api/applications/{app_id}/evaluations/101')
         self.assertEqual(404, response.status_code)
         self.assertEqual(response.json, {'status': False, 'message': 'Not Found.'})
 
@@ -91,7 +91,7 @@ class ApiEvaluationResultTest(BaseTestCase):
         eobj = create_eval_obj(app_id, save=True)
         sobj = create_service_obj(app_id)
         robj = create_eval_result_obj(model_id=sobj.model_id, evaluation_id=eobj.evaluation_id, save=True)
-        response = self.client.get(f'/api/applications/{app_id}/evaluation_result/{robj.evaluation_result_id}')
+        response = self.client.get(f'/api/applications/{app_id}/evaluation_results/{robj.evaluation_result_id}')
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json['status'], True)
         self.assertEqual(response.json['metrics'], default_metrics)
@@ -106,11 +106,11 @@ class ApiEvaluationResultTest(BaseTestCase):
         eobj = create_eval_obj(app_id, save=True)
         sobj = create_service_obj(app_id)
         robj = create_eval_result_obj(model_id=sobj.model_id, evaluation_id=eobj.evaluation_id, save=True)
-        response = self.client.get(f'/api/applications/{app_id}/evaluation_result/{robj.evaluation_result_id}')
+        response = self.client.get(f'/api/applications/{app_id}/evaluation_results/{robj.evaluation_result_id}')
         self.assertEqual(404, response.status_code)
         self.assertEqual(response.json, {'status': False, 'message': 'Result Not Found.'})
 
-        response = self.client.get(f'/api/applications/{app_id}/evaluation_result/101')
+        response = self.client.get(f'/api/applications/{app_id}/evaluation_results/101')
         self.assertEqual(404, response.status_code)
         self.assertEqual(response.json, {'status': False, 'message': 'Not Found.'})
 
@@ -119,12 +119,12 @@ class ApiEvaluationResultTest(BaseTestCase):
         eobj = create_eval_obj(app_id, save=True)
         sobj = create_service_obj(app_id)
         robj = create_eval_result_obj(model_id=sobj.model_id, evaluation_id=eobj.evaluation_id, save=True)
-        response = self.client.delete(f'/api/applications/{app_id}/evaluation_result/{robj.evaluation_result_id}')
+        response = self.client.delete(f'/api/applications/{app_id}/evaluation_results/{robj.evaluation_result_id}')
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, {'status': True, 'message': 'Success.'})
         self.assertEqual(EvaluationResult.query.all(), [])
 
-        response = self.client.delete(f'/api/applications/{app_id}/evaluation_result/101')
+        response = self.client.delete(f'/api/applications/{app_id}/evaluation_results/101')
         self.assertEqual(404, response.status_code)
         self.assertEqual(response.json, {'status': False, 'message': 'Not Found.'})
 

@@ -32,7 +32,7 @@ eval_data_upload = eval_info_namespace.model('Result of uploading evaluation dat
 })
 
 
-@eval_info_namespace.route('/<int:application_id>/evaluation')
+@eval_info_namespace.route('/<int:application_id>/evaluations')
 class ApiEvaluation(Resource):
     upload_parser = reqparse.RequestParser()
     upload_parser.add_argument('file', location='files', type=FileStorage, required=True)
@@ -70,7 +70,7 @@ class ApiEvaluation(Resource):
         return {"status": True, "evaluation_id": evaluation_id}
 
 
-@eval_info_namespace.route('/<int:application_id>/evaluation/<int:evaluation_id>')
+@eval_info_namespace.route('/<int:application_id>/evaluations/<int:evaluation_id>')
 class ApiEvaluation(Resource):
 
     @eval_info_namespace.marshal_with(success_or_not)
@@ -147,7 +147,7 @@ class ApiEvaluate(Resource):
         return response_body
 
 
-@eval_info_namespace.route('/<int:application_id>/evaluation_result/<int:eval_result_id>')
+@eval_info_namespace.route('/<int:application_id>/evaluation_results/<int:eval_result_id>')
 class ApiEvaluationResult(Resource):
 
     def get(self, application_id:int, eval_result_id:int):
