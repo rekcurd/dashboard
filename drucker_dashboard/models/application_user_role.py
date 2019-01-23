@@ -31,6 +31,8 @@ class ApplicationUserRole(db.Model):
     role = Column(Enum(Role), nullable=False, default=Role.viewer)
 
     application = relationship('Application', lazy='joined', innerjoin=True,
-                               backref=backref("application_user_roles", cascade="all, delete-orphan"))
+                               backref=backref("application_user_roles",
+                                               cascade="all, delete-orphan", passive_deletes=True))
     user = relationship('User',
-                        backref=backref("application_user_roles", cascade="all, delete-orphan"))
+                        backref=backref("application_user_roles",
+                                        cascade="all, delete-orphan", passive_deletes=True))

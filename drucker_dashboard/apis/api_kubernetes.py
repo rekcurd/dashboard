@@ -347,11 +347,9 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
             Service.application_id == aobj.application_id).delete()
         db.session.flush()
     if refresh_all:
-        aobjs = db.session.query(Application).filter(
+        db.session.query(Application).filter(
             Application.confirm_date <= process_date,
-            Application.kubernetes_id == kubernetes_id).all()
-        for obj in aobjs:
-            db.session.delete(obj)
+            Application.kubernetes_id == kubernetes_id).delete()
         db.session.flush()
 
 

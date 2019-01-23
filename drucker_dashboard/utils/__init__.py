@@ -30,6 +30,13 @@ class DruckerDashboardConfig:
         if self._DB_MODE == "sqlite":
             db_name = "db.test.sqlite3" if self.TEST_MODE else "db.sqlite3"
             self.DB_URL = f'sqlite:///{db_name}'
+            from sqlalchemy.engine import Engine
+            from sqlalchemy import event
+            @event.listens_for(Engine, "connect")
+            def set_sqlite_pragma(dbapi_connection, connection_record):
+                cursor = dbapi_connection.cursor()
+                cursor.execute("PRAGMA foreign_keys=ON")
+                cursor.close()
         elif self._DB_MODE == "mysql":
             host = self._DB_MYSQL_HOST
             port = self._DB_MYSQL_PORT
