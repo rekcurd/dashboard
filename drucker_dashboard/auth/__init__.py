@@ -107,22 +107,12 @@ def fetch_role(user_id, application_id):
         if roles == 0:
             return Role.owner
         else:
-            return None
+            return Role.viewer
     else:
         return role.role
 
 
 def auth_required(fn):
-    def check_role(user_id, application_id, method):
-        role = fetch_role(user_id, application_id)
-        if role is None:
-            return False
-        if method == 'GET':
-            return True
-        elif role == Role.editor or role == Role.owner:
-                return True
-        return False
-
     @wraps(fn)
     def wrapper(*args, **kwargs):
         if auth.is_enabled() and request.path.startswith('/api/') and not request.path.startswith('/api/settings') and not request.path.startswith('/api/kubernetes/dump'):
@@ -131,7 +121,7 @@ def auth_required(fn):
                 application_id = kwargs.get('application_id')
                 if application_id is not None:
                     user_id = get_jwt_identity()
-                    if not check_role(user_id, application_id, request.method):
+                    if request.method != 'GET' and fetch_role(user_id, application_id) == Role.viewer:
                         raise ApplicationUserRoleException
                 return fn(*args, **kwargs)
             return run()
