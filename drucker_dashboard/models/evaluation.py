@@ -2,9 +2,11 @@ import datetime
 from .dao import db
 from sqlalchemy import (
     Column, Integer, DateTime,
-    String, UniqueConstraint
+    String, UniqueConstraint,
+    ForeignKey
 )
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref
 
 
 class Evaluation(db.Model):
@@ -20,10 +22,13 @@ class Evaluation(db.Model):
 
     evaluation_id = Column(Integer, primary_key=True, autoincrement=True)
     checksum = Column(String(128), nullable=False)
-    application_id = Column(Integer, nullable=False)
+    application_id = Column(Integer, ForeignKey('applications.application_id', ondelete="CASCADE"), nullable=False)
     data_path = Column(String(512), nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
-    evaluation_result = relationship('EvaluationResult', backref='evaluations', lazy='select', innerjoin=True)
+
+    application = relationship(
+        'Application', innerjoin=True,
+        backref=backref("evaluations", cascade="all, delete-orphan", passive_deletes=True))
 
     @property
     def serialize(self):
