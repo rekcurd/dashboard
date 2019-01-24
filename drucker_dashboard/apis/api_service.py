@@ -3,7 +3,7 @@ import datetime
 from flask_restplus import Namespace, fields, Resource, reqparse
 
 from . import DatetimeToTimestamp
-from .api_kubernetes import update_dbs_kubernetes, switch_drucker_service_model_assignment
+from .api_kubernetes import get_kube_config_path, update_dbs_kubernetes, switch_drucker_service_model_assignment
 from drucker_dashboard.models import db, Kubernetes, Application, Service
 
 
@@ -148,7 +148,7 @@ class ApiApplicationIdServiceId(Resource):
                 Kubernetes.kubernetes_id == kubernetes_id).one_or_none()
             if kobj is None:
                 raise Exception("No such kubernetes_id.")
-            config_path = kobj.config_path
+            config_path = get_kube_config_path(kobj.config_path)
             from kubernetes import client, config
             config.load_kube_config(config_path)
 
