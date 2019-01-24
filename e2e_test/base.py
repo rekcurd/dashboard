@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+import uuid
 
 import numpy as np
 
@@ -26,6 +27,7 @@ from drucker_dashboard.server import create_app
 from drucker_dashboard.models import db, Kubernetes, Application, Service, Model
 from drucker_dashboard.logger import JsonSystemLogger
 from drucker_dashboard.drucker_dashboard_client import DruckerDashboardClient
+from drucker_dashboard.apis.api_kubernetes import get_kube_config_path
 
 
 def get_minikube_ip(profile):
@@ -158,7 +160,7 @@ class BaseTestCase(TestCase):
 
 def start_worker(config_path, namespace='development'):
     # Load configuration
-    k8s_config.load_kube_config(config_path)
+    k8s_config.load_kube_config(get_kube_config_path(config_path))
 
     # Deployment and Service
     try:
@@ -193,7 +195,7 @@ def start_worker(config_path, namespace='development'):
 
 def stop_worker(config_path, namespaces=('development', 'beta')):
     # Load configuration
-    k8s_config.load_kube_config(config_path)
+    k8s_config.load_kube_config(get_kube_config_path(config_path))
     body = k8s_client.V1DeleteOptions()
     core_v1 = k8s_client.CoreV1Api()
     app_v1 = k8s_client.AppsV1Api()
@@ -216,10 +218,11 @@ def stop_worker(config_path, namespaces=('development', 'beta')):
 
 def create_kube_obj(first=True, save=False):
     kube_setting = kube_setting1 if first else kube_setting2
-    config_path = tempfile.mkstemp()[1]
+    config_filename = uuid.uuid4().hex
+    config_path = get_kube_config_path(config_filename)
     shutil.copyfile(kube_setting.config_path, config_path)
     kobj = Kubernetes(description=kube_setting.description,
-                      config_path=config_path,
+                      config_path=config_filename,
                       dns_name=kube_setting.dns_name,
                       display_name=kube_setting.display_name,
                       db_mysql_host=kube_setting.db_mysql_host,
