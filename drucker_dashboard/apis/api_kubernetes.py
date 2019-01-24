@@ -1060,7 +1060,7 @@ class ApiKubernetesId(Resource):
             application_id = res.application_id
             db.session.query(Model).filter(Model.application_id == application_id).delete()
             db.session.query(Service).filter(Service.application_id == application_id).delete()
-            db.session.query(Application).filter(Application.application_id == application_id).delete()
+            db.session.delete(res)
         db.session.query(Kubernetes).filter(Kubernetes.kubernetes_id == kubernetes_id).delete()
         response_body = {"status": True, "message": "Success."}
         db.session.commit()

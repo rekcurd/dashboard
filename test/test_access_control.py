@@ -1,7 +1,7 @@
 from unittest.mock import patch, Mock
 
 from drucker_dashboard.protobuf import drucker_pb2
-from .base import BaseTestCase, create_app_obj, create_user_obj, create_application_user_role_obj
+from .base import BaseTestCase, create_app_obj, create_user_obj, create_application_user_role_obj, db, Application, ApplicationUserRole
 from drucker_dashboard.server import create_app
 from drucker_dashboard.models import Role
 
@@ -113,6 +113,17 @@ class ApiAccessControlTest(BaseTestCase):
 
         response = self.client.patch('/api/applications/{}'.format(aobj.application_id), headers=headers, data=data)
         self.assertEqual(200, response.status_code)
+
+    def test_delete_application(self):
+        aobj = create_app_obj()
+        uobj = create_user_obj(auth_id='test', user_name='TEST USER', save=True)
+        robj = create_application_user_role_obj(application_id=aobj.application_id, user_id=uobj.user_id, role=Role.owner)
+        self.assertIsNotNone(robj)
+
+        db.session.delete(aobj)
+        db.session.flush()
+        num = db.session.query(ApplicationUserRole).filter(ApplicationUserRole.application_id == aobj.application_id).count()
+        self.assertEqual(0, num)
 
     def test_get_users(self):
         token = self._get_token()

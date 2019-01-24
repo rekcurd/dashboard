@@ -84,8 +84,6 @@ class ApiEvaluation(Resource):
             return {"status": False, "message": "Not Found."}, 404
 
         eval_query.delete()
-        db.session.query(EvaluationResult)\
-            .filter(EvaluationResult.evaluation_id == evaluation_id).delete()
         db.session.commit()
         db.session.close()
 
