@@ -1,5 +1,20 @@
 # Change Log
 
+## [v0.4.5](https://github.com/rekcurd/drucker-dashboard/tree/v0.4.5) (2019-01-30)
+[Full Changelog](https://github.com/rekcurd/drucker-dashboard/compare/v0.4.4...v0.4.5)
+
+**Fixed bugs:**
+
+- \[Bug fix\] Fix kube config filepath [\#68](https://github.com/rekcurd/drucker-dashboard/pull/68) ([keigohtr](https://github.com/keigohtr))
+
+**Merged pull requests:**
+
+- \[Hotfix\] Request only when model switched [\#62](https://github.com/rekcurd/drucker-dashboard/pull/62) ([keigohtr](https://github.com/keigohtr))
+- Unittest py37 support [\#60](https://github.com/rekcurd/drucker-dashboard/pull/60) ([keigohtr](https://github.com/keigohtr))
+- Set default role to `Role.viewer` [\#58](https://github.com/rekcurd/drucker-dashboard/pull/58) ([keigohtr](https://github.com/keigohtr))
+- Add cascade deletion for application\_user\_roles [\#56](https://github.com/rekcurd/drucker-dashboard/pull/56) ([keigohtr](https://github.com/keigohtr))
+- implement API for EvaluationResult protocol [\#55](https://github.com/rekcurd/drucker-dashboard/pull/55) ([yuki-mt](https://github.com/yuki-mt))
+
 ## [v0.4.4](https://github.com/rekcurd/drucker-dashboard/tree/v0.4.4) (2019-01-15)
 [Full Changelog](https://github.com/rekcurd/drucker-dashboard/compare/v0.3.8...v0.4.4)
 

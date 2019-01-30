@@ -1,1 +1,1 @@
-__project__ = 'drucker_dashboard'
+__project__ = 'rekcurd_dashboard'
