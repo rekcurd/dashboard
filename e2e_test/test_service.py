@@ -12,7 +12,7 @@ from drucker_dashboard.drucker_dashboard_client import DruckerDashboardClient
 from drucker_client import DruckerWorkerClient
 from drucker_dashboard.models import db, Service
 from drucker_dashboard.logger import JsonSystemLogger
-from drucker_dashboard.apis.api_kubernetes import get_kube_config_path
+from drucker_dashboard.apis.api_kubernetes import get_full_config_path
 
 from e2e_test.base import BaseTestCase
 from e2e_test.base import WorkerConfiguration
@@ -108,7 +108,7 @@ class TestApiApplicationIdServiceId(BaseTestCase):
         namespace = sobj.service_level
 
         # Confirm each components exist -> no exception raises
-        k8s_config.load_kube_config(get_kube_config_path(kobj.config_path))
+        k8s_config.load_kube_config(get_full_config_path(kobj.config_path))
         apps_v1 = k8s_client.AppsV1Api()
         core_v1 = k8s_client.CoreV1Api()
         extensions_v1beta1 = k8s_client.ExtensionsV1beta1Api()
