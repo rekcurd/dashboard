@@ -4,6 +4,7 @@ from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 
 from drucker_dashboard.models import db, Kubernetes, Application, Service, Model
+from drucker_dashboard.apis.api_kubernetes import get_full_config_path
 
 from e2e_test.base import BaseTestCase
 from e2e_test.base import kube_setting2, create_kube_obj, create_app_obj, create_service_obj, create_model_obj
@@ -105,9 +106,10 @@ class TestApiKubernetesId(BaseTestCase):
         kobj = create_kube_obj(first=False, save=True)
         kubernetes_id = kobj.kubernetes_id
         update_entry = uuid.uuid4().hex
+        full_config_path = get_full_config_path(kobj.config_path)
         # Update some attributes via the PATCH method
         self.client.patch(f'/api/kubernetes/{kubernetes_id}',
-                          data={'file': (open(kobj.config_path, 'rb'), kobj.config_path),
+                          data={'file': (open(full_config_path, 'rb'), full_config_path),
                                 'dns_name': update_entry,
                                 'display_name': update_entry,
                                 'description': update_entry,
@@ -172,7 +174,7 @@ class TestApiKubernetesIdApplication(BaseTestCase):
     def test_post(self):
         # Create a kubernetes and retrieve its spec
         kobj = create_kube_obj()
-        k8s_config.load_kube_config(kobj.config_path)
+        k8s_config.load_kube_config(get_full_config_path(kobj.config_path))
 
         args = get_default_args()
         args['kubernetes_id'] = kobj.kubernetes_id
@@ -230,7 +232,7 @@ class TestApiKubernetesIdApplicationIdServices(BaseTestCase):
         args = get_default_args()
         del args['app_name']
         # Use client to check the deployment is created
-        k8s_config.load_kube_config(kobj.config_path)
+        k8s_config.load_kube_config(get_full_config_path(kobj.config_path))
         self.client.post(
             f'/api/kubernetes/{kobj.kubernetes_id}/applications/{aobj.application_id}/services',
             data=args)
@@ -262,7 +264,7 @@ class TestApiKubernetesIdApplicationIdServiceId(BaseTestCase):
         del args['app_name']
         del args['service_level']
         args['replicas_default'] = updated_replicas_default = 3
-        k8s_config.load_kube_config(kobj.config_path)
+        k8s_config.load_kube_config(get_full_config_path(kobj.config_path))
         self.client.patch(
             f'/api/kubernetes/{kobj.kubernetes_id}/applications/{aobj.application_id}/services/{sobj.service_id}',
             data=args)

@@ -266,6 +266,10 @@ kube_deploy_parser.add_argument('service_boot_script', type=str, default='start.
 kube_deploy_parser.add_argument('service_model_assignment', type=int, required=False, help='Model assignment when service boots.', location='form')
 
 
+def get_full_config_path(filename: str):
+    return f'{api.dashboard_config.DIR_KUBE_CONFIG}/{filename}'
+
+
 def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=None):
     """
     Update dbs of kubernetes entry.
@@ -277,9 +281,9 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
         Kubernetes.kubernetes_id == kubernetes_id).one_or_none()
     if kobj is None:
         raise Exception("No such kubernetes_id.")
-    config_path = kobj.config_path
+    full_config_path = get_full_config_path(kobj.config_path)
     from kubernetes import client, config
-    config.load_kube_config(config_path)
+    config.load_kube_config(full_config_path)
     v1 = client.ExtensionsV1beta1Api()
     ret = v1.list_ingress_for_all_namespaces(watch=False)
 
@@ -401,9 +405,9 @@ def create_or_update_drucker_on_kubernetes(
     db_mysql_dbname = kobj.db_mysql_dbname
     db_mysql_user = kobj.db_mysql_user
     db_mysql_password = kobj.db_mysql_password
-    config_path = kobj.config_path
+    full_config_path = get_full_config_path(kobj.config_path)
     from kubernetes import client, config
-    config.load_kube_config(config_path)
+    config.load_kube_config(full_config_path)
 
     pod_env = [
         client.V1EnvVar(
@@ -795,9 +799,9 @@ def switch_drucker_service_model_assignment(
     kubernetes_id = aobj.kubernetes_id
     if kubernetes_id is not None:
         kobj = db.session.query(Kubernetes).filter(Kubernetes.kubernetes_id == kubernetes_id).one()
-        config_path = kobj.config_path
+        full_config_path = get_full_config_path(kobj.config_path)
         from kubernetes import client, config
-        config.load_kube_config(config_path)
+        config.load_kube_config(full_config_path)
 
         apps_v1 = client.AppsV1Api()
         v1_deployment = apps_v1.read_namespaced_deployment(
@@ -826,9 +830,9 @@ def dump_drucker_on_kubernetes(
     if sobj is None:
         raise Exception("No such service_id.")
 
-    config_path = kobj.config_path
+    full_config_path = get_full_config_path(kobj.config_path)
     from kubernetes import client, config
-    config.load_kube_config(config_path)
+    config.load_kube_config(full_config_path)
     save_dir = pathlib.Path(api.dashboard_config.DIR_KUBE_CONFIG, kobj.display_name, aobj.application_name)
     save_dir.mkdir(parents=True, exist_ok=True)
     api_client = client.ApiClient()
@@ -929,7 +933,7 @@ class ApiKubernetes(Resource):
     def post(self):
         """add_kubernetes"""
         args = kube_file_parser.parse_args()
-        config_path = "{0}/{1}.config".format(api.dashboard_config.DIR_KUBE_CONFIG, uuid.uuid4().hex)
+        config_path = "{0}.config".format(uuid.uuid4().hex)
         dns_name = args['dns_name']
         display_name = args['display_name']
         if display_name is None:
@@ -955,12 +959,13 @@ class ApiKubernetes(Resource):
                              db_mysql_password=db_mysql_password)
         db.session.add(newkube)
         db.session.flush()
+        full_config_path = get_full_config_path(newkube.config_path)
         file = args['file']
-        file.save(newkube.config_path)
+        file.save(full_config_path)
 
         try:
             from kubernetes import client, config
-            config.load_kube_config(newkube.config_path)
+            config.load_kube_config(full_config_path)
             v1 = client.ExtensionsV1beta1Api()
             v1.list_ingress_for_all_namespaces(watch=False)
             update_dbs_kubernetes(newkube.kubernetes_id)
@@ -968,7 +973,7 @@ class ApiKubernetes(Resource):
             db.session.close()
             response_body = {"status": True, "message": "Success."}
         except Exception as error:
-            os.remove(newkube.config_path)
+            os.remove(full_config_path)
             raise error
         return response_body
 
@@ -1035,20 +1040,21 @@ class ApiKubernetesId(Resource):
         kobj.db_mysql_user = db_mysql_user
         kobj.db_mysql_password = db_mysql_password
 
-        config_path = "{0}/{1}".format(api.dashboard_config.DIR_KUBE_CONFIG, uuid.uuid4().hex)
-        file.save(config_path)
+        tmp_full_config_path = get_full_config_path(uuid.uuid4().hex)
+        file.save(tmp_full_config_path)
         try:
             from kubernetes import client, config
-            config.load_kube_config(config_path)
+            config.load_kube_config(tmp_full_config_path)
             v1 = client.ExtensionsV1beta1Api()
             v1.list_ingress_for_all_namespaces(watch=False)
-            os.remove(kobj.config_path)
-            shutil.move(config_path, kobj.config_path)
+            full_config_path = get_full_config_path(kobj.config_path)
+            os.remove(full_config_path)
+            shutil.move(tmp_full_config_path, full_config_path)
             response_body = {"status": True, "message": "Success."}
             db.session.commit()
             db.session.close()
         except Exception as error:
-            os.remove(config_path)
+            os.remove(tmp_full_config_path)
             raise error
         return response_body
 
@@ -1168,9 +1174,9 @@ class ApiKubernetesIdApplicationIdServiceId(Resource):
         kobj = Kubernetes.query.filter_by(kubernetes_id=kubernetes_id).one_or_none()
         if kobj is None:
             raise Exception("No such kubernetes_id.")
-        config_path = kobj.config_path
+        full_config_path = get_full_config_path(kobj.config_path)
         from kubernetes import client, config
-        config.load_kube_config(config_path)
+        config.load_kube_config(full_config_path)
 
         apps_v1 = client.AppsV1Api()
         v1_deployment = apps_v1.read_namespaced_deployment(
