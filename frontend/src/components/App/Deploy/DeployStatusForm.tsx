@@ -190,6 +190,7 @@ interface StateProps {
   switchModelsStatus: APIRequest<boolean[]>
   initialValues: {
     status
+    switch
     delete
   }
 }
@@ -205,6 +206,7 @@ const mapStateToProps = (state: any, extraProps: DeployStatusFormCustomProps) =>
     ...state.form,
     initialValues: {
       status: extraProps.deployStatus,
+      switch: extraProps.deployStatus,
       delete: {
         services: initialDeleteStatus
       }

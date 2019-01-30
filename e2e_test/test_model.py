@@ -3,10 +3,10 @@ from kubernetes.stream import stream
 
 from drucker_dashboard.models import db, Model
 
-from drucker_dashboard.e2e_test.base import BaseTestCase
-from drucker_dashboard.e2e_test.base import kube_setting1, WorkerConfiguration
-from drucker_dashboard.e2e_test.base import create_kube_obj, create_app_obj, create_model_obj, create_service_obj
-from drucker_dashboard.e2e_test.base import POSITIVE_MODEL_PATH
+from e2e_test.base import BaseTestCase
+from e2e_test.base import kube_setting1, WorkerConfiguration
+from e2e_test.base import create_kube_obj, create_app_obj, create_model_obj, create_service_obj
+from e2e_test.base import POSITIVE_MODEL_PATH
 
 
 

@@ -2,11 +2,13 @@ import uuid
 
 from kubernetes import client as k8s_client, config as k8s_config
 
-from drucker_dashboard.e2e_test.base import BaseTestCase
-from drucker_dashboard.e2e_test.base import create_kube_obj
-from drucker_dashboard.e2e_test.base import WorkerConfiguration
-from drucker_dashboard.e2e_test.base import kube_setting1
+from e2e_test.base import BaseTestCase
+from e2e_test.base import create_kube_obj
+from e2e_test.base import WorkerConfiguration
+from e2e_test.base import kube_setting1
 from drucker_dashboard.models import db, Application
+from drucker_dashboard.apis.api_kubernetes import get_full_config_path
+
 
 class TestApiEvaluate(BaseTestCase):
 
@@ -19,7 +21,7 @@ class TestApiWorker(BaseTestCase):
 
     def test_post(self):
         kobj = create_kube_obj()
-        k8s_config.load_kube_config(kobj.config_path)
+        k8s_config.load_kube_config(get_full_config_path(kobj.config_path))
         core_v1 = k8s_client.CoreV1Api()
         k8s_service = core_v1.read_namespaced_service(
             name=WorkerConfiguration.service['metadata']['name'],

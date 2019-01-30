@@ -38,7 +38,7 @@ def check_owner_role(fn):
         user_id = get_jwt_identity()
         application_id = kwargs.get('application_id')
         role = fetch_role(application_id, user_id)
-        if role is not None and role == Role.owner:
+        if role == Role.owner:
             return fn(*args, **kwargs)
         else:
             raise ApplicationUserRoleException

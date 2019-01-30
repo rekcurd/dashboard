@@ -1,9 +1,12 @@
 import datetime
+import json
 from .dao import db
 from sqlalchemy import (
     Column, Integer, DateTime, Text,
     UniqueConstraint, ForeignKey, String
 )
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref
 
 
 class EvaluationResult(db.Model):
@@ -19,9 +22,27 @@ class EvaluationResult(db.Model):
     evaluation_result_id = Column(Integer, primary_key=True, autoincrement=True)
     model_id = Column(Integer, nullable=False)
     data_path = Column(String(512), nullable=False)
-    evaluation_id = Column(Integer, ForeignKey('evaluations.evaluation_id'), nullable=False)
-    result = Column(Text, nullable=False)
+    evaluation_id = Column(Integer, ForeignKey('evaluations.evaluation_id', ondelete="CASCADE"), nullable=False)
+    _result = Column(Text, nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    evaluations = relationship(
+        'Evaluation', lazy='select', innerjoin=True,
+        backref=backref("evaluation_results", cascade="all, delete-orphan", passive_deletes=True))
+
+    @property
+    def result(self):
+        res = json.loads(self._result)
+        res['result_id'] = self.evaluation_result_id
+        return res
+
+    @result.setter
+    def result(self, value):
+        if isinstance(value, dict):
+            res = json.dumps(value)
+        else:
+            res = value
+        self._result = res
 
     @property
     def serialize(self):

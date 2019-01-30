@@ -12,12 +12,13 @@ from drucker_dashboard.drucker_dashboard_client import DruckerDashboardClient
 from drucker_client import DruckerWorkerClient
 from drucker_dashboard.models import db, Service
 from drucker_dashboard.logger import JsonSystemLogger
+from drucker_dashboard.apis.api_kubernetes import get_full_config_path
 
-from drucker_dashboard.e2e_test.base import BaseTestCase
-from drucker_dashboard.e2e_test.base import WorkerConfiguration
-from drucker_dashboard.e2e_test.base import kube_setting1
-from drucker_dashboard.e2e_test.base import create_kube_obj, create_app_obj, create_service_obj, create_model_obj
-from drucker_dashboard.e2e_test.base import NEGATIVE_MODEL_PATH, POSITIVE_MODEL_PATH
+from e2e_test.base import BaseTestCase
+from e2e_test.base import WorkerConfiguration
+from e2e_test.base import kube_setting1
+from e2e_test.base import create_kube_obj, create_app_obj, create_service_obj, create_model_obj
+from e2e_test.base import NEGATIVE_MODEL_PATH, POSITIVE_MODEL_PATH
 
 
 class TestApiApplicationIdServices(BaseTestCase):
@@ -107,7 +108,7 @@ class TestApiApplicationIdServiceId(BaseTestCase):
         namespace = sobj.service_level
 
         # Confirm each components exist -> no exception raises
-        k8s_config.load_kube_config(kobj.config_path)
+        k8s_config.load_kube_config(get_full_config_path(kobj.config_path))
         apps_v1 = k8s_client.AppsV1Api()
         core_v1 = k8s_client.CoreV1Api()
         extensions_v1beta1 = k8s_client.ExtensionsV1beta1Api()
