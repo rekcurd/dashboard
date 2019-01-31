@@ -1,4 +1,4 @@
-# Drucker dashboard backend
+# Rekcurd dashboard backend
 ## Edit settings.yml
 ```
 $ vi settings.yml

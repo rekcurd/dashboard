@@ -63,7 +63,7 @@ class TestApiApplicationIdServiceId(BaseTestCase):
         host = f'{kube_setting1.ip}:{k8s_service.spec.ports[0].node_port}'
         sobj.host = host
         self.wait_worker_ready(host)
-        logger = JsonSystemLogger('Drucker dashboard test', log_level=logging.CRITICAL)
+        logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
         # Upload models
         dashboard_client = DruckerDashboardClient(logger=logger, host=host)
         dashboard_client.run_upload_model(model_path=positive_model.model_path,

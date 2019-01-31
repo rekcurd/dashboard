@@ -1,5 +1,5 @@
 # How to use
-After booting Rekcurd dashboard, you can manage your [Rekcurdize](https://github.com/rekcurd/drucker) ML service on it. If you have a Kubernetes, it can deploy your service to Kubernetes.
+After booting Rekcurd dashboard, you can manage your [Rekcurdize](https://github.com/rekcurd/python-rekcurd) ML service on it. If you have a Kubernetes, it can deploy your service to Kubernetes.
 
 
 ## Top
@@ -37,7 +37,7 @@ The fields you may fill is below.
 ## Deploy application
 <img src="./img/application-deploy.png" width="480">
 
-Access `localhost:8080/applications/add`, and you can deploy your [Rekcurdize](https://github.com/rekcurd/drucker) ML service to Kubernetes cluster. If you do not use Kubernetes, you can add the existing [Rekcurdize](https://github.com/rekcurd/drucker) ML service under Rekcurd dashboard.
+Access `localhost:8080/applications/add`, and you can deploy your [Rekcurdize](https://github.com/rekcurd/python-rekcurd) ML service to Kubernetes cluster. If you do not use Kubernetes, you can add the existing [Rekcurdize](https://github.com/rekcurd/python-rekcurd) ML service under Rekcurd dashboard.
 
 |Category |Field |Description |
 |:---|:---|:---|
@@ -79,7 +79,7 @@ In the body, `Add Model` is the function of [uploading ML model](#upload-ml-mode
 ## Service details
 <img src="./img/service-top.png" width="480">
 
-This page lists all existing services. You can [edit service configurations](#edit-service-configurations) by clicking the service name. You will find the access point of its Rekcurd ML service on `Host`. It is convenient to use [Rekcurd client](https://github.com/rekcurd/drucker-client) which is a kind of SDK for all Rekcurd services.
+This page lists all existing services. You can [edit service configurations](#edit-service-configurations) by clicking the service name. You will find the access point of its Rekcurd ML service on `Host`. It is convenient to use [Rekcurd client](https://github.com/rekcurd/python-client) which is a kind of SDK for all Rekcurd services.
 
 
 ## Edit service configurations

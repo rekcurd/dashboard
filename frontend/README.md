@@ -1,4 +1,4 @@
-# Drucker dashboard frontend
+# Rekcurd dashboard frontend
 ## Run it!
 ```bash
 $ cd frontend

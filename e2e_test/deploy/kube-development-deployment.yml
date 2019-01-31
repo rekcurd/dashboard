@@ -46,7 +46,7 @@ spec:
         - name: DRUCKER_SERVICE_ENV
           value: development
         - name: DRUCKER_SERVICE_GIT_URL
-          value: https://github.com/drucker/drucker-example.git
+          value: https://github.com/rekcurd/rekcurd-example.git
         - name: DRUCKER_SERVICE_GIT_BRANCH
           value: master
         - name: DRUCKER_SERVICE_BOOT_SHELL
@@ -55,7 +55,7 @@ spec:
           value: /mnt/drucker-model
         - name: DRUCKER_SERVICE_NAME
           value: drucker-test-app-development-20180628151929
-        image: druckerorg/drucker:python-latest
+        image: rekcurd/rekcurd:python-latest
         imagePullPolicy: Always
         name: drucker-test-app-development-20180628151929
         ports:

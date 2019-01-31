@@ -14,5 +14,5 @@ RUN set -x && \
 ENV PATH /usr/local/src/python-3.6.5/bin:$PATH
 
 RUN pip install --upgrade pip
-RUN mkdir /root/drucker-dashboard
-WORKDIR /root/drucker-dashboard
+RUN mkdir /root/dashboard
+WORKDIR /root/dashboard

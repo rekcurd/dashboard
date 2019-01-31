@@ -11,5 +11,5 @@ RUN curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | \
     yum install -y yarn | true
 ENV LANG=en_US.UTF-8
 
-RUN mkdir /root/drucker-dashboard
-WORKDIR /root/drucker-dashboard
+RUN mkdir /root/dashboard
+WORKDIR /root/dashboard

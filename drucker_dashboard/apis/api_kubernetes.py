@@ -175,7 +175,7 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     'service_git_url': fields.String(
         required=True,
         description='Git repository.',
-        example='git@github.com:drucker/drucker-example.git'
+        example='git@github.com:rekcurd/rekcurd-example.git'
     ),
     'service_git_branch': fields.String(
         required=True,

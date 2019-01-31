@@ -35,7 +35,7 @@ const devConfig = {
     }),
     new HtmlWebpackPlugin({
       filename: 'index.html',
-      title: 'drucker-dashboard-frontend-dev',
+      title: 'dashboard-frontend-dev',
       template: `${src}/index.html`,
     }),
   ]

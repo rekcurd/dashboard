@@ -37,9 +37,9 @@ def create_parser():
     parser.add_argument(
         '--version', '-v', action='version', version=_version.__version__)
     parser.add_argument(
-        '--settings', required=True, help='settings YAML. See https://github.com/rekcurd/drucker-dashboard/blob/master/drucker_dashboard/settings.yml')
+        '--settings', required=True, help='settings YAML. See https://github.com/rekcurd/dashboard/blob/master/drucker_dashboard/settings.yml')
     parser.add_argument(
-        '--logger', required=False, help='Python file of your custom logger. Need to inherit "logger_interface.py". See https://github.com/rekcurd/drucker-dashboard/blob/master/drucker_dashboard/logger/logger_interface.py', default=None)
+        '--logger', required=False, help='Python file of your custom logger. Need to inherit "logger_interface.py". See https://github.com/rekcurd/dashboard/blob/master/drucker_dashboard/logger/logger_interface.py', default=None)
     subparsers = parser.add_subparsers()
 
     # server

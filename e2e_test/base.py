@@ -148,7 +148,7 @@ class BaseTestCase(TestCase):
         timeout = int(self.START_TIMEOUT)
         while timeout > 0:
             print (f'Remaining trial: {timeout}')
-            logger = JsonSystemLogger('Drucker dashboard test', log_level=logging.CRITICAL)
+            logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
             dashboard_client = DruckerDashboardClient(logger=logger, host=host)
             info = dashboard_client.run_service_info()
             if 'status' not in info:

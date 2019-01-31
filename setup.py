@@ -65,7 +65,7 @@ setup(
     author_email="",
     author="Drucker team and contributors",
     license="Apache License Version 2.0",
-    url="https://github.com/rekcurd/drucker-dashboard",
+    url="https://github.com/rekcurd/dashboard",
     keywords=["Drucker", "Rekcurd", "Kubernetes", "Python", "gRPC", "Restful"],
     install_requires=REQUIRES,
     tests_require=TESTS_REQUIRES,

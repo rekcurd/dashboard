@@ -2,12 +2,12 @@ version: '3.3'
 
 services:
   dashboard-frontend-dev:
-    container_name: drucker-dashboard-frontend-dev
+    container_name: dashboard-frontend-dev
     build:
       context: ..
       dockerfile: ./frontend/Dockerfile
     volumes:
-      - ../:/root/drucker-dashboard
+      - ../:/root/dashboard
     environment:
       API_HOST: ${API_HOST:-http://localhost}
       API_PORT: 18080
@@ -20,12 +20,12 @@ services:
     ports:
       - "8080:8080"
   dashboard-backend-dev:
-    container_name: drucker-dashboard-backend-dev
+    container_name: dashboard-backend-dev
     build:
       context: ..
       dockerfile: ./drucker_dashboard/Dockerfile
     volumes:
-      - ../:/root/drucker-dashboard
+      - ../:/root/dashboard
     environment:
       FLASK_DEBUG: "True"
       PYTHONIOENCODING: "utf-8"

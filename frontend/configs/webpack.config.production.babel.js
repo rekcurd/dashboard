@@ -26,7 +26,7 @@ const prodConfig = {
     }),
     new HtmlWebpackPlugin({
       filename: 'index.html',
-      title: 'drucker-dashboard-frontend',
+      title: 'dashboard-frontend',
       template: `${src}/index.html`,
     })
   ],
