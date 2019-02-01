@@ -1,5 +1,5 @@
 # How to use
-After booting Rekcurd dashboard, you can manage your [Rekcurdize](https://github.com/rekcurd/python-rekcurd) ML service on it. If you have a Kubernetes, it can deploy your service to Kubernetes.
+After booting Rekcurd dashboard, you can manage your [Rekcurdize](https://github.com/rekcurd/rekcurd-python) ML service on it. If you have a Kubernetes, it can deploy your service to Kubernetes.
 
 
 ## Top
@@ -37,7 +37,7 @@ The fields you may fill is below.
 ## Deploy application
 <img src="./img/application-deploy.png" width="480">
 
-Access `localhost:8080/applications/add`, and you can deploy your [Rekcurdize](https://github.com/rekcurd/python-rekcurd) ML service to Kubernetes cluster. If you do not use Kubernetes, you can add the existing [Rekcurdize](https://github.com/rekcurd/python-rekcurd) ML service under Rekcurd dashboard.
+Access `localhost:8080/applications/add`, and you can deploy your [Rekcurdize](https://github.com/rekcurd/rekcurd-python) ML service to Kubernetes cluster. If you do not use Kubernetes, you can add the existing [Rekcurdize](https://github.com/rekcurd/rekcurd-python) ML service under Rekcurd dashboard.
 
 |Category |Field |Description |
 |:---|:---|:---|
