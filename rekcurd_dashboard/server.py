@@ -7,10 +7,10 @@ import types
 from flask import Flask, render_template
 from flask_cors import CORS
 
-from drucker_dashboard.utils import DruckerDashboardConfig
-from drucker_dashboard.models import db
-from drucker_dashboard.apis import api
-from drucker_dashboard.auth import auth
+from rekcurd_dashboard.utils import RekcurdDashboardConfig
+from rekcurd_dashboard.models import db
+from rekcurd_dashboard.apis import api
+from rekcurd_dashboard.auth import auth
 
 
 def create_app(config_file: str = "settings.yml", logger_file: str = None):
@@ -27,7 +27,7 @@ def create_app(config_file: str = "settings.yml", logger_file: str = None):
         return render_template('index.html')
 
     # load configurations
-    config = DruckerDashboardConfig(config_file)
+    config = RekcurdDashboardConfig(config_file)
     if not os.path.isdir(config.DIR_KUBE_CONFIG):
         os.makedirs(config.DIR_KUBE_CONFIG)
 
@@ -47,7 +47,7 @@ def create_app(config_file: str = "settings.yml", logger_file: str = None):
         logger = l.__dict__.get("logger")
         logger.info("Use custom logger.")
     except Exception as e:
-        from drucker_dashboard.logger import logger
+        from rekcurd_dashboard.logger import logger
         logger.info(str(e))
         logger.info("Invalid logger.")
         logger.info("Use default logger.")

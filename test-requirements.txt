@@ -4,7 +4,7 @@ pytest
 py>=1.4.31
 codecov>=1.4.0
 grpcio-testing>=1.13.0
-rekcurd-client>=0.4.0,<0.5.0
+rekcurd-client>=0.5.0.a0,<0.6.0
 numpy>=1.14.3
 scikit-learn>=0.19.1
 scipy>=1.1.0

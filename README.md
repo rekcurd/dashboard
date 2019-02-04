@@ -44,7 +44,7 @@ $ pip install rekcurd-dashboard
 
 ## How to boot
 ### Preparation
-You need to create [`settings.yml`](./drucker_dashboard/settings.yml).
+You need to create [`settings.yml`](rekcurd_dashboard/settings.yml).
 
 ### General users
 Launched on `http://0.0.0.0:18080` as a default.

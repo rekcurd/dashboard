@@ -63,9 +63,9 @@ configure_cluster () {
 }
 
 # Run test minikube clusters
-configure_cluster drucker-test1
+configure_cluster rekcurd-test1
 kubectl config view --flatten --minify > ${KUBE_CONFIG_PATH1:-/tmp/kube-config-path1}
-export KUBE_IP1=$(minikube ip -p drucker-test1)
+export KUBE_IP1=$(minikube ip -p rekcurd-test1)
 
 
 # Done

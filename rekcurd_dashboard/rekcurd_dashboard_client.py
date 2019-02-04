@@ -6,7 +6,7 @@
 import traceback, types
 import grpc
 
-from .protobuf import drucker_pb2, drucker_pb2_grpc
+from .protobuf import rekcurd_pb2, rekcurd_pb2_grpc
 
 from .logger.logger_interface import SystemLoggerInterface
 from .utils.protobuf_util import ProtobufUtil
@@ -42,7 +42,7 @@ def error_handling(error_response):
     return _wrapper_maker
 
 
-class DruckerDashboardClient:
+class RekcurdDashboardClient:
     def __init__(self, logger:SystemLoggerInterface, host:str=None, domain:str=None, app:str=None, env:str=None, version:int=None):
         self.logger = logger
         self.stub = None
@@ -50,9 +50,9 @@ class DruckerDashboardClient:
             raise RuntimeError("You must specify host or domain+app+env.")
 
         if version is None:
-            v_str = drucker_pb2.DESCRIPTOR.GetOptions().Extensions[drucker_pb2.drucker_grpc_proto_version]
+            v_str = rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version]
         else:
-            v_str = drucker_pb2.EnumVersionInfo.Name(version)
+            v_str = rekcurd_pb2.EnumVersionInfo.Name(version)
 
         if host is None:
             self.__change_domain_app_env(domain, app, env, v_str)
@@ -78,11 +78,11 @@ class DruckerDashboardClient:
 
     def __change_host(self, host:str):
         channel = grpc.insecure_channel(host)
-        self.stub = drucker_pb2_grpc.DruckerDashboardStub(channel)
+        self.stub = rekcurd_pb2_grpc.RekcurdDashboardStub(channel)
 
     @error_handling({"status": False})
     def run_service_info(self):
-        request = drucker_pb2.ServiceInfoRequest()
+        request = rekcurd_pb2.ServiceInfoRequest()
         response_protobuf = self.stub.ServiceInfo(request)
         response = protobuf_to_dict(response_protobuf,
                                     including_default_value_fields=True)
@@ -90,7 +90,7 @@ class DruckerDashboardClient:
 
     def __upload_model_request(self, model_path:str, f:FileStorage):
         for data in ProtobufUtil.stream_file(f):
-            request = drucker_pb2.UploadModelRequest(
+            request = rekcurd_pb2.UploadModelRequest(
                 path=model_path,
                 data=data
             )
@@ -108,7 +108,7 @@ class DruckerDashboardClient:
 
     @error_handling({"status": False})
     def run_switch_service_model_assignment(self, model_path:str):
-        request = drucker_pb2.SwitchModelRequest(
+        request = rekcurd_pb2.SwitchModelRequest(
             path=model_path,
         )
         response_protobuf = self.stub.SwitchModel(request)
@@ -120,7 +120,7 @@ class DruckerDashboardClient:
 
     @error_handling({"status": False})
     def run_evaluate_model(self, data_path:str, result_path:str):
-        request_iterator = iter([drucker_pb2.EvaluateModelRequest(data_path=data_path, result_path=result_path)])
+        request_iterator = iter([rekcurd_pb2.EvaluateModelRequest(data_path=data_path, result_path=result_path)])
         response = protobuf_to_dict(self.stub.EvaluateModel(request_iterator).metrics,
                                     including_default_value_fields=True)
         response['status'] = True
@@ -128,7 +128,7 @@ class DruckerDashboardClient:
 
     def __upload_eval_data_request(self, f:FileStorage, data_path:str):
         for data in ProtobufUtil.stream_file(f):
-            request = drucker_pb2.UploadEvaluationDataRequest(data=data, data_path=data_path)
+            request = rekcurd_pb2.UploadEvaluationDataRequest(data=data, data_path=data_path)
             yield request
 
     @error_handling({"status": False})
@@ -138,7 +138,7 @@ class DruckerDashboardClient:
                                     including_default_value_fields=True)
         return response
 
-    def __get_value_from_io(self, io:drucker_pb2.IO):
+    def __get_value_from_io(self, io:rekcurd_pb2.IO):
         if io.WhichOneof('io_oneof') == 'str':
             val = io.str.val
         else:
@@ -151,7 +151,7 @@ class DruckerDashboardClient:
 
     @error_handling({"status": False})
     def run_evaluation_data(self, data_path:str, result_path:str):
-        request = drucker_pb2.EvaluationResultRequest(data_path=data_path, result_path=result_path)
+        request = rekcurd_pb2.EvaluationResultRequest(data_path=data_path, result_path=result_path)
         for raw_response in self.stub.EvaluationResult(request):
             details = []
             for detail in raw_response.detail:

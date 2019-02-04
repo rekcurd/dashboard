@@ -23,11 +23,11 @@ from kubernetes import config as k8s_config
 
 import yaml
 
-from drucker_dashboard.server import create_app
-from drucker_dashboard.models import db, Kubernetes, Application, Service, Model
-from drucker_dashboard.logger import JsonSystemLogger
-from drucker_dashboard.drucker_dashboard_client import DruckerDashboardClient
-from drucker_dashboard.apis.api_kubernetes import get_full_config_path
+from rekcurd_dashboard.server import create_app
+from rekcurd_dashboard.models import db, Kubernetes, Application, Service, Model
+from rekcurd_dashboard.logger import JsonSystemLogger
+from rekcurd_dashboard.rekcurd_dashboard_client import RekcurdDashboardClient
+from rekcurd_dashboard.apis.api_kubernetes import get_full_config_path
 
 
 def get_minikube_ip(profile):
@@ -48,31 +48,31 @@ worker_container = WorkerConfiguration.deployment['spec']['template']['spec']['c
 worker_env = {env['name']: env['value'] for env in worker_container['env']}
 
 KubeSetting = namedtuple('KubeSetting', 'display_name description config_path dns_name ip db_mysql_host db_mysql_port db_mysql_dbname db_mysql_user db_mysql_password host_model_dir pod_model_dir')
-drucker_test1_ip = os.getenv('KUBE_IP1', get_minikube_ip('drucker-test1')).strip()
-kube_setting1 = KubeSetting(display_name='drucker-test-kube-1',
+rekcurd_test1_ip = os.getenv('KUBE_IP1', get_minikube_ip('rekcurd-test1')).strip()
+kube_setting1 = KubeSetting(display_name='rekcurd-test-kube-1',
                             description='Description 1',
                             config_path=os.getenv('KUBE_CONFIG_PATH1', '/tmp/kube-config-path1'),
                             dns_name='test-dns-1',
-                            ip=drucker_test1_ip,
+                            ip=rekcurd_test1_ip,
                             db_mysql_host='localhost',
                             db_mysql_port='3306',
-                            db_mysql_dbname='drucker',
+                            db_mysql_dbname='rekcurd',
                             db_mysql_user='root',
                             db_mysql_password='root',
                             host_model_dir=WorkerConfiguration.deployment['spec']['template']['spec']['volumes'][0]['hostPath']['path'],
-                            pod_model_dir=worker_env['DRUCKER_SERVICE_MODEL_DIR'])
-kube_setting2 = KubeSetting(display_name='drucker-test-kube-2',
+                            pod_model_dir=worker_env['REKCURD_SERVICE_MODEL_DIR'])
+kube_setting2 = KubeSetting(display_name='rekcurd-test-kube-2',
                             description='Description 2',
                             config_path=os.getenv('KUBE_CONFIG_PATH1', '/tmp/kube-config-path1'),
                             dns_name='test-dns-2',
-                            ip=drucker_test1_ip,
+                            ip=rekcurd_test1_ip,
                             db_mysql_host='localhost',
                             db_mysql_port='3306',
-                            db_mysql_dbname='drucker',
+                            db_mysql_dbname='rekcurd',
                             db_mysql_user='root',
                             db_mysql_password='root',
                             host_model_dir=WorkerConfiguration.deployment['spec']['template']['spec']['volumes'][0]['hostPath']['path'],
-                            pod_model_dir=worker_env['DRUCKER_SERVICE_MODEL_DIR'])
+                            pod_model_dir=worker_env['REKCURD_SERVICE_MODEL_DIR'])
 
 POSITIVE_MODEL_PATH = pathlib.Path(__file__).parent.joinpath('test-models').joinpath('positive.pkl')
 NEGATIVE_MODEL_PATH = pathlib.Path(__file__).parent.joinpath('test-models').joinpath('negative.pkl')
@@ -149,7 +149,7 @@ class BaseTestCase(TestCase):
         while timeout > 0:
             print (f'Remaining trial: {timeout}')
             logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
-            dashboard_client = DruckerDashboardClient(logger=logger, host=host)
+            dashboard_client = RekcurdDashboardClient(logger=logger, host=host)
             info = dashboard_client.run_service_info()
             if 'status' not in info:
                 break

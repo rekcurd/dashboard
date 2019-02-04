@@ -2,9 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: drucker-test-app
-    sel: drucker-test-app-development-20180628151929
-  name: drucker-test-app-development-20180628151929-deployment
+    app: rekcurd-test-app
+    sel: rekcurd-test-app-development-20180628151929
+  name: rekcurd-test-app-development-20180628151929-deployment
   namespace: development
 spec:
   minReadySeconds: 300
@@ -12,7 +12,7 @@ spec:
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      sel: drucker-test-app-development-20180628151929
+      sel: rekcurd-test-app-development-20180628151929
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -21,8 +21,8 @@ spec:
   template:
     metadata:
       labels:
-        app: drucker-test-app
-        sel: drucker-test-app-development-20180628151929
+        app: rekcurd-test-app
+        sel: rekcurd-test-app-development-20180628151929
     spec:
       affinity:
         podAntiAffinity:
@@ -33,7 +33,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - drucker-test-app-development-20180628151929
+                  - rekcurd-test-app-development-20180628151929
               topologyKey: kubernetes.io/hostname
             weight: 100
       containers:
@@ -41,23 +41,23 @@ spec:
         - sh
         - /usr/local/src/entrypoint.sh
         env:
-        - name: DRUCKER_SERVICE_UPDATE_FLAG
+        - name: REKCURD_SERVICE_UPDATE_FLAG
           value: Edit here to run rolling update
-        - name: DRUCKER_SERVICE_ENV
+        - name: REKCURD_SERVICE_ENV
           value: development
-        - name: DRUCKER_SERVICE_GIT_URL
+        - name: REKCURD_SERVICE_GIT_URL
           value: https://github.com/rekcurd/rekcurd-example.git
-        - name: DRUCKER_SERVICE_GIT_BRANCH
+        - name: REKCURD_SERVICE_GIT_BRANCH
           value: master
-        - name: DRUCKER_SERVICE_BOOT_SHELL
+        - name: REKCURD_SERVICE_BOOT_SHELL
           value: start.sh
-        - name: DRUCKER_SERVICE_MODEL_DIR
-          value: /mnt/drucker-model
-        - name: DRUCKER_SERVICE_NAME
-          value: drucker-test-app-development-20180628151929
+        - name: REKCURD_SERVICE_MODEL_DIR
+          value: /mnt/rekcurd-model
+        - name: REKCURD_SERVICE_NAME
+          value: rekcurd-test-app-development-20180628151929
         image: rekcurd/rekcurd:python-latest
         imagePullPolicy: Always
-        name: drucker-test-app-development-20180628151929
+        name: rekcurd-test-app-development-20180628151929
         ports:
         - containerPort: 5000
         resources:
@@ -70,11 +70,11 @@ spec:
         securityContext:
           privileged: true
         volumeMounts:
-        - mountPath: /mnt/drucker-model
+        - mountPath: /mnt/rekcurd-model
           name: host-volume
       nodeSelector:
         host: development
       volumes:
       - hostPath:
-          path: /mnt/drucker-model
+          path: /mnt/rekcurd-model
         name: host-volume

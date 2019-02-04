@@ -3,8 +3,8 @@ import datetime
 from flask_restplus import Namespace, fields, Resource, reqparse
 
 from . import DatetimeToTimestamp
-from .api_kubernetes import get_full_config_path, update_dbs_kubernetes, switch_drucker_service_model_assignment
-from drucker_dashboard.models import db, Kubernetes, Application, Service
+from .api_kubernetes import get_full_config_path, update_dbs_kubernetes, switch_rekcurd_service_model_assignment
+from rekcurd_dashboard.models import db, Kubernetes, Application, Service
 
 
 srv_info_namespace = Namespace('services', description='Service Endpoint.')
@@ -24,7 +24,7 @@ srv_info = srv_info_namespace.model('Service', {
     'service_name': fields.String(
         required=True,
         description='Service tag.',
-        example='drucker-sample-development-123456789'
+        example='rekcurd-sample-development-123456789'
     ),
     'display_name': fields.String(
         required=True,
@@ -59,7 +59,7 @@ srv_info = srv_info_namespace.model('Service', {
     'host': fields.String(
         required=False,
         description='host.',
-        example='drucker-sample.example.com'
+        example='rekcurd-sample.example.com'
     ),
     'description': fields.String(
         required=False,
@@ -98,7 +98,7 @@ class ApiApplicationIdServiceId(Resource):
         """switch_service_model_assignment"""
         args = self.switch_model_parser.parse_args()
         model_id = args['model_id']
-        response_body = switch_drucker_service_model_assignment(
+        response_body = switch_rekcurd_service_model_assignment(
             application_id, service_id, model_id)
         db.session.commit()
         db.session.close()

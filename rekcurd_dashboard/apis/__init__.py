@@ -7,11 +7,11 @@ from flask_restplus import Api
 from flask_restplus.utils import default_id
 from kubernetes.client.rest import ApiException
 
-from drucker_dashboard.auth import auth_required
-from drucker_dashboard.models import db
+from rekcurd_dashboard.auth import auth_required
+from rekcurd_dashboard.models import db
 
 
-class DruckerDashboardApi(Api):
+class RekcurdDashboardApi(Api):
     def __init__(self, app=None, version='1.0', title=None, description=None,
                  terms_url=None, license=None, license_url=None,
                  contact=None, contact_url=None, contact_email=None,
@@ -39,7 +39,7 @@ class DruckerDashboardApi(Api):
         self.logger = kwargs.get('logger')
 
 
-api = DruckerDashboardApi(
+api = RekcurdDashboardApi(
     version='1.0',
     title='Rekcurd dashboard API',
     description='Rekcurd dashboard API',

@@ -1,4 +1,4 @@
 import os
 
 
-os.environ['DRUCKER_TEST_MODE'] = 'true'
+os.environ['REKCURD_TEST_MODE'] = 'true'

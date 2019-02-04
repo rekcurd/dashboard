@@ -4,9 +4,9 @@ from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse
 
 from . import api
-from drucker_dashboard import DruckerDashboardClient
-from drucker_dashboard.models import db, Application, Service, ApplicationUserRole, Role, User
-from drucker_dashboard.apis import DatetimeToTimestamp
+from rekcurd_dashboard import RekcurdDashboardClient
+from rekcurd_dashboard.models import db, Application, Service, ApplicationUserRole, Role, User
+from rekcurd_dashboard.apis import DatetimeToTimestamp
 
 
 app_info_namespace = Namespace('applications', description='Application Endpoint.')
@@ -26,7 +26,7 @@ app_info = app_info_namespace.model('Application', {
     'application_name': fields.String(
         required=True,
         description='Application name.',
-        example='drucker-sample'
+        example='rekcurd-sample'
     ),
     'kubernetes_id': fields.Integer(
         required=False,
@@ -76,8 +76,8 @@ class ApiApplications(Resource):
         display_name = uuid.uuid4().hex
         description = args['description']
 
-        drucker_dashboard_application = DruckerDashboardClient(logger=api.logger, host=host)
-        service_info = drucker_dashboard_application.run_service_info()
+        rekcurd_dashboard_application = RekcurdDashboardClient(logger=api.logger, host=host)
+        service_info = rekcurd_dashboard_application.run_service_info()
         application_name = service_info["application_name"]
         service_name = service_info["service_name"]
         service_level = service_info["service_level"]

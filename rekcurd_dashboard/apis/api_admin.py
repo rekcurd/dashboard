@@ -2,8 +2,8 @@ from functools import wraps
 from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Resource, Namespace, fields, reqparse
 
-from drucker_dashboard.auth import fetch_role, ApplicationUserRoleException
-from drucker_dashboard.models import db, ApplicationUserRole, Role, User
+from rekcurd_dashboard.auth import fetch_role, ApplicationUserRoleException
+from rekcurd_dashboard.models import db, ApplicationUserRole, Role, User
 
 
 admin_info_namespace = Namespace('admin', description='Admin Endpoint.')

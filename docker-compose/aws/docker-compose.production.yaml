@@ -12,7 +12,7 @@ services:
       NODE_ENV: production
       API_HOST: ${API_HOST:-http://localhost}
       API_PORT: 18080
-      DRUCKER_DASHBOARD_FRONTEND_PORT: ${DRUCKER_DASHBOARD_FRONTEND_PORT:-8080}
+      REKCURD_DASHBOARD_FRONTEND_PORT: ${REKCURD_DASHBOARD_FRONTEND_PORT:-8080}
     command:
       - /bin/bash
       - -c
@@ -20,13 +20,13 @@ services:
     depends_on:
       - dashboard-backend
     ports:
-      - "${DRUCKER_DASHBOARD_FRONTEND_PORT:-8080}:${DRUCKER_DASHBOARD_FRONTEND_PORT:-8080}"
+      - "${REKCURD_DASHBOARD_FRONTEND_PORT:-8080}:${REKCURD_DASHBOARD_FRONTEND_PORT:-8080}"
     restart: always
   dashboard-backend:
     container_name: dashboard-backend-for-aws
     build:
       context: ../..
-      dockerfile: ./drucker_dashboard/Dockerfile
+      dockerfile: ./rekcurd_dashboard/Dockerfile
     volumes:
       - ../../:/root/dashboard
       - ~/.aws:/root/.aws
@@ -36,7 +36,7 @@ services:
     command:
       - /bin/bash
       - -c
-      - "pip install -r requirements.txt && pip install -e . && cd drucker_dashboard && (rekcurdui --settings settings.yml db init || true) && (rekcurdui --settings settings.yml db migrate || true) && rekcurdui --settings settings.yml server"
+      - "pip install -r requirements.txt && pip install -e . && cd rekcurd_dashboard && (rekcurdui --settings settings.yml db init || true) && (rekcurdui --settings settings.yml db migrate || true) && rekcurdui --settings settings.yml server"
     ports:
       - "18080:18080"
     restart: always

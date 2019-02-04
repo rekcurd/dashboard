@@ -5,7 +5,7 @@ import HtmlWebpackPlugin from 'html-webpack-plugin';
 import common from './webpack.config.babel';
 
 const src = path.resolve(__dirname, '..', 'src');
-const dist = path.resolve(__dirname, '..', '..', 'drucker_dashboard', 'static', 'dist');
+const dist = path.resolve(__dirname, '..', '..', 'rekcurd_dashboard', 'static', 'dist');
 
 const prodConfig = {
   mode: 'production',

@@ -2,10 +2,10 @@ from unittest.mock import patch, Mock
 import json
 from copy import deepcopy
 
-from drucker_dashboard.protobuf import drucker_pb2
+from rekcurd_dashboard.protobuf import rekcurd_pb2
 from .base import BaseTestCase, create_app_obj, create_service_obj, create_eval_obj, create_eval_result_obj
 from io import BytesIO
-from drucker_dashboard.models import EvaluationResult, Evaluation, db
+from rekcurd_dashboard.models import EvaluationResult, Evaluation, db
 
 default_metrics = {'accuracy': 0.0, 'fvalue': [0.0], 'num': 0,
                    'option': {}, 'precision': [0.0], 'recall': [0.0]}
@@ -14,29 +14,29 @@ default_metrics = {'accuracy': 0.0, 'fvalue': [0.0], 'num': 0,
 def patch_stub(func):
     def inner_method(*args, **kwargs):
         mock_stub_obj = Mock()
-        metrics = drucker_pb2.EvaluationMetrics(precision=[0.0], recall=[0.0], fvalue=[0.0])
-        mock_stub_obj.EvaluateModel.return_value = drucker_pb2.EvaluateModelResponse(metrics=metrics)
-        mock_stub_obj.UploadEvaluationData.return_value = drucker_pb2.UploadEvaluationDataResponse(status=1, message='success')
-        res = drucker_pb2.EvaluationResultResponse(
+        metrics = rekcurd_pb2.EvaluationMetrics(precision=[0.0], recall=[0.0], fvalue=[0.0])
+        mock_stub_obj.EvaluateModel.return_value = rekcurd_pb2.EvaluateModelResponse(metrics=metrics)
+        mock_stub_obj.UploadEvaluationData.return_value = rekcurd_pb2.UploadEvaluationDataResponse(status=1, message='success')
+        res = rekcurd_pb2.EvaluationResultResponse(
             metrics=metrics,
             detail=[
-                drucker_pb2.EvaluationResultResponse.Detail(
-                    input=drucker_pb2.IO(str=drucker_pb2.ArrString(val=['input'])),
-                    label=drucker_pb2.IO(str=drucker_pb2.ArrString(val=['test'])),
-                    output=drucker_pb2.IO(str=drucker_pb2.ArrString(val=['test'])),
+                rekcurd_pb2.EvaluationResultResponse.Detail(
+                    input=rekcurd_pb2.IO(str=rekcurd_pb2.ArrString(val=['input'])),
+                    label=rekcurd_pb2.IO(str=rekcurd_pb2.ArrString(val=['test'])),
+                    output=rekcurd_pb2.IO(str=rekcurd_pb2.ArrString(val=['test'])),
                     is_correct=True,
                     score=[1.0]
                 ),
-                drucker_pb2.EvaluationResultResponse.Detail(
-                    input=drucker_pb2.IO(tensor=drucker_pb2.Tensor(shape=[1], val=[0.5])),
-                    label=drucker_pb2.IO(tensor=drucker_pb2.Tensor(shape=[2], val=[0.9, 1.3])),
-                    output=drucker_pb2.IO(tensor=drucker_pb2.Tensor(shape=[2], val=[0.9, 0.3])),
+                rekcurd_pb2.EvaluationResultResponse.Detail(
+                    input=rekcurd_pb2.IO(tensor=rekcurd_pb2.Tensor(shape=[1], val=[0.5])),
+                    label=rekcurd_pb2.IO(tensor=rekcurd_pb2.Tensor(shape=[2], val=[0.9, 1.3])),
+                    output=rekcurd_pb2.IO(tensor=rekcurd_pb2.Tensor(shape=[2], val=[0.9, 0.3])),
                     is_correct=False,
                     score=[0.5, 0.5]
                 )
             ])
         mock_stub_obj.EvaluationResult.return_value = iter(res for _ in range(2))
-        with patch('drucker_dashboard.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub',
+        with patch('rekcurd_dashboard.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub',
                    new=Mock(return_value=mock_stub_obj)):
             return func(*args, **kwargs)
     return inner_method
@@ -100,7 +100,7 @@ class ApiEvaluationResultTest(BaseTestCase):
         self.assertEqual(details[0], {'input': 'input', 'label': 'test', 'output': 'test', 'score': 1.0, 'is_correct': True})
         self.assertEqual(details[1], {'input': 0.5, 'label': [0.9, 1.3], 'output': [0.9, 0.3], 'score': [0.5, 0.5], 'is_correct': False})
 
-    @patch('drucker_dashboard.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
+    @patch('rekcurd_dashboard.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub')
     def test_get_not_found(self, mock_stub_class):
         app_id = create_app_obj().application_id
         eobj = create_eval_obj(app_id, save=True)
@@ -199,7 +199,7 @@ class ApiEvaluateTest(BaseTestCase):
         application_id = create_app_obj().application_id
         model_id = create_service_obj(application_id).model_id
         new_sobj = create_service_obj(application_id,
-                                      service_name='drucker-test-app-production-20180628151929',
+                                      service_name='rekcurd-test-app-production-20180628151929',
                                       service_level='production',
                                       model_id=model_id + 1,
                                       save=True)

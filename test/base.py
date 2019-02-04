@@ -2,8 +2,8 @@ import warnings
 
 from flask_testing import TestCase
 
-from drucker_dashboard.models import db, Application, Service, Evaluation, EvaluationResult, User, ApplicationUserRole, Role
-from drucker_dashboard.server import create_app
+from rekcurd_dashboard.models import db, Application, Service, Evaluation, EvaluationResult, User, ApplicationUserRole, Role
+from rekcurd_dashboard.server import create_app
 
 
 class BaseTestCase(TestCase):
@@ -27,7 +27,7 @@ class BaseTestCase(TestCase):
 
 
 def create_app_obj(kubernetes_id=1, save=False):
-    app_name = 'drucker-test-app'
+    app_name = 'rekcurd-test-app'
     aobj = Application(application_name=app_name, kubernetes_id=kubernetes_id)
     aobj_ = Application.query.filter_by(
         application_name=app_name,
@@ -43,7 +43,7 @@ def create_app_obj(kubernetes_id=1, save=False):
 def create_service_obj(
         application_id,
         model_id=3,
-        service_name='drucker-test-app-development-20180628151929',
+        service_name='rekcurd-test-app-development-20180628151929',
         service_level='development',
         host='localhost:5000',
         save=False):

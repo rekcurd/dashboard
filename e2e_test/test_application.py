@@ -6,8 +6,8 @@ from e2e_test.base import BaseTestCase
 from e2e_test.base import create_kube_obj
 from e2e_test.base import WorkerConfiguration
 from e2e_test.base import kube_setting1
-from drucker_dashboard.models import db, Application
-from drucker_dashboard.apis.api_kubernetes import get_full_config_path
+from rekcurd_dashboard.models import db, Application
+from rekcurd_dashboard.apis.api_kubernetes import get_full_config_path
 
 
 class TestApiEvaluate(BaseTestCase):

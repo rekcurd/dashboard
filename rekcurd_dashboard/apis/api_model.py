@@ -5,8 +5,8 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
 from . import api, DatetimeToTimestamp
-from drucker_dashboard import DruckerDashboardClient
-from drucker_dashboard.models import db, Service, Model
+from rekcurd_dashboard import RekcurdDashboardClient
+from rekcurd_dashboard.models import db, Service, Model
 
 
 mdl_info_namespace = Namespace('models', description='Model Endpoint.')
@@ -66,8 +66,8 @@ class ApiApplicationIdModels(Resource):
 
         sobj = db.session.query(Service).filter(Service.application_id == application_id).first()
         host = sobj.host
-        drucker_dashboard_application = DruckerDashboardClient(logger=api.logger, host=host)
-        response_body = drucker_dashboard_application.run_upload_model(model_path, file)
+        rekcurd_dashboard_application = RekcurdDashboardClient(logger=api.logger, host=host)
+        response_body = rekcurd_dashboard_application.run_upload_model(model_path, file)
         if not response_body.get("status", True):
             raise Exception(response_body.get("message", "Error."))
 
