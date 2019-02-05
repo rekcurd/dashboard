@@ -454,6 +454,11 @@ def create_or_update_rekcurd_on_kubernetes(
             name="REKCURD_SERVICE_MODEL_DIR",
             value=pod_model_dir
         ),
+        # FIXME: temporary path for evaluation
+        client.V1EnvVar(
+            name="REKCURD_SERVICE_EVAL_DIR",
+            value=pod_model_dir
+        ),
         client.V1EnvVar(
             name="REKCURD_DB_MODE",
             value="mysql"
