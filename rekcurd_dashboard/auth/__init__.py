@@ -12,7 +12,7 @@ from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
 from .ldap import LdapAuthenticator
 from .exceptions import ApplicationUserRoleException
 from .authenticator import EmptyAuthenticator
-from drucker_dashboard.models import db, User, Application, ApplicationUserRole, Role
+from rekcurd_dashboard.models import db, User, Application, ApplicationUserRole, Role
 
 
 class Auth(object):

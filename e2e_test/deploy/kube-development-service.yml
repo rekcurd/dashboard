@@ -2,9 +2,9 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: drucker-test-app
-    sel: drucker-test-app-development-20180628151929
-  name: drucker-test-app-development-20180628151929-service
+    app: rekcurd-test-app
+    sel: rekcurd-test-app-development-20180628151929
+  name: rekcurd-test-app-development-20180628151929-service
   namespace: development
 spec:
   ports:
@@ -13,5 +13,5 @@ spec:
     protocol: TCP
     targetPort: 5000
   selector:
-    sel: drucker-test-app-development-20180628151929
+    sel: rekcurd-test-app-development-20180628151929
   type: NodePort

@@ -1,4 +1,4 @@
-# Copyright 2018 The Drucker Authors.
+# Copyright 2018 The Rekcurd Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import subprocess
 
 
 here = os.path.abspath(os.path.dirname(__file__))
-exec(open(os.path.join(here, 'drucker_dashboard', '_project.py')).read())
-exec(open(os.path.join(here, 'drucker_dashboard', '_version.py')).read())
+exec(open(os.path.join(here, 'rekcurd_dashboard', '_project.py')).read())
+exec(open(os.path.join(here, 'rekcurd_dashboard', '_version.py')).read())
 PACKAGE_NAME = __project__  # NOQA
 VERSION = __version__  # NOQA
 DEVELOPMENT_STATUS = "3 - Alpha"
@@ -63,18 +63,18 @@ setup(
     version=VERSION,
     description="A WebUI for managing machine learning services of Rekcurd.",
     author_email="",
-    author="Drucker team and contributors",
+    author="Rekcurd team and contributors",
     license="Apache License Version 2.0",
-    url="https://github.com/rekcurd/drucker-dashboard",
-    keywords=["Drucker", "Rekcurd", "Kubernetes", "Python", "gRPC", "Restful"],
+    url="https://github.com/rekcurd/dashboard",
+    keywords=["Rekcurd", "Kubernetes", "Python", "gRPC", "Restful"],
     install_requires=REQUIRES,
     tests_require=TESTS_REQUIRES,
     extras_require=EXTRAS,
-    packages=['drucker_dashboard', 'drucker_dashboard.logger', 'drucker_dashboard.utils',
-              'drucker_dashboard.models', 'drucker_dashboard.protobuf',
-              'drucker_dashboard.apis', 'drucker_dashboard.auth'],
+    packages=['rekcurd_dashboard', 'rekcurd_dashboard.logger', 'rekcurd_dashboard.utils',
+              'rekcurd_dashboard.models', 'rekcurd_dashboard.protobuf',
+              'rekcurd_dashboard.apis', 'rekcurd_dashboard.auth'],
     package_data={
-        'drucker_dashboard': [
+        'rekcurd_dashboard': [
             'templates/*',
             'static/dist/*',
             'static/dist/js/*'
@@ -84,7 +84,7 @@ setup(
     long_description=LONG_DESCRIPTION,
     entry_points={
         'console_scripts': [
-            'rekcurdui=drucker_dashboard.app:main',
+            'rekcurdui=rekcurd_dashboard.app:main',
         ],
     },
     cmdclass={

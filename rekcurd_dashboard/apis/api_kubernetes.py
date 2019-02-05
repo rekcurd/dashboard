@@ -6,8 +6,8 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
 from . import api, DatetimeToTimestamp, kubernetes_cpu_to_float
-from drucker_dashboard import DruckerDashboardClient
-from drucker_dashboard.models import db, Kubernetes, Application, Service, Model
+from rekcurd_dashboard import RekcurdDashboardClient
+from rekcurd_dashboard.models import db, Kubernetes, Application, Service, Model
 
 
 kube_info_namespace = Namespace('kubernetes', description='Kubernetes Endpoint.')
@@ -42,12 +42,12 @@ kube_info = kube_info_namespace.model('Kubernetes', {
     'host_model_dir': fields.String(
         required=True,
         description='Directry of host node for ML models. Recommend that mount cloud storage (e.g. AWS EBS, GCP GCS) on <host_model_dir>.',
-        example='/mnt/drucker-model'
+        example='/mnt/rekcurd-model'
     ),
     'pod_model_dir': fields.String(
         required=True,
         description='Directry of pod for ML models. Link to <host_model_dir>.',
-        example='/mnt/drucker-model'
+        example='/mnt/rekcurd-model'
     ),
     'db_mysql_host': fields.String(
         required=True,
@@ -62,17 +62,17 @@ kube_info = kube_info_namespace.model('Kubernetes', {
     'db_mysql_dbname': fields.String(
         required=True,
         description='mysql DB name.',
-        example='drucker'
+        example='rekcurd'
     ),
     'db_mysql_user': fields.String(
         required=True,
         description='mysql user.',
-        example='drucker'
+        example='rekcurd'
     ),
     'db_mysql_password': fields.String(
         required=True,
         description='mysql password.',
-        example='drucker'
+        example='rekcurd'
     ),
     'register_date': DatetimeToTimestamp(
         readOnly=True,
@@ -88,7 +88,7 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     'app_name': fields.String(
         required=True,
         description='Application name.',
-        example='drucker-sample',
+        example='rekcurd-sample',
         max_length=20
     ),
     'service_level': fields.String(
@@ -175,7 +175,7 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     'service_git_url': fields.String(
         required=True,
         description='Git repository.',
-        example='git@github.com:drucker/drucker-example.git'
+        example='git@github.com:rekcurd/rekcurd-example.git'
     ),
     'service_git_branch': fields.String(
         required=True,
@@ -190,12 +190,12 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     'host_model_dir': fields.String(
         required=True,
         description='Directry of host node for ML models. Recommend that mount cloud storage (e.g. AWS EBS, GCP GCS) on <host_model_dir>.',
-        example='/mnt/drucker-model'
+        example='/mnt/rekcurd-model'
     ),
     'pod_model_dir': fields.String(
         required=True,
         description='Directry of pod for ML models. Link to <host_model_dir>.',
-        example='/mnt/drucker-model'
+        example='/mnt/rekcurd-model'
     ),
     'db_mysql_host': fields.String(
         required=True,
@@ -210,17 +210,17 @@ kube_service_config_info = kube_info_namespace.model('Kubernetes service configu
     'db_mysql_dbname': fields.String(
         required=True,
         description='mysql DB name.',
-        example='drucker'
+        example='rekcurd'
     ),
     'db_mysql_user': fields.String(
         required=True,
         description='mysql user.',
-        example='drucker'
+        example='rekcurd'
     ),
     'db_mysql_password': fields.String(
         required=True,
         description='mysql password.',
-        example='drucker'
+        example='rekcurd'
     )
 })
 
@@ -228,17 +228,17 @@ kube_file_parser = reqparse.RequestParser()
 kube_file_parser.add_argument('file', location='files', type=FileStorage, required=True, help='Kubernetes access_token configuration file.')
 kube_file_parser.add_argument('dns_name', type=str, default='example.com', required=True, help='Your application could be accessed at http://<app_name>-<service_level>.<dns_name>.', location='form')
 kube_file_parser.add_argument('display_name', type=str, required=False, location='form', help="Must be unique. If empty, automatically generated.")
-kube_file_parser.add_argument('host_model_dir', type=str, default='/mnt/drucker-model', required=True, help='Directry of host node for ML models. Recommend that mount cloud storage (e.g. AWS EBS, GCP GCS) on <host_model_dir>.', location='form')
-kube_file_parser.add_argument('pod_model_dir', type=str, default='/mnt/drucker-model', required=True, help='Directry of pod for ML models. Link to <host_model_dir>.', location='form')
+kube_file_parser.add_argument('host_model_dir', type=str, default='/mnt/rekcurd-model', required=True, help='Directry of host node for ML models. Recommend that mount cloud storage (e.g. AWS EBS, GCP GCS) on <host_model_dir>.', location='form')
+kube_file_parser.add_argument('pod_model_dir', type=str, default='/mnt/rekcurd-model', required=True, help='Directry of pod for ML models. Link to <host_model_dir>.', location='form')
 kube_file_parser.add_argument('db_mysql_host', type=str, default='127.0.0.1', required=True, help='mysql host DNS/IP.', location='form')
 kube_file_parser.add_argument('db_mysql_port', type=str, default='2306', required=True, help='mysql port.', location='form')
-kube_file_parser.add_argument('db_mysql_dbname', type=str, default='drucker', required=True, help='mysql DB name.', location='form')
-kube_file_parser.add_argument('db_mysql_user', type=str, default='drucker', required=True, help='mysql user.', location='form')
-kube_file_parser.add_argument('db_mysql_password', type=str, default='drucker', required=True, help='mysql password.', location='form')
+kube_file_parser.add_argument('db_mysql_dbname', type=str, default='rekcurd', required=True, help='mysql DB name.', location='form')
+kube_file_parser.add_argument('db_mysql_user', type=str, default='rekcurd', required=True, help='mysql user.', location='form')
+kube_file_parser.add_argument('db_mysql_password', type=str, default='rekcurd', required=True, help='mysql password.', location='form')
 kube_file_parser.add_argument('description', type=str, required=False, location='form', help='Description.')
 
 kube_deploy_parser = reqparse.RequestParser()
-kube_deploy_parser.add_argument('app_name', type=str, default='drucker-sample', required=True, help='Application name. This must be unique.', location='form')
+kube_deploy_parser.add_argument('app_name', type=str, default='rekcurd-sample', required=True, help='Application name. This must be unique.', location='form')
 kube_deploy_parser.add_argument('service_level', type=str, required=True, choices=('development','beta','staging','sandbox','production'), help='Service level. Choose from [development/beta/staging/sandbox/production].', location='form')
 kube_deploy_parser.add_argument('service_port', type=int, default=5000, required=True, help='Service port.', location='form')
 
@@ -259,7 +259,7 @@ kube_deploy_parser.add_argument('resource_limit_cpu', type=float, default=1.0, r
 kube_deploy_parser.add_argument('resource_limit_memory', type=str, default='256Mi', required=True, help='Memory limit for boot.', location='form')
 
 kube_deploy_parser.add_argument('commit_message', type=str, default='Initial deployment.', required=False, help='Commit message.', location='form')
-kube_deploy_parser.add_argument('service_git_url', type=str, default='git@github.com:drucker/drucker-sample.git', required=True, help='Git repository.', location='form')
+kube_deploy_parser.add_argument('service_git_url', type=str, default='git@github.com:rekcurd/rekcurd-sample.git', required=True, help='Git repository.', location='form')
 kube_deploy_parser.add_argument('service_git_branch', type=str, default='master', required=True, help='Git branch.', location='form')
 kube_deploy_parser.add_argument('service_boot_script', type=str, default='start.sh', required=True, help='Boot shellscript for your service.', location='form')
 
@@ -293,7 +293,7 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
         applist = set()
         for i in ret.items:
             labels = i.metadata.labels
-            if labels is not None and labels.get("drucker-worker", "False") == "True":
+            if labels is not None and labels.get("rekcurd-worker", "False") == "True":
                 application_name = labels["app"]
                 applist.add(application_name)
     """Application"""
@@ -313,7 +313,7 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
     """Service"""
     for i in ret.items:
         labels = i.metadata.labels
-        if labels is None or labels.get("drucker-worker", "False") == "False":
+        if labels is None or labels.get("rekcurd-worker", "False") == "False":
             continue
         application_name = labels["app"]
         service_name = labels["sel"]
@@ -357,7 +357,7 @@ def update_dbs_kubernetes(kubernetes_id:int, applist:set=None, description:str=N
         db.session.flush()
 
 
-def create_or_update_drucker_on_kubernetes(
+def create_or_update_rekcurd_on_kubernetes(
         kubernetes_id:int, args:dict, service_name:str=None):
     app_name = args['app_name']
     if len(app_name) > 20:
@@ -411,71 +411,71 @@ def create_or_update_drucker_on_kubernetes(
 
     pod_env = [
         client.V1EnvVar(
-            name="DRUCKER_SERVICE_UPDATE_FLAG",
+            name="REKCURD_SERVICE_UPDATE_FLAG",
             value=commit_message
         ),
         client.V1EnvVar(
-            name="DRUCKER_TEST_MODE",
+            name="REKCURD_TEST_MODE",
             value="False"
         ),
         client.V1EnvVar(
-            name="DRUCKER_APPLICATION_NAME",
+            name="REKCURD_APPLICATION_NAME",
             value=app_name
         ),
         client.V1EnvVar(
-            name="DRUCKER_SERVICE_LEVEL",
+            name="REKCURD_SERVICE_LEVEL",
             value=service_level
         ),
         client.V1EnvVar(
-            name="DRUCKER_SERVICE_NAME",
+            name="REKCURD_SERVICE_NAME",
             value=service_name
         ),
         client.V1EnvVar(
-            name="DRUCKER_SERVICE_PORT",
+            name="REKCURD_SERVICE_PORT",
             value="{0}".format(service_port)
         ),
         client.V1EnvVar(
-            name="DRUCKER_SERVICE_INFRA",
+            name="REKCURD_SERVICE_INFRA",
             value="kubernetes"
         ),
         client.V1EnvVar(
-            name="DRUCKER_SERVICE_GIT_URL",
+            name="REKCURD_SERVICE_GIT_URL",
             value=service_git_url
         ),
         client.V1EnvVar(
-            name="DRUCKER_SERVICE_GIT_BRANCH",
+            name="REKCURD_SERVICE_GIT_BRANCH",
             value=service_git_branch
         ),
         client.V1EnvVar(
-            name="DRUCKER_SERVICE_BOOT_SHELL",
+            name="REKCURD_SERVICE_BOOT_SHELL",
             value=service_boot_script
         ),
         client.V1EnvVar(
-            name="DRUCKER_SERVICE_MODEL_DIR",
+            name="REKCURD_SERVICE_MODEL_DIR",
             value=pod_model_dir
         ),
         client.V1EnvVar(
-            name="DRUCKER_DB_MODE",
+            name="REKCURD_DB_MODE",
             value="mysql"
         ),
         client.V1EnvVar(
-            name="DRUCKER_DB_MYSQL_HOST",
+            name="REKCURD_DB_MYSQL_HOST",
             value=db_mysql_host
         ),
         client.V1EnvVar(
-            name="DRUCKER_DB_MYSQL_PORT",
+            name="REKCURD_DB_MYSQL_PORT",
             value=db_mysql_port
         ),
         client.V1EnvVar(
-            name="DRUCKER_DB_MYSQL_DBNAME",
+            name="REKCURD_DB_MYSQL_DBNAME",
             value=db_mysql_dbname
         ),
         client.V1EnvVar(
-            name="DRUCKER_DB_MYSQL_USER",
+            name="REKCURD_DB_MYSQL_USER",
             value=db_mysql_user
         ),
         client.V1EnvVar(
-            name="DRUCKER_DB_MYSQL_PASSWORD",
+            name="REKCURD_DB_MYSQL_PASSWORD",
             value=db_mysql_password
         ),
     ]
@@ -484,7 +484,7 @@ def create_or_update_drucker_on_kubernetes(
             model_id=service_model_assignment).one()
         pod_env.append(
             client.V1EnvVar(
-                name="DRUCKER_SERVICE_MODEL_FILE",
+                name="REKCURD_SERVICE_MODEL_FILE",
                 value=mobj.model_path
             )
         )
@@ -511,7 +511,7 @@ def create_or_update_drucker_on_kubernetes(
         metadata=client.V1ObjectMeta(
             name="{0}-deployment".format(service_name),
             namespace=service_level,
-            labels={"drucker-worker": "True", "app": app_name, "sel": service_name}
+            labels={"rekcurd-worker": "True", "app": app_name, "sel": service_name}
         ),
         spec=client.V1DeploymentSpec(
             min_ready_seconds=policy_wait_seconds,
@@ -529,7 +529,7 @@ def create_or_update_drucker_on_kubernetes(
             ),
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(
-                    labels={"drucker-worker": "True", "app": app_name, "sel": service_name}
+                    labels={"rekcurd-worker": "True", "app": app_name, "sel": service_name}
                 ),
                 spec=client.V1PodSpec(
                     affinity=client.V1Affinity(
@@ -626,7 +626,7 @@ def create_or_update_drucker_on_kubernetes(
         metadata=client.V1ObjectMeta(
             name="{0}-service".format(service_name),
             namespace=service_level,
-            labels={"drucker-worker": "True", "app": app_name, "sel": service_name}
+            labels={"rekcurd-worker": "True", "app": app_name, "sel": service_name}
         ),
         spec=client.V1ServiceSpec(
             ports=[
@@ -665,12 +665,12 @@ def create_or_update_drucker_on_kubernetes(
             },
             name="{0}-ingress".format(service_name),
             namespace=service_level,
-            labels={"drucker-worker": "True", "app": app_name, "sel": service_name}
+            labels={"rekcurd-worker": "True", "app": app_name, "sel": service_name}
         ),
         spec=client.V1beta1IngressSpec(
             rules=[
                 client.V1beta1IngressRule(
-                    host="{0}-{1}-{2}.{3}".format(app_name, api.dashboard_config.DRUCKER_GRPC_VERSION, service_level, app_dns_name),
+                    host="{0}-{1}-{2}.{3}".format(app_name, api.dashboard_config.REKCURD_GRPC_VERSION, service_level, app_dns_name),
                     http=client.V1beta1HTTPIngressRuleValue(
                         paths=[
                             client.V1beta1HTTPIngressPath(
@@ -704,7 +704,7 @@ def create_or_update_drucker_on_kubernetes(
         metadata=client.V1ObjectMeta(
             name="{0}-autoscaling".format(service_name),
             namespace=service_level,
-            labels={"drucker-worker": "True", "app": app_name, "sel": service_name}
+            labels={"rekcurd-worker": "True", "app": app_name, "sel": service_name}
         ),
         spec=client.V1HorizontalPodAutoscalerSpec(
             max_replicas=replicas_maximum,
@@ -737,7 +737,7 @@ def create_or_update_drucker_on_kubernetes(
         metadata=client.V1ObjectMeta(
             name="{0}-autoscaling".format(service_name),
             namespace=service_level,
-            labels={"drucker-worker": "True", "app": app_name, "sel": service_name}
+            labels={"rekcurd-worker": "True", "app": app_name, "sel": service_name}
         ),
         spec=client.V2beta1HorizontalPodAutoscalerSpec(
             max_replicas=replicas_maximum,
@@ -772,7 +772,7 @@ def create_or_update_drucker_on_kubernetes(
     """
     return service_name
 
-def switch_drucker_service_model_assignment(
+def switch_rekcurd_service_model_assignment(
         application_id:int, service_id:int, model_id:int):
     """
     Switch model assignment.
@@ -787,8 +787,8 @@ def switch_drucker_service_model_assignment(
     sobj = db.session.query(Service).filter(
         Service.application_id == application_id, Service.service_id==service_id).one()
     host = sobj.host
-    drucker_dashboard_application = DruckerDashboardClient(logger=api.logger, host=host)
-    response_body = drucker_dashboard_application. \
+    rekcurd_dashboard_application = RekcurdDashboardClient(logger=api.logger, host=host)
+    response_body = rekcurd_dashboard_application. \
         run_switch_service_model_assignment(model_path=model_path)
     if not response_body.get("status", True):
         raise Exception(response_body.get("message", "Error."))
@@ -809,7 +809,7 @@ def switch_drucker_service_model_assignment(
             namespace=sobj.service_level
         )
         for env_ent in v1_deployment.spec.template.spec.containers[0].env:
-            if env_ent.name == "DRUCKER_SERVICE_UPDATE_FLAG":
+            if env_ent.name == "REKCURD_SERVICE_UPDATE_FLAG":
                 env_ent.value = "Model switched to model_id={0} at {1:%Y%m%d%H%M%S}".format(model_id, datetime.utcnow())
                 break
         api_response = apps_v1.patch_namespaced_deployment(
@@ -821,7 +821,7 @@ def switch_drucker_service_model_assignment(
     return response_body
 
 
-def dump_drucker_on_kubernetes(
+def dump_rekcurd_on_kubernetes(
         kobj:Kubernetes, aobj:Application, sobj:Service):
     if kobj is None:
         raise Exception("No such kubernetes_id.")
@@ -986,7 +986,7 @@ class ApiKubernetesDump(Resource):
         for kobj in Kubernetes.query.all():
             for aobj in Application.query.filter_by(kubernetes_id=kobj.kubernetes_id).all():
                 for sobj in Service.query.filter_by(application_id=aobj.application_id).all():
-                    dump_drucker_on_kubernetes(kobj, aobj, sobj)
+                    dump_rekcurd_on_kubernetes(kobj, aobj, sobj)
         response_body = {"status": True, "message": "Success."}
         return response_body
 
@@ -1091,7 +1091,7 @@ class ApiKubernetesIdApplication(Resource):
         """add_kubernetes_application"""
         args = self.kube_app_deploy.parse_args()
         args["service_model_assignment"] = None
-        service_name = create_or_update_drucker_on_kubernetes(kubernetes_id, args)
+        service_name = create_or_update_rekcurd_on_kubernetes(kubernetes_id, args)
         update_dbs_kubernetes(kubernetes_id, description=args['commit_message'])
         db.session.commit()
         db.session.close()
@@ -1141,7 +1141,7 @@ class ApiKubernetesIdApplicationIdServices(Resource):
                 model_id=args["service_model_assignment"]).one_or_none()
             if mobj is None:
                 args["service_model_assignment"] = None
-        service_name = create_or_update_drucker_on_kubernetes(kubernetes_id, args)
+        service_name = create_or_update_rekcurd_on_kubernetes(kubernetes_id, args)
         applist = set((aobj.application_name,))
         update_dbs_kubernetes(kubernetes_id, applist, description=args['commit_message'])
 
@@ -1198,31 +1198,31 @@ class ApiKubernetesIdApplicationIdServiceId(Resource):
 
         response_body = {}
         for env_ent in v1_deployment.spec.template.spec.containers[0].env:
-            if env_ent.name == "DRUCKER_SERVICE_UPDATE_FLAG":
+            if env_ent.name == "REKCURD_SERVICE_UPDATE_FLAG":
                 response_body["commit_message"] = env_ent.value
-            elif env_ent.name == "DRUCKER_APPLICATION_NAME":
+            elif env_ent.name == "REKCURD_APPLICATION_NAME":
                 response_body["app_name"] = env_ent.value
-            elif env_ent.name == "DRUCKER_SERVICE_LEVEL":
+            elif env_ent.name == "REKCURD_SERVICE_LEVEL":
                 response_body["service_level"] = env_ent.value
-            elif env_ent.name == "DRUCKER_SERVICE_NAME":
+            elif env_ent.name == "REKCURD_SERVICE_NAME":
                 response_body["service_name"] = env_ent.value
-            elif env_ent.name == "DRUCKER_SERVICE_PORT":
+            elif env_ent.name == "REKCURD_SERVICE_PORT":
                 response_body["service_port"] = env_ent.value
-            elif env_ent.name == "DRUCKER_SERVICE_GIT_URL":
+            elif env_ent.name == "REKCURD_SERVICE_GIT_URL":
                 response_body["service_git_url"] = env_ent.value
-            elif env_ent.name == "DRUCKER_SERVICE_GIT_BRANCH":
+            elif env_ent.name == "REKCURD_SERVICE_GIT_BRANCH":
                 response_body["service_git_branch"] = env_ent.value
-            elif env_ent.name == "DRUCKER_SERVICE_BOOT_SHELL":
+            elif env_ent.name == "REKCURD_SERVICE_BOOT_SHELL":
                 response_body["service_boot_script"] = env_ent.value
-            elif env_ent.name == "DRUCKER_DB_MYSQL_HOST":
+            elif env_ent.name == "REKCURD_DB_MYSQL_HOST":
                 response_body["db_mysql_host"] = env_ent.value
-            elif env_ent.name == "DRUCKER_DB_MYSQL_PORT":
+            elif env_ent.name == "REKCURD_DB_MYSQL_PORT":
                 response_body["db_mysql_port"] = env_ent.value
-            elif env_ent.name == "DRUCKER_DB_MYSQL_DBNAME":
+            elif env_ent.name == "REKCURD_DB_MYSQL_DBNAME":
                 response_body["db_mysql_dbname"] = env_ent.value
-            elif env_ent.name == "DRUCKER_DB_MYSQL_USER":
+            elif env_ent.name == "REKCURD_DB_MYSQL_USER":
                 response_body["db_mysql_user"] = env_ent.value
-            elif env_ent.name == "DRUCKER_DB_MYSQL_PASSWORD":
+            elif env_ent.name == "REKCURD_DB_MYSQL_PASSWORD":
                 response_body["db_mysql_password"] = env_ent.value
         response_body["replicas_default"] = v1_deployment.spec.replicas
         response_body["replicas_minimum"] = v1_horizontal_pod_autoscaler.spec.min_replicas
@@ -1259,7 +1259,7 @@ class ApiKubernetesIdApplicationIdServiceId(Resource):
         args["service_level"] = sobj.service_level
         args['commit_message'] = "Request a rolling-update at {0:%Y%m%d%H%M%S}".format(datetime.utcnow())
         args["service_model_assignment"] = None
-        create_or_update_drucker_on_kubernetes(kubernetes_id, args, sobj.service_name)
+        create_or_update_rekcurd_on_kubernetes(kubernetes_id, args, sobj.service_name)
         applist = set((aobj.application_name,))
         update_dbs_kubernetes(kubernetes_id, applist)
         db.session.commit()

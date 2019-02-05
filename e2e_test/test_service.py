@@ -8,11 +8,11 @@ import numpy as np
 
 from werkzeug.datastructures import FileStorage
 
-from drucker_dashboard.drucker_dashboard_client import DruckerDashboardClient
-from drucker_client import DruckerWorkerClient
-from drucker_dashboard.models import db, Service
-from drucker_dashboard.logger import JsonSystemLogger
-from drucker_dashboard.apis.api_kubernetes import get_full_config_path
+from rekcurd_dashboard.rekcurd_dashboard_client import RekcurdDashboardClient
+from rekcurd_client import RekcurdWorkerClient
+from rekcurd_dashboard.models import db, Service
+from rekcurd_dashboard.logger import JsonSystemLogger
+from rekcurd_dashboard.apis.api_kubernetes import get_full_config_path
 
 from e2e_test.base import BaseTestCase
 from e2e_test.base import WorkerConfiguration
@@ -63,9 +63,9 @@ class TestApiApplicationIdServiceId(BaseTestCase):
         host = f'{kube_setting1.ip}:{k8s_service.spec.ports[0].node_port}'
         sobj.host = host
         self.wait_worker_ready(host)
-        logger = JsonSystemLogger('Drucker dashboard test', log_level=logging.CRITICAL)
+        logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
         # Upload models
-        dashboard_client = DruckerDashboardClient(logger=logger, host=host)
+        dashboard_client = RekcurdDashboardClient(logger=logger, host=host)
         dashboard_client.run_upload_model(model_path=positive_model.model_path,
                                           f=FileStorage(open(POSITIVE_MODEL_PATH, 'rb')))
         dashboard_client.run_upload_model(model_path=negative_model.model_path,
@@ -74,7 +74,7 @@ class TestApiApplicationIdServiceId(BaseTestCase):
         self.client.put(f'/api/applications/{application_id}/services/{service_id}',
                         data={'model_id': negative_model_id})
         # Evaluate model works!
-        worker_client = DruckerWorkerClient(logger=logger, host=host)
+        worker_client = RekcurdWorkerClient(logger=logger, host=host)
         for _ in range(100):
             y_negative = \
                 worker_client.run_predict_arrfloat_arrint(np.random.rand(np.random.randint(1, 100)).tolist()).output[0]

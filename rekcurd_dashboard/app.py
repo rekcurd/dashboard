@@ -3,8 +3,8 @@
 
 import argparse
 
-from drucker_dashboard import _version
-from drucker_dashboard.server import create_app
+from rekcurd_dashboard import _version
+from rekcurd_dashboard.server import create_app
 
 
 def server_handler(args):
@@ -16,7 +16,7 @@ def db_handler(args):
     import sys
     from flask_script import Manager
     from flask_migrate import Migrate, MigrateCommand
-    from drucker_dashboard.models import db
+    from rekcurd_dashboard.models import db
 
     tmp = sys.argv[1:]
     sys.argv = [sys.argv[0]]
@@ -37,9 +37,9 @@ def create_parser():
     parser.add_argument(
         '--version', '-v', action='version', version=_version.__version__)
     parser.add_argument(
-        '--settings', required=True, help='settings YAML. See https://github.com/rekcurd/drucker-dashboard/blob/master/drucker_dashboard/settings.yml')
+        '--settings', required=True, help='settings YAML. See https://github.com/rekcurd/dashboard/blob/master/rekcurd_dashboard/settings.yml')
     parser.add_argument(
-        '--logger', required=False, help='Python file of your custom logger. Need to inherit "logger_interface.py". See https://github.com/rekcurd/drucker-dashboard/blob/master/drucker_dashboard/logger/logger_interface.py', default=None)
+        '--logger', required=False, help='Python file of your custom logger. Need to inherit "logger_interface.py". See https://github.com/rekcurd/dashboard/blob/master/rekcurd_dashboard/logger/logger_interface.py', default=None)
     subparsers = parser.add_subparsers()
 
     # server

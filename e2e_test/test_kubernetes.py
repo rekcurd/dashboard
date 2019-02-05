@@ -3,8 +3,8 @@ import uuid
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 
-from drucker_dashboard.models import db, Kubernetes, Application, Service, Model
-from drucker_dashboard.apis.api_kubernetes import get_full_config_path
+from rekcurd_dashboard.models import db, Kubernetes, Application, Service, Model
+from rekcurd_dashboard.apis.api_kubernetes import get_full_config_path
 
 from e2e_test.base import BaseTestCase
 from e2e_test.base import kube_setting2, create_kube_obj, create_app_obj, create_service_obj, create_model_obj
@@ -34,12 +34,12 @@ def get_default_args():
     args['resource_limit_cpu'] = container['resources']['limits']['cpu']
     args['resource_limit_memory'] = container['resources']['limits']['memory']
     args['commit_message'] = 'A message.'
-    args['service_git_url'] = envs['DRUCKER_SERVICE_GIT_URL']
-    args['service_git_branch'] = envs['DRUCKER_SERVICE_GIT_BRANCH']
-    args['service_boot_script'] = envs['DRUCKER_SERVICE_BOOT_SHELL']
+    args['service_git_url'] = envs['REKCURD_SERVICE_GIT_URL']
+    args['service_git_branch'] = envs['REKCURD_SERVICE_GIT_BRANCH']
+    args['service_boot_script'] = envs['REKCURD_SERVICE_BOOT_SHELL']
     args['host_model_dir'] = WorkerConfiguration.deployment['spec']['template']['spec']['volumes'][0]['hostPath'][
         'path']
-    args['pod_model_dir'] = envs['DRUCKER_SERVICE_MODEL_DIR']
+    args['pod_model_dir'] = envs['REKCURD_SERVICE_MODEL_DIR']
     return args
 
 
@@ -133,7 +133,7 @@ class TestApiKubernetesId(BaseTestCase):
         self.client.put(f'/api/kubernetes/{kubernetes_id}')
         aobj = db.session.query(Application).filter(
             Application.kubernetes_id == kubernetes_id,
-            Application.application_name == 'drucker-test-app').one_or_none()
+            Application.application_name == 'rekcurd-test-app').one_or_none()
         self.assertIsNotNone(aobj)
         sobj = db.session.query(Service).filter(Service.application_id == aobj.application_id).first()
         self.assertIsNotNone(sobj)

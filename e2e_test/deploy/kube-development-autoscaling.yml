@@ -2,9 +2,9 @@ apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   labels:
-    app: drucker-test-app
-    sel: drucker-test-app-development-20180628151929
-  name: drucker-test-app-development-20180628151929-autoscaling
+    app: rekcurd-test-app
+    sel: rekcurd-test-app-development-20180628151929
+  name: rekcurd-test-app-development-20180628151929-autoscaling
   namespace: development
 spec:
   maxReplicas: 10
@@ -17,4 +17,4 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1beta2
     kind: Deployment
-    name: drucker-test-app-development-20180628151929-deployment
+    name: rekcurd-test-app-development-20180628151929-deployment

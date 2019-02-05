@@ -48,7 +48,7 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
     }
     return (
       <Navbar className='flex-md-nowrap sticky-top' id='top-navigation-bar' tag='header'>
-        <NavbarBrand className='px-3 text-info' href='/' id='navbrand'>Drucker manager</NavbarBrand>
+        <NavbarBrand className='px-3 text-info' href='/' id='navbrand'>Rekcurd Dashboard</NavbarBrand>
         <Collapse isOpen={true} className='ml-5' navbar>
           <Nav>
             <NavItem>

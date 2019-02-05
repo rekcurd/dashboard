@@ -108,10 +108,10 @@ db.sqlite3
 db.test.sqlite3
 
 # Kube config
-drucker_dashboard/kube-config/
+rekcurd_dashboard/kube-config/
 
 # frontend
-drucker_dashboard/static/
+rekcurd_dashboard/static/
 
 # test
 test-kube-config/

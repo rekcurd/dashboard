@@ -10,7 +10,7 @@ from .logger_interface import SystemLoggerInterface
 
 class FluentSystemLogger(SystemLoggerInterface):
 
-    def __init__(self, logger_name:str='drucker_dashboard', log_level:int=logging.NOTSET) -> None:
+    def __init__(self, logger_name:str='rekcurd_dashboard', log_level:int=logging.NOTSET) -> None:
         """
         constructor
         :param logger_name: logger name
@@ -27,7 +27,7 @@ class FluentSystemLogger(SystemLoggerInterface):
             'level': '%(loglevel)d'
         }
 
-        fluent_handler = handler.FluentHandler('drucker_dashboard')
+        fluent_handler = handler.FluentHandler('rekcurd_dashboard')
         formatter = handler.FluentRecordFormatter(custom_format)
         fluent_handler.setFormatter(formatter)
         fluent_handler.setLevel(log_level)

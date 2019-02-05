@@ -490,8 +490,8 @@ export const kubernetesDeploymentDefultSettings = {
   resourceLimitCpu: 1,
   resourceRequestMemory: '128Mi',
   resourceLimitMemory: '256Mi',
-  containerImage: 'druckerorg/drucker:python-latest',
-  serviceGitUrl: 'https://github.com/drucker/drucker-example.git',
+  containerImage: 'rekcurd/rekcurd:python-latest',
+  serviceGitUrl: 'https://github.com/rekcurd/rekcurd-example.git',
   serviceGitBranch: 'master',
   serviceBootScript: 'start.sh'
 }

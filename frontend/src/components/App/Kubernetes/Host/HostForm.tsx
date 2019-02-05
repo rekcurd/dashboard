@@ -309,8 +309,8 @@ type HostFormProps =
   & InjectedFormProps<{}, CustomProps>
 
 const defaultInitialValues = {
-  hostModelDir: '/mnt/drucker-model',
-  podModelDir: '/mnt/drucker-model'
+  hostModelDir: '/mnt/rekcurd-model',
+  podModelDir: '/mnt/rekcurd-model'
 }
 
 interface StateProps {

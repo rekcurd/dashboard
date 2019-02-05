@@ -1,21 +1,21 @@
 # Rekcurd-dashboard
 
-[![Build Status](https://travis-ci.com/rekcurd/drucker-dashboard.svg?branch=master)](https://travis-ci.com/rekcurd/drucker-dashboard)
+[![Build Status](https://travis-ci.com/rekcurd/dashboard.svg?branch=master)](https://travis-ci.com/rekcurd/dashboard)
 [![PyPI version](https://badge.fury.io/py/rekcurd-dashboard.svg)](https://badge.fury.io/py/rekcurd-dashboard)
-[![codecov](https://codecov.io/gh/rekcurd/drucker-dashboard/branch/master/graph/badge.svg)](https://codecov.io/gh/rekcurd/drucker-dashboard "Non-generated packages only")
+[![codecov](https://codecov.io/gh/rekcurd/dashboard/branch/master/graph/badge.svg)](https://codecov.io/gh/rekcurd/dashboard "Non-generated packages only")
 [![pypi supported versions](https://img.shields.io/pypi/pyversions/rekcurd-dashboard.svg)](https://pypi.python.org/pypi/rekcurd-dashboard)
 
 Rekcurd dashboard is the project for managing ML model and deploying ML module. Any Rekcurd service is manageable. It can deploy the Rekcurd service to Kubernetes cluster.
 
 
 ## Parent Project
-https://github.com/rekcurd/drucker-parent
+https://github.com/rekcurd/community
 
 
 ## Components
-- [Rekcurd](https://github.com/rekcurd/drucker): Project for serving ML module.
-- [Rekcurd-dashboard](https://github.com/rekcurd/drucker-dashboard) (here): Project for managing ML model and deploying ML module.
-- [Rekcurd-client](https://github.com/rekcurd/drucker-client): Project for integrating ML module. 
+- [Rekcurd](https://github.com/rekcurd/rekcurd-python): Project for serving ML module.
+- [Rekcurd-dashboard](https://github.com/rekcurd/dashboard) (here): Project for managing ML model and deploying ML module.
+- [Rekcurd-client](https://github.com/rekcurd/python-client): Project for integrating ML module. 
 
 
 ## Environment
@@ -29,8 +29,8 @@ https://github.com/rekcurd/drucker-parent
 From source:
 
 ```bash
-$ git clone --recursive https://github.com/rekcurd/drucker-dashboard.git
-$ cd drucker-dashboard/frontend
+$ git clone --recursive https://github.com/rekcurd/dashboard.git
+$ cd dashboard/frontend
 $ yarn install && yarn run build && cd ..
 $ pip install -e .
 ```
@@ -44,7 +44,7 @@ $ pip install rekcurd-dashboard
 
 ## How to boot
 ### Preparation
-You need to create [`settings.yml`](./drucker_dashboard/settings.yml).
+You need to create [`settings.yml`](rekcurd_dashboard/settings.yml).
 
 ### General users
 Launched on `http://0.0.0.0:18080` as a default.
@@ -99,11 +99,11 @@ $ sudo yum install -y VirtualBox-5.2
 
 ### Test
 ```bash
-$ sudo sh drucker_dashboard/e2e_test/startup.sh
+$ sudo sh e2e_test/startup.sh
 $ python -m unittest
-$ sudo sh drucker_dashboard/e2e_test/cleanup.sh
+$ sudo sh e2e_test/cleanup.sh
 ```
 
 
 ## Kubernetes support
-Rekcurd can be run on Kubernetes. See [here](https://github.com/rekcurd/drucker-parent).
+Rekcurd can be run on Kubernetes. See [here](https://github.com/rekcurd/community).

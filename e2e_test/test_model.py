@@ -1,7 +1,7 @@
 from kubernetes import client as k8s_client
 from kubernetes.stream import stream
 
-from drucker_dashboard.models import db, Model
+from rekcurd_dashboard.models import db, Model
 
 from e2e_test.base import BaseTestCase
 from e2e_test.base import kube_setting1, WorkerConfiguration
@@ -47,7 +47,7 @@ class TestApiApplicationIdModels(BaseTestCase):
                              data={'file': (f, model_name),
                                    'description': 'A model always return positive labels.'})
             pod = core_v1.list_namespaced_pod(namespace=namespace).items[0]
-            model_pod_path = f"{WorkerConfiguration.deployment['spec']['template']['spec']['volumes'][0]['hostPath']['path']}/drucker-sample/{model_name}"
+            model_pod_path = f"{WorkerConfiguration.deployment['spec']['template']['spec']['volumes'][0]['hostPath']['path']}/rekcurd-sample/{model_name}"
             # Use `ls` to see the model exists or not
             resp = stream(
                 core_v1.connect_get_namespaced_pod_exec, pod.metadata.name, namespace,

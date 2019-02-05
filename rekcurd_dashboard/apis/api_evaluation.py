@@ -7,9 +7,9 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
 from . import api
-from drucker_dashboard.models import db, Service, Evaluation, EvaluationResult
-from drucker_dashboard.drucker_dashboard_client import DruckerDashboardClient
-from drucker_dashboard.utils.hash_util import HashUtil
+from rekcurd_dashboard.models import db, Service, Evaluation, EvaluationResult
+from rekcurd_dashboard.rekcurd_dashboard_client import RekcurdDashboardClient
+from rekcurd_dashboard.utils.hash_util import HashUtil
 
 
 eval_info_namespace = Namespace('evaluation', description='Evaluation Endpoint.')
@@ -56,8 +56,8 @@ class ApiEvaluation(Resource):
 
         sobj = Service.query.filter_by(application_id=application_id).first_or_404()
 
-        drucker_dashboard_application = DruckerDashboardClient(logger=api.logger, host=sobj.host)
-        response_body = drucker_dashboard_application.run_upload_evaluation_data(file, eval_data_path)
+        rekcurd_dashboard_application = RekcurdDashboardClient(logger=api.logger, host=sobj.host)
+        response_body = rekcurd_dashboard_application.run_upload_evaluation_data(file, eval_data_path)
 
         if not response_body['status']:
             raise Exception('Failed to upload')
@@ -129,8 +129,8 @@ class ApiEvaluate(Resource):
             return robj.result
 
         eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
-        drucker_dashboard_application = DruckerDashboardClient(logger=api.logger, host=sobj.host)
-        response_body = drucker_dashboard_application.run_evaluate_model(eobj.data_path, eval_result_path)
+        rekcurd_dashboard_application = RekcurdDashboardClient(logger=api.logger, host=sobj.host)
+        response_body = rekcurd_dashboard_application.run_evaluate_model(eobj.data_path, eval_result_path)
 
         if response_body['status']:
             result = json.dumps(response_body)
@@ -163,11 +163,11 @@ class ApiEvaluationResult(Resource):
         if eval_with_result is None:
             return {"status": False, "message": "Not Found."}, 404
         sobj = Service.query.filter_by(application_id=application_id).first_or_404()
-        drucker_dashboard_application = DruckerDashboardClient(logger=api.logger, host=sobj.host)
+        rekcurd_dashboard_application = RekcurdDashboardClient(logger=api.logger, host=sobj.host)
         eobj = eval_with_result.Evaluation
         robj = eval_with_result.EvaluationResult
 
-        response_body = list(drucker_dashboard_application.run_evaluation_data(eobj.data_path, robj.data_path))
+        response_body = list(rekcurd_dashboard_application.run_evaluation_data(eobj.data_path, robj.data_path))
         if len(response_body) == 0:
             return {"status": False, "message": "Result Not Found."}, 404
 

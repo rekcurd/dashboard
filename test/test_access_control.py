@@ -1,16 +1,16 @@
 from unittest.mock import patch, Mock
 
-from drucker_dashboard.protobuf import drucker_pb2
+from rekcurd_dashboard.protobuf import rekcurd_pb2
 from .base import BaseTestCase, create_app_obj, create_user_obj, create_application_user_role_obj, db, Application, ApplicationUserRole
-from drucker_dashboard.server import create_app
-from drucker_dashboard.models import Role
+from rekcurd_dashboard.server import create_app
+from rekcurd_dashboard.models import Role
 
 
 class ApiAccessControlTest(BaseTestCase):
     def create_app(self):
         return create_app("test/test-auth-settings.yml")
 
-    @patch('drucker_dashboard.auth.authenticator.EmptyAuthenticator.auth_user')
+    @patch('rekcurd_dashboard.auth.authenticator.EmptyAuthenticator.auth_user')
     def _get_token(self, mock):
         mock.return_value = {'uid': 'test', 'name': 'TEST USER'}
         response = self.client.post('/api/login', content_type='application/json', data='{}')
@@ -27,20 +27,20 @@ class ApiAccessControlTest(BaseTestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.json))
 
-    @patch('drucker_dashboard.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
+    @patch('rekcurd_dashboard.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub')
     def test_create_appliction(self, mock):
         token = self._get_token()
         headers = {'Authorization': 'Bearer {}'.format(token)}
 
         mock_stub_obj = Mock()
-        mock_stub_obj.ServiceInfo.return_value = drucker_pb2.ServiceInfoResponse()
+        mock_stub_obj.ServiceInfo.return_value = rekcurd_pb2.ServiceInfoResponse()
         mock.return_value = mock_stub_obj
 
         data = {'host': 'localhost:5000'}
         response = self.client.post('/api/applications/', headers=headers, data=data)
         self.assertEqual(200, response.status_code)
 
-    @patch('drucker_dashboard.drucker_dashboard_client.drucker_pb2_grpc.DruckerDashboardStub')
+    @patch('rekcurd_dashboard.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub')
     def test_create_appliction_already_exist(self, mock):
         token = self._get_token()
         headers = {'Authorization': 'Bearer {}'.format(token)}
@@ -52,7 +52,7 @@ class ApiAccessControlTest(BaseTestCase):
 
         # return same application_name
         mock_stub_obj = Mock()
-        mock_stub_obj.ServiceInfo.return_value = drucker_pb2.ServiceInfoResponse(
+        mock_stub_obj.ServiceInfo.return_value = rekcurd_pb2.ServiceInfoResponse(
             application_name=aobj.application_name,
             service_name='new-service-name')
         mock.return_value = mock_stub_obj
