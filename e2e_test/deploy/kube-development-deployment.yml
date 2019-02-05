@@ -48,7 +48,7 @@ spec:
         - name: REKCURD_SERVICE_GIT_URL
           value: https://github.com/rekcurd/rekcurd-example.git
         - name: REKCURD_SERVICE_GIT_BRANCH
-          value: master
+          value: v0.5.0a0
         - name: REKCURD_SERVICE_BOOT_SHELL
           value: start.sh
         - name: REKCURD_SERVICE_MODEL_DIR
