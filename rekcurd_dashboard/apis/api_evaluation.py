@@ -24,6 +24,7 @@ eval_metrics = eval_info_namespace.model('Evaluation result', {
     'precision': fields.List(fields.Float, required=True, description='precision of evaluation'),
     'recall': fields.List(fields.Float, required=True, description='recall of evaluation'),
     'option': fields.Raw(),
+    'label': fields.Raw(),
     'status': fields.Boolean(required=True),
     'result_id': fields.Integer(required=True, description='ID of evaluation result')
 })
@@ -73,7 +74,6 @@ class ApiEvaluation(Resource):
 
 @eval_info_namespace.route('/<int:application_id>/evaluations/<int:evaluation_id>')
 class ApiEvaluation(Resource):
-
     @eval_info_namespace.marshal_with(success_or_not)
     def delete(self, application_id:int, evaluation_id:int):
         """delete data to be evaluated"""
