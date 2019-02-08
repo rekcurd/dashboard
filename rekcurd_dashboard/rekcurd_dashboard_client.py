@@ -121,8 +121,9 @@ class RekcurdDashboardClient:
     @error_handling({"status": False})
     def run_evaluate_model(self, data_path:str, result_path:str):
         request_iterator = iter([rekcurd_pb2.EvaluateModelRequest(data_path=data_path, result_path=result_path)])
-        response = protobuf_to_dict(self.stub.EvaluateModel(request_iterator).metrics,
-                                    including_default_value_fields=True)
+        metrics = self.stub.EvaluateModel(request_iterator).metrics
+        response = dict(protobuf_to_dict(metrics, including_default_value_fields=True),
+                        label=[self.__get_value_from_io(l) for l in metrics.label])
         response['status'] = True
         return response
 
@@ -162,8 +163,12 @@ class RekcurdDashboardClient:
                     output=self.__get_value_from_io(detail.output),
                     score=detail.score[0] if len(detail.score) == 1 else list(detail.score)
                 ))
+            metrics = raw_response.metrics
+            metrics_response = dict(protobuf_to_dict(metrics, including_default_value_fields=True),
+                                    label=[self.__get_value_from_io(l) for l in metrics.label])
             response = protobuf_to_dict(raw_response,
                                         including_default_value_fields=True)
             response['detail'] = details
             response['status'] = True
+            response['metrics'] = metrics_response
             yield response

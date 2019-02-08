@@ -8,13 +8,14 @@ from io import BytesIO
 from rekcurd_dashboard.models import EvaluationResult, Evaluation, db
 
 default_metrics = {'accuracy': 0.0, 'fvalue': [0.0], 'num': 0,
-                   'option': {}, 'precision': [0.0], 'recall': [0.0]}
+                   'option': {}, 'precision': [0.0], 'recall': [0.0], 'label': ['label']}
 
 
 def patch_stub(func):
     def inner_method(*args, **kwargs):
         mock_stub_obj = Mock()
-        metrics = rekcurd_pb2.EvaluationMetrics(precision=[0.0], recall=[0.0], fvalue=[0.0])
+        metrics = rekcurd_pb2.EvaluationMetrics(precision=[0.0], recall=[0.0], fvalue=[0.0],
+                                                label=[rekcurd_pb2.IO(str=rekcurd_pb2.ArrString(val=['label']))])
         mock_stub_obj.EvaluateModel.return_value = rekcurd_pb2.EvaluateModelResponse(metrics=metrics)
         mock_stub_obj.UploadEvaluationData.return_value = rekcurd_pb2.UploadEvaluationDataResponse(status=1, message='success')
         res = rekcurd_pb2.EvaluationResultResponse(
