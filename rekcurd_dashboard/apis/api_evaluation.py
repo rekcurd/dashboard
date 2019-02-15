@@ -118,7 +118,7 @@ class ApiEvaluate(Resource):
         sobj = Service.query.filter(
             Service.application_id == application_id,
             Service.model_id == model_id,
-            Service.service_level != 'production').one_or_none()
+            Service.service_level != 'production').first()
         if sobj is None:
             raise abort(404, 'The model is not used in any services or used only in production.')
 
