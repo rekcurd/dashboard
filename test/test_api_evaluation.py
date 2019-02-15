@@ -141,6 +141,9 @@ class ApiEvaluateTest(BaseTestCase):
         model_id = create_service_obj(aobj.application_id).model_id
         evaluation_id = create_eval_obj(aobj.application_id, save=True).evaluation_id
 
+        # create another service to confirm that the API works with multiple candidates
+        create_service_obj(aobj.application_id, model_id=model_id, service_name='foo', save=True)
+
         response = self.client.post(f'/api/applications/{aobj.application_id}/evaluate',
                                     data={'evaluation_id': evaluation_id, 'model_id': model_id})
         self.assertEqual(200, response.status_code)
