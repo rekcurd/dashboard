@@ -52,7 +52,7 @@ with open("README.md", "r") as fh:
     LONG_DESCRIPTION = fh.read()
 
 
-class rekcurdui_sdist(sdist):
+class rekcurd_dashboard_sdist(sdist):
     def run(self):
         subprocess.check_call('cd frontend && yarn install && yarn run build', shell=True)
         sdist.run(self)
@@ -70,9 +70,11 @@ setup(
     install_requires=REQUIRES,
     tests_require=TESTS_REQUIRES,
     extras_require=EXTRAS,
-    packages=['rekcurd_dashboard', 'rekcurd_dashboard.logger', 'rekcurd_dashboard.utils',
+    packages=['rekcurd_dashboard', 'rekcurd_dashboard.apis',
+              'rekcurd_dashboard.auth', 'rekcurd_dashboard.console_scripts',
+              'rekcurd_dashboard.core', 'rekcurd_dashboard.logger',
               'rekcurd_dashboard.models', 'rekcurd_dashboard.protobuf',
-              'rekcurd_dashboard.apis', 'rekcurd_dashboard.auth'],
+              'rekcurd_dashboard.utils'],
     package_data={
         'rekcurd_dashboard': [
             'templates/*',
@@ -84,11 +86,11 @@ setup(
     long_description=LONG_DESCRIPTION,
     entry_points={
         'console_scripts': [
-            'rekcurdui=rekcurd_dashboard.app:main',
+            'rekcurd_dashboard=rekcurd_dashboard.console_scripts:main',
         ],
     },
     cmdclass={
-        'sdist': rekcurdui_sdist
+        'sdist': rekcurd_dashboard_sdist
     },
     classifiers=[
         "Development Status :: %s" % DEVELOPMENT_STATUS,

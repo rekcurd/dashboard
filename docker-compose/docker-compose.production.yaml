@@ -35,7 +35,7 @@ services:
     command:
       - /bin/bash
       - -c
-      - "pip install -r requirements.txt && pip install -e . && cd rekcurd_dashboard && (rekcurdui --settings settings.yml db init || true) && (rekcurdui --settings settings.yml db migrate || true) && rekcurdui --settings settings.yml server"
+      - "pip install -r requirements.txt && pip install -e . && cd rekcurd_dashboard && (rekcurd_dashboard --settings settings.yml db init || true) && (rekcurd_dashboard --settings settings.yml db migrate || true) && rekcurd_dashboard --settings settings.yml server"
     ports:
       - "18080:18080"
     restart: always
