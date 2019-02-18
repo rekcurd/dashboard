@@ -8,7 +8,7 @@ from werkzeug.datastructures import FileStorage
 
 from . import api
 from rekcurd_dashboard.models import db, Service, Evaluation, EvaluationResult
-from rekcurd_dashboard.rekcurd_dashboard_client import RekcurdDashboardClient
+from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_dashboard.utils.hash_util import HashUtil
 
 

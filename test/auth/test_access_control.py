@@ -1,8 +1,9 @@
 from unittest.mock import patch, Mock
 
 from rekcurd_dashboard.protobuf import rekcurd_pb2
-from .base import BaseTestCase, create_app_obj, create_user_obj, create_application_user_role_obj, db, Application, ApplicationUserRole
-from rekcurd_dashboard.server import create_app
+from test.base import BaseTestCase, create_app_obj, create_user_obj, create_application_user_role_obj, db, \
+    ApplicationUserRole
+from rekcurd_dashboard.core import create_app
 from rekcurd_dashboard.models import Role
 
 
@@ -27,7 +28,7 @@ class ApiAccessControlTest(BaseTestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.json))
 
-    @patch('rekcurd_dashboard.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub')
+    @patch('rekcurd_dashboard.core.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub')
     def test_create_appliction(self, mock):
         token = self._get_token()
         headers = {'Authorization': 'Bearer {}'.format(token)}
@@ -40,7 +41,7 @@ class ApiAccessControlTest(BaseTestCase):
         response = self.client.post('/api/applications/', headers=headers, data=data)
         self.assertEqual(200, response.status_code)
 
-    @patch('rekcurd_dashboard.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub')
+    @patch('rekcurd_dashboard.core.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub')
     def test_create_appliction_already_exist(self, mock):
         token = self._get_token()
         headers = {'Authorization': 'Bearer {}'.format(token)}

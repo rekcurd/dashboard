@@ -4,7 +4,7 @@ from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse
 
 from . import api
-from rekcurd_dashboard import RekcurdDashboardClient
+from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_dashboard.models import db, Application, Service, ApplicationUserRole, Role, User
 from rekcurd_dashboard.apis import DatetimeToTimestamp
 

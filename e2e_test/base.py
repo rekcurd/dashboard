@@ -10,7 +10,6 @@ from sklearn.externals import joblib
 
 import shutil
 import subprocess
-import tempfile
 from time import sleep
 import warnings
 
@@ -23,10 +22,9 @@ from kubernetes import config as k8s_config
 
 import yaml
 
-from rekcurd_dashboard.server import create_app
+from rekcurd_dashboard.core import create_app, RekcurdDashboardClient
 from rekcurd_dashboard.models import db, Kubernetes, Application, Service, Model
 from rekcurd_dashboard.logger import JsonSystemLogger
-from rekcurd_dashboard.rekcurd_dashboard_client import RekcurdDashboardClient
 from rekcurd_dashboard.apis.api_kubernetes import get_full_config_path
 
 

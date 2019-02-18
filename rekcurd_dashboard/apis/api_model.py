@@ -5,7 +5,7 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
 from . import api, DatetimeToTimestamp
-from rekcurd_dashboard import RekcurdDashboardClient
+from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_dashboard.models import db, Service, Model
 
 
