@@ -8,7 +8,7 @@ import numpy as np
 
 from werkzeug.datastructures import FileStorage
 
-from rekcurd_dashboard.rekcurd_dashboard_client import RekcurdDashboardClient
+from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_client import RekcurdWorkerClient
 from rekcurd_dashboard.models import db, Service
 from rekcurd_dashboard.logger import JsonSystemLogger

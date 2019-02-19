@@ -51,9 +51,9 @@ Launched on `http://0.0.0.0:18080` as a default.
 
 #### command line
 ```bash
-$ rekcurdui --settings settings.yml db init
-$ rekcurdui --settings settings.yml db migrate
-$ rekcurdui --settings settings.yml server
+$ rekcurd_dashboard --settings settings.yml db init
+$ rekcurd_dashboard --settings settings.yml db migrate
+$ rekcurd_dashboard --settings settings.yml server
 ```
 
 #### docker-compose (Deprecated)

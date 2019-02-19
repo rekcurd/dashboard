@@ -6,7 +6,7 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
 from . import api, DatetimeToTimestamp, kubernetes_cpu_to_float
-from rekcurd_dashboard import RekcurdDashboardClient
+from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_dashboard.models import db, Kubernetes, Application, Service, Model
 
 

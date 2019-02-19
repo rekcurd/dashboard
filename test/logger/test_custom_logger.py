@@ -1,5 +1,5 @@
-from .base import BaseTestCase
-from rekcurd_dashboard.server import create_app
+from test.base import BaseTestCase
+from rekcurd_dashboard.core import create_app
 
 
 class CustomLoggerTest(BaseTestCase):

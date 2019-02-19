@@ -3,7 +3,7 @@ import json
 from copy import deepcopy
 
 from rekcurd_dashboard.protobuf import rekcurd_pb2
-from .base import BaseTestCase, create_app_obj, create_service_obj, create_eval_obj, create_eval_result_obj
+from test.base import BaseTestCase, create_app_obj, create_service_obj, create_eval_obj, create_eval_result_obj
 from io import BytesIO
 from rekcurd_dashboard.models import EvaluationResult, Evaluation, db
 
@@ -37,7 +37,7 @@ def patch_stub(func):
                 )
             ])
         mock_stub_obj.EvaluationResult.return_value = iter(res for _ in range(2))
-        with patch('rekcurd_dashboard.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub',
+        with patch('rekcurd_dashboard.core.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub',
                    new=Mock(return_value=mock_stub_obj)):
             return func(*args, **kwargs)
     return inner_method
@@ -101,7 +101,7 @@ class ApiEvaluationResultTest(BaseTestCase):
         self.assertEqual(details[0], {'input': 'input', 'label': 'test', 'output': 'test', 'score': 1.0, 'is_correct': True})
         self.assertEqual(details[1], {'input': 0.5, 'label': [0.9, 1.3], 'output': [0.9, 0.3], 'score': [0.5, 0.5], 'is_correct': False})
 
-    @patch('rekcurd_dashboard.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub')
+    @patch('rekcurd_dashboard.core.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub')
     def test_get_not_found(self, mock_stub_class):
         app_id = create_app_obj().application_id
         eobj = create_eval_obj(app_id, save=True)

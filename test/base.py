@@ -3,7 +3,7 @@ import warnings
 from flask_testing import TestCase
 
 from rekcurd_dashboard.models import db, Application, Service, Evaluation, EvaluationResult, User, ApplicationUserRole, Role
-from rekcurd_dashboard.server import create_app
+from rekcurd_dashboard.core import create_app
 
 
 class BaseTestCase(TestCase):

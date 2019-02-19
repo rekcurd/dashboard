@@ -6,10 +6,10 @@
 import traceback, types
 import grpc
 
-from .protobuf import rekcurd_pb2, rekcurd_pb2_grpc
+from rekcurd_dashboard.protobuf import rekcurd_pb2, rekcurd_pb2_grpc
 
-from .logger.logger_interface import SystemLoggerInterface
-from .utils.protobuf_util import ProtobufUtil
+from rekcurd_dashboard.logger.logger_interface import SystemLoggerInterface
+from rekcurd_dashboard.utils.protobuf_util import ProtobufUtil
 from werkzeug.datastructures import FileStorage
 from protobuf_to_dict import protobuf_to_dict
 

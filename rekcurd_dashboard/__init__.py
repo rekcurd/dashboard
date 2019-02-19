@@ -17,5 +17,3 @@ from rekcurd_dashboard import _version
 
 __project__ = _project.__project__
 __version__ = _version.__version__
-
-from .rekcurd_dashboard_client import RekcurdDashboardClient
