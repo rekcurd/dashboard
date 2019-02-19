@@ -34,6 +34,7 @@ class JsonSystemLogger(SystemLoggerInterface):
         handler = logging.StreamHandler()
         formatter = self.JsonFormatter()
         handler.setFormatter(formatter)
+        self.log.handlers = []
         self.log.addHandler(handler)
         self.log.setLevel(log_level)
 

@@ -31,6 +31,7 @@ class FluentSystemLogger(SystemLoggerInterface):
         formatter = handler.FluentRecordFormatter(custom_format)
         fluent_handler.setFormatter(formatter)
         fluent_handler.setLevel(log_level)
+        self.log.handlers = []
         self.log.addHandler(fluent_handler)
 
     def exception(self, message:str) -> None:
