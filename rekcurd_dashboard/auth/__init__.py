@@ -4,15 +4,15 @@
 import traceback
 
 from functools import wraps
-from flask import jsonify, request, abort
+from flask import jsonify, request
 from flask_jwt_simple import JWTManager, create_jwt, get_jwt_identity, jwt_required
 from jwt.exceptions import PyJWTError
 from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
 
 from .ldap import LdapAuthenticator
-from .exceptions import ApplicationUserRoleException
+from rekcurd_dashboard.utils.exceptions import ProjectUserRoleException, ApplicationUserRoleException
 from .authenticator import EmptyAuthenticator
-from rekcurd_dashboard.models import db, User, Application, ApplicationUserRole, Role
+from rekcurd_dashboard.models import db, UserModel, ProjectUserRoleModel, ProjectRole, ApplicationUserRoleModel, ApplicationRole
 
 
 class Auth(object):
@@ -51,24 +51,6 @@ class Auth(object):
             else:
                 return jsonify({'message': 'Authentication failed'}), 401
 
-        @app.route('/api/credential', methods=['GET'])
-        @jwt_required
-        def credential():
-            user_id = get_jwt_identity()
-            uobj = db.session.query(User).filter(User.user_id == user_id).one_or_none()
-            if uobj is None:
-                abort(404)
-            application_roles = uobj.applications
-            applications = [{'application_id': ar.application_id, 'role': ar.role.name} for ar in application_roles]
-            # applications which don't have users are also accesssible as owner
-            application_ids = db.session.query(ApplicationUserRole.application_id).distinct().all()
-            ids = [application_id for application_id, in application_ids]
-            public_applications = db.session.query(Application).filter(~Application.application_id.in_(ids)).all()
-            applications += [
-                {'application_id': app.application_id, 'role': Role.owner.name} for app in public_applications]
-
-            return jsonify({'user': uobj.serialize, 'applications': applications}), 200
-
         @api.errorhandler(NoAuthorizationError)
         @api.errorhandler(InvalidHeaderError)
         @api.errorhandler(PyJWTError)
@@ -79,11 +61,11 @@ class Auth(object):
             return {'message': 'Authorization failed'}, 401
 
     def user(self, user_info):
-        uobj = db.session.query(User).filter(User.auth_id == user_info['uid']).one_or_none()
+        uobj = db.session.query(UserModel).filter(UserModel.auth_id == user_info['uid']).one_or_none()
         if uobj is not None:
             return uobj.user_id
 
-        uobj = User(auth_id=user_info['uid'],
+        uobj = UserModel(auth_id=user_info['uid'],
                     user_name=user_info['name'])
         db.session.add(uobj)
         db.session.flush()
@@ -96,18 +78,28 @@ class Auth(object):
 auth = Auth()
 
 
-def fetch_role(user_id, application_id):
-    role = db.session.query(ApplicationUserRole).filter(
-        ApplicationUserRole.application_id == application_id,
-        ApplicationUserRole.user_id == user_id).one_or_none()
+def fetch_project_role(user_id, project_id):
+    role = db.session.query(ProjectUserRoleModel).filter(
+        ProjectUserRoleModel.project_id == project_id,
+        ProjectUserRoleModel.user_id == user_id).one_or_none()
+    if role is None:
+        return None
+    else:
+        return role.role
+
+
+def fetch_application_role(user_id, application_id):
+    role = db.session.query(ApplicationUserRoleModel).filter(
+        ApplicationUserRoleModel.application_id == application_id,
+        ApplicationUserRoleModel.user_id == user_id).one_or_none()
     if role is None:
         # applications which don't have users are also accesssible as owner
-        roles = db.session.query(ApplicationUserRole).filter(
-            ApplicationUserRole.application_id == application_id).count()
+        roles = db.session.query(ApplicationUserRoleModel).filter(
+            ApplicationUserRoleModel.application_id == application_id).count()
         if roles == 0:
-            return Role.owner
+            return ApplicationRole.admin
         else:
-            return Role.viewer
+            return ApplicationRole.viewer
     else:
         return role.role
 
@@ -115,16 +107,29 @@ def fetch_role(user_id, application_id):
 def auth_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        if auth.is_enabled() and request.path.startswith('/api/') and not request.path.startswith('/api/settings') and not request.path.startswith('/api/kubernetes/dump'):
+        if not auth.is_enabled() or request.path.startswith('/doc/') or request.path.startswith('/api/settings'):
+            return fn(*args, **kwargs)
+        else:
             @jwt_required
             def run():
+                project_id = kwargs.get('project_id')
+                if project_id is None:
+                    return fn(*args, **kwargs)
+                user_id = get_jwt_identity()
+                project_user_role = fetch_project_role(user_id, project_id)
+                if project_user_role is None:
+                    raise ProjectUserRoleException
                 application_id = kwargs.get('application_id')
-                if application_id is not None:
-                    user_id = get_jwt_identity()
-                    if request.method != 'GET' and fetch_role(user_id, application_id) == Role.viewer:
-                        raise ApplicationUserRoleException
-                return fn(*args, **kwargs)
+                if application_id is None:
+                    if request.method != 'GET' and project_user_role == ProjectRole.member:
+                        raise ProjectUserRoleException
+                    else:
+                        return fn(*args, **kwargs)
+
+                application_user_role = fetch_application_role(user_id, application_id)
+                if request.method != 'GET' and application_user_role == ApplicationRole.viewer:
+                    raise ApplicationUserRoleException
+                else:
+                    return fn(*args, **kwargs)
             return run()
-        else:
-            return fn(*args, **kwargs)
     return wrapper
