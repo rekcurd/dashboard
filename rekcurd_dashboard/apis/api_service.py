@@ -2,182 +2,143 @@ import datetime
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 
-from . import DatetimeToTimestamp
-from .api_kubernetes import get_full_config_path, update_dbs_kubernetes, switch_rekcurd_service_model_assignment
-from rekcurd_dashboard.models import db, Kubernetes, Application, Service
+from . import (
+    DatetimeToTimestamp, status_model,
+    switch_model_assignment, delete_kubernetes_deployment
+)
+from rekcurd_dashboard.models import db, KubernetesModel, ServiceModel
 
 
-srv_info_namespace = Namespace('services', description='Service Endpoint.')
-success_or_not = srv_info_namespace.model('Success', {
-    'status': fields.Boolean(
-        required=True
-    ),
-    'message': fields.String(
-        required=True
-    )
-})
-srv_info = srv_info_namespace.model('Service', {
-    'service_id': fields.Integer(
+service_api_namespace = Namespace('services', description='Service API Endpoint.')
+success_or_not = service_api_namespace.model('Success', status_model)
+service_model_params = service_api_namespace.model('Service', {
+    'service_id': fields.String(
         readOnly=True,
         description='Service ID.'
     ),
-    'service_name': fields.String(
-        required=True,
-        description='Service tag.',
-        example='rekcurd-sample-development-123456789'
+    'application_id': fields.Integer(
+        readOnly=True,
+        description='Application ID.'
     ),
     'display_name': fields.String(
         required=True,
         description='Display name.',
         example='dev-001'
     ),
-    'application_id': fields.Integer(
-        readOnly=True,
-        description='Application ID.'
-    ),
-    'model_id': fields.Integer(
-        readOnly=True,
-        description='Model ID.'
+    'description': fields.String(
+        required=False,
+        description='Description.',
+        example='This is a sample.'
     ),
     'service_level': fields.String(
         required=True,
         description='Service level. [development/beta/staging/sandbox/production]',
         example='development'
     ),
+    'version': fields.String(
+        required=True,
+        description='Rekcurd gRPC spec version.',
+        example='v1'
+    ),
+    'model_id': fields.Integer(
+        readOnly=True,
+        description='Model ID.'
+    ),
+    'host': fields.String(
+        required=True,
+        description='host.',
+        example='rekcurd-sample.example.com'
+    ),
+    'port': fields.Integer(
+        required=True,
+        description='port.',
+        example='5000'
+    ),
     'register_date': DatetimeToTimestamp(
         readOnly=True,
         description='Register date.'
     ),
-    'confirm_date': DatetimeToTimestamp(
-        readOnly=True,
-        description='Existance confirmation date.'
-    ),
     'update_date': DatetimeToTimestamp(
         readOnly=True,
         description='Update date.'
-    ),
-    'host': fields.String(
-        required=False,
-        description='host.',
-        example='rekcurd-sample.example.com'
-    ),
-    'description': fields.String(
-        required=False,
-        description='Description.',
-        example='This is a sample.'
     )
 })
 
 
-@srv_info_namespace.route('/<int:application_id>/services')
-class ApiApplicationIdServices(Resource):
-    @srv_info_namespace.marshal_list_with(srv_info)
-    def get(self, application_id:int):
+@service_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/services')
+class ApiServices(Resource):
+    @service_api_namespace.marshal_list_with(service_model_params)
+    def get(self, project_id: int, application_id: int):
         """get_services"""
-        return Service.query.filter_by(application_id=application_id).all()
+        return ServiceModel.query.filter_by(application_id=application_id).all()
 
-@srv_info_namespace.route('/<int:application_id>/services/<int:service_id>')
-class ApiApplicationIdServiceId(Resource):
+
+@service_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/services/<service_id>')
+class ApiServiceId(Resource):
     switch_model_parser = reqparse.RequestParser()
     switch_model_parser.add_argument('model_id', type=int, required=True, location='form')
 
     update_config_parser = reqparse.RequestParser()
-    update_config_parser.add_argument('display_name', type=str, required=True, location='form')
+    update_config_parser.add_argument('display_name', type=str, required=False, location='form')
     update_config_parser.add_argument('description', type=str, required=False, location='form')
+    update_config_parser.add_argument('version', type=str, required=False, location='form')
 
-    @srv_info_namespace.marshal_with(srv_info)
-    def get(self, application_id:int, service_id:int):
+    @service_api_namespace.marshal_with(service_model_params)
+    def get(self, project_id: int, application_id: int, service_id: str):
         """get_service"""
-        return Service.query.filter_by(
-            application_id=application_id,
-            service_id=service_id).first_or_404()
+        return ServiceModel.query.filter_by(application_id=application_id, service_id=service_id).first_or_404()
 
-    @srv_info_namespace.marshal_with(success_or_not)
-    @srv_info_namespace.expect(switch_model_parser)
-    def put(self, application_id:int, service_id:int):
+    @service_api_namespace.marshal_with(success_or_not)
+    @service_api_namespace.expect(switch_model_parser)
+    def put(self, project_id: int, application_id: int, service_id: str):
         """switch_service_model_assignment"""
         args = self.switch_model_parser.parse_args()
         model_id = args['model_id']
-        response_body = switch_rekcurd_service_model_assignment(
-            application_id, service_id, model_id)
+        response_body = switch_model_assignment(project_id, application_id, service_id, model_id)
         db.session.commit()
         db.session.close()
         return response_body
 
-    @srv_info_namespace.marshal_with(success_or_not)
-    @srv_info_namespace.expect(update_config_parser)
-    def patch(self, application_id:int, service_id:int):
+    @service_api_namespace.marshal_with(success_or_not)
+    @service_api_namespace.expect(update_config_parser)
+    def patch(self, project_id: int, application_id: int, service_id: str):
         """update_service_config"""
         args = self.update_config_parser.parse_args()
         display_name = args['display_name']
         description = args['description']
+        version = args['version']
 
-        sobj = db.session.query(Service).filter(
-            Service.application_id == application_id,
-            Service.service_id == service_id).one()
-        sobj.display_name = display_name
+        service_model: ServiceModel = db.session.query(ServiceModel).filter(ServiceModel.service_id == service_id).one()
+        is_updated = False
+        if display_name is not None:
+            is_updated = True
+            service_model.display_name = display_name
         if description is not None:
-            sobj.description = description
-        sobj.update_date = datetime.datetime.utcnow()
+            is_updated = True
+            service_model.description = description
+        if version is not None:
+            is_updated = True
+            service_model.version = version
+        if is_updated:
+            service_model.update_date = datetime.datetime.utcnow()
+            db.session.commit()
         response_body = {"status": True, "message": "Success."}
-        db.session.commit()
         db.session.close()
         return response_body
 
-    @srv_info_namespace.marshal_with(success_or_not)
-    def delete(self, application_id:int, service_id:int):
+    @service_api_namespace.marshal_with(success_or_not)
+    def delete(self, project_id: int, application_id: int, service_id: str):
         """delete_service"""
-        aobj = db.session.query(Application).filter(
-            Application.application_id == application_id).one_or_none()
-        if aobj is None:
-            raise Exception("No such application_id.")
-        sobj = db.session.query(Service).filter(
-            Service.application_id == application_id,
-            Service.service_id == service_id).one_or_none()
-        if sobj is None:
-            raise Exception("No such service_id.")
-
-        if aobj.kubernetes_id is None:
-            db.session.query(Service).filter(
-                Service.application_id == application_id,
-                Service.service_id == service_id).delete()
-            db.session.flush()
+        kubernetes_models = db.session.query(KubernetesModel).filter(
+            KubernetesModel.project_id == project_id).all()
+        if len(kubernetes_models):
+            """If Kubernetes mode, then request deletion to Kubernetes WebAPI"""
+            delete_kubernetes_deployment(kubernetes_models, service_id)
         else:
-            kubernetes_id = aobj.kubernetes_id
-            kobj = db.session.query(Kubernetes).filter(
-                Kubernetes.kubernetes_id == kubernetes_id).one_or_none()
-            if kobj is None:
-                raise Exception("No such kubernetes_id.")
-            full_config_path = get_full_config_path(kobj.config_path)
-            from kubernetes import client, config
-            config.load_kube_config(full_config_path)
-
-            apps_v1 = client.AppsV1Api()
-            v1_deployment = apps_v1.delete_namespaced_deployment(
-                name="{0}-deployment".format(sobj.service_name),
-                namespace=sobj.service_level,
-                body=client.V1DeleteOptions()
-            )
-            core_vi = client.CoreV1Api()
-            v1_service = core_vi.delete_namespaced_service(
-                name="{0}-service".format(sobj.service_name),
-                namespace=sobj.service_level,
-                body=client.V1DeleteOptions()
-            )
-            extensions_v1_beta = client.ExtensionsV1beta1Api()
-            v1_beta1_ingress = extensions_v1_beta.delete_namespaced_ingress(
-                name="{0}-ingress".format(sobj.service_name),
-                namespace=sobj.service_level,
-                body=client.V1DeleteOptions()
-            )
-            autoscaling_v1 = client.AutoscalingV1Api()
-            v1_horizontal_pod_autoscaler = autoscaling_v1.delete_namespaced_horizontal_pod_autoscaler(
-                name="{0}-autoscaling".format(sobj.service_name),
-                namespace=sobj.service_level,
-                body=client.V1DeleteOptions()
-            )
-            applist = set((aobj.application_name,))
-            update_dbs_kubernetes(kubernetes_id, applist)
+            """Otherwise, delete DB entry."""
+            # TODO: Kill service process.
+            db.session.query(ServiceModel).filter(ServiceModel.service_id == service_id).delete()
+            db.session.flush()
         response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()

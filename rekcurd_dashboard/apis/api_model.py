@@ -1,24 +1,20 @@
 import datetime
+import tempfile
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 
 from werkzeug.datastructures import FileStorage
 
-from . import api, DatetimeToTimestamp
+from . import api, DatetimeToTimestamp, status_model
 from rekcurd_dashboard.core import RekcurdDashboardClient
-from rekcurd_dashboard.models import db, Service, Model
+from rekcurd_dashboard.data_servers import DataServer
+from rekcurd_dashboard.models import db, DataServerModel, DataServerModeEnum, ApplicationModel, ServiceModel, ModelModel
+from rekcurd_dashboard.utils import RekcurdDashboardException
 
 
-mdl_info_namespace = Namespace('models', description='Model Endpoint.')
-success_or_not = mdl_info_namespace.model('Success', {
-    'status': fields.Boolean(
-        required=True
-    ),
-    'message': fields.String(
-        required=True
-    )
-})
-mdl_info = mdl_info_namespace.model('Model', {
+model_api_namespace = Namespace('models', description='Model API Endpoint.')
+success_or_not = model_api_namespace.model('Status', status_model)
+model_model_params = model_api_namespace.model('Model', {
     'model_id': fields.Integer(
         readOnly=True,
         description='Model ID.'
@@ -27,10 +23,10 @@ mdl_info = mdl_info_namespace.model('Model', {
         readOnly=True,
         description='Application ID.'
     ),
-    'model_path': fields.String(
+    'filepath': fields.String(
         readOnly=True,
         description='Model file path.',
-        example='/ml-1234567.model'
+        example='ml-1234567.model'
     ),
     'register_date': DatetimeToTimestamp(
         readOnly=True,
@@ -43,81 +39,92 @@ mdl_info = mdl_info_namespace.model('Model', {
     )
 })
 
-@mdl_info_namespace.route('/<int:application_id>/models')
-class ApiApplicationIdModels(Resource):
+
+@model_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/models')
+class ApiModels(Resource):
     upload_model_parser = reqparse.RequestParser()
     upload_model_parser.add_argument('file', location='files',
                                      type=FileStorage, required=True)
     upload_model_parser.add_argument('description', type=str, required=False, location='form')
 
-    @mdl_info_namespace.marshal_list_with(mdl_info)
-    def get(self, application_id:int):
+    @model_api_namespace.marshal_list_with(model_model_params)
+    def get(self, project_id: int, application_id: int):
         """get_models"""
-        return Model.query.filter_by(application_id=application_id).all()
+        return ModelModel.query.filter_by(application_id=application_id).all()
 
-    @mdl_info_namespace.marshal_with(success_or_not)
-    @mdl_info_namespace.expect(upload_model_parser)
-    def post(self, application_id:int):
+    @model_api_namespace.marshal_with(success_or_not)
+    @model_api_namespace.expect(upload_model_parser)
+    def post(self, project_id: int, application_id: int):
         """upload_model"""
         args = self.upload_model_parser.parse_args()
-        file = args['file']
-        description = args['description']
-        model_path = "ml-{0:%Y%m%d%H%M%S}.model".format(datetime.datetime.utcnow())
+        file: FileStorage = args['file']
+        description: str = args['description']
 
-        sobj = db.session.query(Service).filter(Service.application_id == application_id).first()
-        host = sobj.host
-        rekcurd_dashboard_application = RekcurdDashboardClient(logger=api.logger, host=host)
-        response_body = rekcurd_dashboard_application.run_upload_model(model_path, file)
-        if not response_body.get("status", True):
-            raise Exception(response_body.get("message", "Error."))
+        data_server_model: DataServerModel = db.session.query(
+            DataServerModel).filter(DataServerModel.project_id == project_id).one()
+        application_model: ApplicationModel = db.session.query(
+            ApplicationModel).filter(ApplicationModel.application_id == application_id).first()
+        if data_server_model.data_server_mode == DataServerModeEnum.LOCAL:
+            """Only if DataServerModeEnum.LOCAL, send file to the server."""
+            filepath = "ml-{0:%Y%m%d%H%M%S}.model".format(datetime.datetime.utcnow())
+            service_model: ServiceModel = db.session.query(
+                ServiceModel).filter(ServiceModel.application_id == application_id).first()
+            rekcurd_dashboard_application = RekcurdDashboardClient(
+                host=service_model.host, port=service_model.port, application_name=application_model.application_name,
+                service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
+            response_body = rekcurd_dashboard_application.run_upload_model(filepath, file)
+            if not response_body.get("status", True):
+                raise RekcurdDashboardException(response_body.get("message", "Error."))
+        else:
+            """Otherwise, upload file."""
+            with tempfile.NamedTemporaryFile() as fp:
+                fp.write(file.read())
+                data_server = DataServer()
+                filepath = data_server.upload_model(data_server_model, application_model, fp.name)
+                response_body = {"status": True, "message": "Success."}
 
-        mobj = Model(application_id=application_id,
-                     model_path=model_path,
-                     description=description)
-        db.session.add(mobj)
+        model_model = ModelModel(application_id=application_id, filepath=filepath, description=description)
+        db.session.add(model_model)
         db.session.commit()
         db.session.close()
         return response_body
 
-@mdl_info_namespace.route('/<int:application_id>/models/<int:model_id>')
-class ApiApplicationIdModelId(Resource):
+
+@model_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/models/<int:model_id>')
+class ApiModelId(Resource):
     update_config_parser = reqparse.RequestParser()
     update_config_parser.add_argument('description', type=str, required=True, location='form')
 
-    @mdl_info_namespace.marshal_with(mdl_info)
-    def get(self, application_id:int, model_id:int):
+    @model_api_namespace.marshal_with(model_model_params)
+    def get(self, project_id: int, application_id: int, model_id: int):
         """get_model"""
-        return Model.query.filter_by(
-            application_id=application_id,
-            model_id=model_id).first_or_404()
+        return ModelModel.query.filter_by(model_id=model_id).first_or_404()
 
-    @mdl_info_namespace.marshal_with(success_or_not)
-    @mdl_info_namespace.expect(update_config_parser)
-    def patch(self, application_id:int, model_id:int):
+    @model_api_namespace.marshal_with(success_or_not)
+    @model_api_namespace.expect(update_config_parser)
+    def patch(self, project_id: int, application_id: int, model_id: int):
         """update_model"""
         args = self.update_config_parser.parse_args()
         description = args['description']
 
-        mobj = db.session.query(Model).filter(
-            Model.application_id==application_id,
-            Model.model_id==model_id).one()
-        mobj.description = description
+        model_model = db.session.query(ModelModel).filter(ModelModel.model_id==model_id).one()
+        model_model.description = description
         response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()
         return response_body
 
-    @mdl_info_namespace.marshal_with(success_or_not)
-    def delete(self, application_id:int, model_id:int):
+    @model_api_namespace.marshal_with(success_or_not)
+    def delete(self, project_id: int, application_id: int, model_id: int):
         """delete_model"""
-        mobj = db.session.query(Model).filter(
-            Model.application_id==application_id,
-            Model.model_id==model_id).one_or_none()
-        if mobj is None:
-            raise Exception("No such model_id.")
-        db.session.query(Model).filter(
-            Model.application_id==application_id,
-            Model.model_id==model_id).delete()
+        model_model = db.session.query(ModelModel).filter(ModelModel.model_id==model_id).one_or_none()
+        if model_model is None:
+            raise RekcurdDashboardException("No such model_id.")
+        num = db.session.query(ServiceModel).filter(ServiceModel.model_id==model_id).count()
+        if num > 0:
+            raise RekcurdDashboardException("Model is used by some services.")
+        # TODO: Delete file.
+        db.session.query(ModelModel).filter(ModelModel.model_id==model_id).delete()
         response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()

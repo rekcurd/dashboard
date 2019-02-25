@@ -1,6 +1,16 @@
 from flask_restplus import fields
 
 
+status_model = {
+    'status': fields.Boolean(
+        required=True
+    ),
+    'message': fields.String(
+        required=True
+    )
+}
+
+
 class DatetimeToTimestamp(fields.Raw):
     def format(self, value):
         return value.timestamp()

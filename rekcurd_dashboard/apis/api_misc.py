@@ -6,10 +6,10 @@ from flask_restplus import Resource, Namespace
 from . import api
 
 
-misc_info_namespace = Namespace('misc', description='Misc Endpoint.')
+misc_api_namespace = Namespace('misc', description='Misc API Endpoint.')
 
 
-@misc_info_namespace.route('/settings')
+@misc_api_namespace.route('/settings')
 class Settings(Resource):
     def get(self):
         result = {
