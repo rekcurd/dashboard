@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import backref
 
 
-class Evaluation(db.Model):
+class EvaluationModel(db.Model):
     """
     Data to be evaluated
     """
@@ -27,7 +27,7 @@ class Evaluation(db.Model):
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     application = relationship(
-        'Application', innerjoin=True,
+        'ApplicationModel', innerjoin=True,
         backref=backref("evaluations", cascade="all, delete-orphan", passive_deletes=True))
 
     @property

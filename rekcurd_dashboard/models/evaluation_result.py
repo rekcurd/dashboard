@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import backref
 
 
-class EvaluationResult(db.Model):
+class EvaluationResultModel(db.Model):
     """
     Evaluation Info
     """
@@ -20,14 +20,17 @@ class EvaluationResult(db.Model):
     )
 
     evaluation_result_id = Column(Integer, primary_key=True, autoincrement=True)
-    model_id = Column(Integer, nullable=False)
+    model_id = Column(Integer, ForeignKey('models.model_id', ondelete="CASCADE"), nullable=False)
     data_path = Column(String(512), nullable=False)
     evaluation_id = Column(Integer, ForeignKey('evaluations.evaluation_id', ondelete="CASCADE"), nullable=False)
     _result = Column(Text, nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
+    model = relationship(
+        'ModelModel', innerjoin=True,
+        backref=backref("evaluation_results", cascade="all, delete-orphan", passive_deletes=True))
     evaluations = relationship(
-        'Evaluation', lazy='select', innerjoin=True,
+        'EvaluationModel', lazy='select', innerjoin=True,
         backref=backref("evaluation_results", cascade="all, delete-orphan", passive_deletes=True))
 
     @property

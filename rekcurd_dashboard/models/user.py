@@ -4,10 +4,9 @@ from sqlalchemy import (
     Column, Integer, String, DateTime,
     UniqueConstraint
 )
-from sqlalchemy.orm import relationship
 
 
-class User(db.Model):
+class UserModel(db.Model):
     """
     Users
     """
@@ -22,11 +21,11 @@ class User(db.Model):
     auth_id = Column(String(512), nullable=True)
     user_name = Column(String(512), nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
-    applications = relationship('ApplicationUserRole', lazy='select', innerjoin=True)
 
     @property
     def serialize(self):
         return {
+            'user_id': self.user_id,
             'auth_id': self.auth_id,
             'user_name': self.user_name,
             'register_date': self.register_date.strftime('%Y-%m-%d %H:%M:%S')
