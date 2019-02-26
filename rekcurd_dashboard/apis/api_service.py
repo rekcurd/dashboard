@@ -16,7 +16,7 @@ service_model_params = service_api_namespace.model('Service', {
         readOnly=True,
         description='Service ID.'
     ),
-    'application_id': fields.Integer(
+    'application_id': fields.String(
         readOnly=True,
         description='Application ID.'
     ),
@@ -65,15 +65,15 @@ service_model_params = service_api_namespace.model('Service', {
 })
 
 
-@service_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/services')
+@service_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/services')
 class ApiServices(Resource):
     @service_api_namespace.marshal_list_with(service_model_params)
-    def get(self, project_id: int, application_id: int):
+    def get(self, project_id: int, application_id: str):
         """get_services"""
         return ServiceModel.query.filter_by(application_id=application_id).all()
 
 
-@service_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/services/<service_id>')
+@service_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/services/<service_id>')
 class ApiServiceId(Resource):
     switch_model_parser = reqparse.RequestParser()
     switch_model_parser.add_argument('model_id', type=int, required=True, location='form')
@@ -84,13 +84,13 @@ class ApiServiceId(Resource):
     update_config_parser.add_argument('version', type=str, required=False, location='form')
 
     @service_api_namespace.marshal_with(service_model_params)
-    def get(self, project_id: int, application_id: int, service_id: str):
+    def get(self, project_id: int, application_id: str, service_id: str):
         """get_service"""
         return ServiceModel.query.filter_by(application_id=application_id, service_id=service_id).first_or_404()
 
     @service_api_namespace.marshal_with(success_or_not)
     @service_api_namespace.expect(switch_model_parser)
-    def put(self, project_id: int, application_id: int, service_id: str):
+    def put(self, project_id: int, application_id: str, service_id: str):
         """switch_service_model_assignment"""
         args = self.switch_model_parser.parse_args()
         model_id = args['model_id']
@@ -101,7 +101,7 @@ class ApiServiceId(Resource):
 
     @service_api_namespace.marshal_with(success_or_not)
     @service_api_namespace.expect(update_config_parser)
-    def patch(self, project_id: int, application_id: int, service_id: str):
+    def patch(self, project_id: int, application_id: str, service_id: str):
         """update_service_config"""
         args = self.update_config_parser.parse_args()
         display_name = args['display_name']
@@ -127,13 +127,13 @@ class ApiServiceId(Resource):
         return response_body
 
     @service_api_namespace.marshal_with(success_or_not)
-    def delete(self, project_id: int, application_id: int, service_id: str):
+    def delete(self, project_id: int, application_id: str, service_id: str):
         """delete_service"""
         kubernetes_models = db.session.query(KubernetesModel).filter(
             KubernetesModel.project_id == project_id).all()
         if len(kubernetes_models):
             """If Kubernetes mode, then request deletion to Kubernetes WebAPI"""
-            delete_kubernetes_deployment(kubernetes_models, service_id)
+            delete_kubernetes_deployment(kubernetes_models, application_id, service_id)
         else:
             """Otherwise, delete DB entry."""
             # TODO: Kill service process.

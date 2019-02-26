@@ -20,7 +20,7 @@ class ServiceModel(db.Model):
     )
 
     service_id = Column(String(32), primary_key=True)
-    application_id = Column(Integer, ForeignKey('applications.application_id', ondelete="CASCADE"), nullable=False)
+    application_id = Column(String, ForeignKey('applications.application_id', ondelete="CASCADE"), nullable=False)
     display_name = Column(String(128), nullable=False)
     description = Column(Text, nullable=True)
     service_level = Column(String(128), nullable=False)

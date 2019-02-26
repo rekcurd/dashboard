@@ -1,3 +1,5 @@
+import uuid
+
 from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse
 
@@ -10,7 +12,7 @@ from rekcurd_dashboard.apis import DatetimeToTimestamp
 application_api_namespace = Namespace('applications', description='Application API Endpoint.')
 success_or_not = application_api_namespace.model('Success', status_model)
 application_model_params = application_api_namespace.model('Application', {
-    'application_id': fields.Integer(
+    'application_id': fields.String(
         readOnly=True,
         description='Application ID.'
     ),
@@ -59,8 +61,10 @@ class ApiApplications(Resource):
             ApplicationModel.application_name == application_name).one_or_none()
         if application_model is not None:
             raise RekcurdDashboardException("Application name is duplicated.")
+        application_id = uuid.uuid4().hex
         application_model = ApplicationModel(
-            project_id=project_id, application_name=application_name, description=description)
+            project_id=project_id, application_id=application_id,
+            application_name=application_name, description=description)
         db.session.add(application_model)
         db.session.flush()
 
@@ -83,19 +87,19 @@ class ApiApplications(Resource):
         return response_body
 
 
-@application_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>')
+@application_api_namespace.route('/projects/<int:project_id>/applications/<application_id>')
 class ApiApplicationId(Resource):
     edit_application_parser = reqparse.RequestParser()
     edit_application_parser.add_argument('description', type=str, required=True, location='form')
 
     @application_api_namespace.marshal_with(application_model_params)
-    def get(self, project_id: int, application_id: int):
+    def get(self, project_id: int, application_id: str):
         """get_application"""
         return ApplicationModel.query.filter_by(application_id=application_id).first_or_404()
 
     @application_api_namespace.marshal_with(success_or_not)
     @application_api_namespace.expect(edit_application_parser)
-    def patch(self, project_id: int, application_id: int):
+    def patch(self, project_id: int, application_id: str):
         """update_application"""
         args = self.edit_application_parser.parse_args()
         description = args['description']

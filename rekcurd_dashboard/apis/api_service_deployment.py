@@ -203,7 +203,7 @@ service_deployment_parser.add_argument(
     help='Initial deployment for "development" env. Default is a commit date.')
 
 
-@service_deployment_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/single_service_registration')
+@service_deployment_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/single_service_registration')
 class ApiSingleServiceRegistration(Resource):
     """
     Registration for non-Kubernetes service.
@@ -232,7 +232,7 @@ class ApiSingleServiceRegistration(Resource):
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
     @service_deployment_api_namespace.expect(single_worker_parser)
-    def post(self, project_id: int, application_id: int):
+    def post(self, project_id: int, application_id: str):
         """Add non-Kubenetes service."""
         args = self.single_worker_parser.parse_args()
         display_name = args["display_name"]
@@ -262,11 +262,11 @@ class ApiSingleServiceRegistration(Resource):
         return {"status": True, "message": "Success."}
 
 
-@service_deployment_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/service_deployment')
+@service_deployment_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/service_deployment')
 class ApiServiceDeployment(Resource):
     @service_deployment_api_namespace.marshal_with(success_or_not)
     @service_deployment_api_namespace.expect(service_deployment_parser)
-    def post(self, project_id: int, application_id: int):
+    def post(self, project_id: int, application_id: str):
         """Add Kubenetes service."""
         args = service_deployment_parser.parse_args()
         apply_rekcurd_to_kubernetes(project_id=project_id, application_id=application_id, **args)
@@ -275,16 +275,16 @@ class ApiServiceDeployment(Resource):
         return {"status": True, "message": "Success."}
 
 
-@service_deployment_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/service_deployment/<service_id>')
+@service_deployment_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/service_deployment/<service_id>')
 class ApiServiceIdDeployment(Resource):
     @service_deployment_api_namespace.marshal_with(service_deployment_params)
-    def get(self, project_id: int, application_id: int, service_id: str):
+    def get(self, project_id: int, application_id: str, service_id: str):
         """Get Kubernetes deployment info."""
         deployment_info = load_kubernetes_deployment_info(project_id, application_id, service_id)
         return deployment_info
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
-    def put(self, project_id: int, application_id: int, service_id: str):
+    def put(self, project_id: int, application_id: str, service_id: str):
         """Update Kubernetes deployment info."""
         deployment_info = load_kubernetes_deployment_info(project_id, application_id, service_id)
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
@@ -309,7 +309,7 @@ class ApiServiceIdDeployment(Resource):
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
     @service_deployment_api_namespace.expect(service_deployment_parser)
-    def patch(self, project_id: int, application_id: int, service_id: str):
+    def patch(self, project_id: int, application_id: str, service_id: str):
         """Rolling update of Kubernetes deployment configurations."""
         args = service_deployment_parser.parse_args()
         args['commit_message'] = "Update at {0:%Y%m%d%H%M%S}".format(datetime.datetime.utcnow())
@@ -337,13 +337,13 @@ class ApiServiceIdDeployment(Resource):
         return {"status": True, "message": "Success."}
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
-    def delete(self, project_id: int, application_id: int, service_id: str):
+    def delete(self, project_id: int, application_id: str, service_id: str):
         """Delete deployment."""
         kubernetes_models = db.session.query(KubernetesModel).filter(
             KubernetesModel.project_id == project_id).all()
         if len(kubernetes_models):
             """If Kubernetes mode, then request deletion to Kubernetes WebAPI"""
-            delete_kubernetes_deployment(kubernetes_models, service_id)
+            delete_kubernetes_deployment(kubernetes_models, application_id, service_id)
         else:
             """Otherwise, delete DB entry."""
             # TODO: Kill service process.

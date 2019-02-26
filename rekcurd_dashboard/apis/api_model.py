@@ -19,7 +19,7 @@ model_model_params = model_api_namespace.model('Model', {
         readOnly=True,
         description='Model ID.'
     ),
-    'application_id': fields.Integer(
+    'application_id': fields.String(
         readOnly=True,
         description='Application ID.'
     ),
@@ -40,7 +40,7 @@ model_model_params = model_api_namespace.model('Model', {
 })
 
 
-@model_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/models')
+@model_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/models')
 class ApiModels(Resource):
     upload_model_parser = reqparse.RequestParser()
     upload_model_parser.add_argument('file', location='files',
@@ -48,13 +48,13 @@ class ApiModels(Resource):
     upload_model_parser.add_argument('description', type=str, required=False, location='form')
 
     @model_api_namespace.marshal_list_with(model_model_params)
-    def get(self, project_id: int, application_id: int):
+    def get(self, project_id: int, application_id: str):
         """get_models"""
         return ModelModel.query.filter_by(application_id=application_id).all()
 
     @model_api_namespace.marshal_with(success_or_not)
     @model_api_namespace.expect(upload_model_parser)
-    def post(self, project_id: int, application_id: int):
+    def post(self, project_id: int, application_id: str):
         """upload_model"""
         args = self.upload_model_parser.parse_args()
         file: FileStorage = args['file']
@@ -90,19 +90,19 @@ class ApiModels(Resource):
         return response_body
 
 
-@model_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/models/<int:model_id>')
+@model_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/models/<int:model_id>')
 class ApiModelId(Resource):
     update_config_parser = reqparse.RequestParser()
     update_config_parser.add_argument('description', type=str, required=True, location='form')
 
     @model_api_namespace.marshal_with(model_model_params)
-    def get(self, project_id: int, application_id: int, model_id: int):
+    def get(self, project_id: int, application_id: str, model_id: int):
         """get_model"""
         return ModelModel.query.filter_by(model_id=model_id).first_or_404()
 
     @model_api_namespace.marshal_with(success_or_not)
     @model_api_namespace.expect(update_config_parser)
-    def patch(self, project_id: int, application_id: int, model_id: int):
+    def patch(self, project_id: int, application_id: str, model_id: int):
         """update_model"""
         args = self.update_config_parser.parse_args()
         description = args['description']
@@ -115,7 +115,7 @@ class ApiModelId(Resource):
         return response_body
 
     @model_api_namespace.marshal_with(success_or_not)
-    def delete(self, project_id: int, application_id: int, model_id: int):
+    def delete(self, project_id: int, application_id: str, model_id: int):
         """delete_model"""
         model_model = db.session.query(ModelModel).filter(ModelModel.model_id==model_id).one_or_none()
         if model_model is None:

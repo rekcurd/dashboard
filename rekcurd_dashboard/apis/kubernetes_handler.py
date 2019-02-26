@@ -41,11 +41,10 @@ def remove_kubernetes_access_file(config_path):
     return
 
 
-def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel, target_applications: set = None):
+def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel):
     """
     Update Kubernetes deployment info.
     :param kubernetes_model:
-    :param target_applications:
     :return:
     """
     full_config_path = get_full_config_path(kubernetes_model.config_path)
@@ -54,23 +53,20 @@ def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel, target_
     v1_api = client.AppsV1Api()
     list_deployment_for_all_namespaces = v1_api.list_deployment_for_all_namespaces(watch=False)
 
-    """If target_applications is None, register all application from Kubernetes."""
-    if target_applications is None:
-        target_applications = set()
-        for i in list_deployment_for_all_namespaces.items:
-            labels = i.metadata.labels
-            if labels is not None and labels.get("rekcurd-worker", "False") == "True":
-                application_name = labels["app"]
-                target_applications.add(application_name)
-
     """Application registration."""
-    for application_name in target_applications:
+    for i in list_deployment_for_all_namespaces.items:
+        labels = i.metadata.labels
+        if labels is None or labels.get("rekcurd-worker", "False") == "False":
+            continue
+
+        application_id = labels["id"]
+        application_name = labels["name"]
         application_model = db.session.query(ApplicationModel).filter(
-            ApplicationModel.application_name == application_name,
-            ApplicationModel.project_id == KubernetesModel.project_id).one_or_none()
+            ApplicationModel.application_id == application_id).one_or_none()
         if application_model is None:
             application_model = ApplicationModel(
                 project_id=kubernetes_model.project_id,
+                application_id=application_id,
                 application_name=application_name)
             db.session.add(application_model)
             db.session.flush()
@@ -81,10 +77,7 @@ def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel, target_
         if labels is None or labels.get("rekcurd-worker", "False") == "False":
             continue
 
-        application_name = labels["app"]
-        if application_name not in target_applications:
-            continue
-
+        application_id = labels["id"]
         service_id = labels["sel"]
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
             ServiceModel.service_id == service_id).one_or_none()
@@ -105,14 +98,11 @@ def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel, target_
                     port = int(env_ent.value)
 
             """Model registration."""
-            application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
-                ApplicationModel.application_name == application_name,
-                ApplicationModel.project_id == KubernetesModel.project_id).one()
             model_model: ModelModel = db.session.query(ModelModel).filter(
-                ModelModel.application_id == application_model.application_id,
+                ModelModel.application_id == application_id,
                 ModelModel.filepath == filepath).one_or_none()
             if model_model is None:
-                model_model = ModelModel(application_id=application_model.application_id,
+                model_model = ModelModel(application_id=application_id,
                                          filepath=filepath, description="Automatically registered.")
                 db.session.add(model_model)
                 db.session.flush()
@@ -120,7 +110,7 @@ def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel, target_
             """Service registration."""
             service_model = ServiceModel(
                 service_id=service_id,
-                application_id=application_model.application_id,
+                application_id=application_id,
                 display_name="{}-{}".format(service_level, service_id),
                 service_level=service_level,
                 version=version,
@@ -133,7 +123,7 @@ def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel, target_
 
 
 def apply_rekcurd_to_kubernetes(
-        project_id: int, application_id: int, service_level: str, version: str,
+        project_id: int, application_id: str, service_level: str, version: str,
         service_host: str, service_port: int, replicas_default: int, replicas_minimum: int,
         replicas_maximum: int, autoscale_cpu_threshold: str, policy_max_surge: int,
         policy_max_unavailable: int, policy_wait_seconds: int, container_image: str,
@@ -270,7 +260,8 @@ def apply_rekcurd_to_kubernetes(
             metadata=client.V1ObjectMeta(
                 name="{0}-deployment".format(service_id),
                 namespace=service_level,
-                labels={"rekcurd-worker": "True", "app": application_name, "sel": service_id}
+                labels={"rekcurd-worker": "True", "id": application_id,
+                        "name": application_name, "sel": service_id}
             ),
             spec=client.V1DeploymentSpec(
                 min_ready_seconds=policy_wait_seconds,
@@ -288,7 +279,8 @@ def apply_rekcurd_to_kubernetes(
                 ),
                 template=client.V1PodTemplateSpec(
                     metadata=client.V1ObjectMeta(
-                        labels={"rekcurd-worker": "True", "app": application_name, "sel": service_id}
+                        labels={"rekcurd-worker": "True", "id": application_id,
+                                "name": application_name, "sel": service_id}
                     ),
                     spec=client.V1PodSpec(
                         affinity=client.V1Affinity(
@@ -299,7 +291,7 @@ def apply_rekcurd_to_kubernetes(
                                             label_selector=client.V1LabelSelector(
                                                 match_expressions=[
                                                     client.V1LabelSelectorRequirement(
-                                                        key="app",
+                                                        key="id",
                                                         operator="In",
                                                         values=[service_id]
                                                     )
@@ -363,12 +355,13 @@ def apply_rekcurd_to_kubernetes(
             metadata=client.V1ObjectMeta(
                 name="{0}-service".format(service_id),
                 namespace=service_level,
-                labels={"rekcurd-worker": "True", "app": application_name, "sel": service_id}
+                labels={"rekcurd-worker": "True", "id": application_id,
+                        "name": application_name, "sel": service_id}
             ),
             spec=client.V1ServiceSpec(
                 ports=[
                     client.V1ServicePort(
-                        name="http2",
+                        name="grpc",
                         port=service_port,
                         protocol="TCP",
                         target_port=service_port
@@ -400,7 +393,8 @@ def apply_rekcurd_to_kubernetes(
             metadata=client.V1ObjectMeta(
                 name="{0}-autoscaling".format(service_id),
                 namespace=service_level,
-                labels={"rekcurd-worker": "True", "app": application_name, "sel": service_id}
+                labels={"rekcurd-worker": "True", "id": application_id,
+                        "name": application_name, "sel": service_id}
             ),
             spec=client.V1HorizontalPodAutoscalerSpec(
                 max_replicas=replicas_maximum,
@@ -428,30 +422,77 @@ def apply_rekcurd_to_kubernetes(
                 body=v1_horizontal_pod_autoscaler
             )
 
-        """Create/patch istio."""
-        # TODO: Implement here.
+        """Create Istio ingress if this is the first application."""
         custom_object_api = client.CustomObjectsApi()
-        if is_creation_mode:
+        try:
+            custom_object_api.get_namespaced_custom_object(
+                group="apiVersion: networking.istio.io",
+                version="v1alpha3",
+                namespace=service_level,
+                plural="virtualservices",
+                name="{0}-ingress-virtual-service".format(application_id),
+            )
+        except:
+            ingress_virtual_service_body = {
+                "apiVersion": "networking.istio.io/v1alpha3",
+                "kind": "VirtualService",
+                "metadata": {
+                    "name": "{0}-ingress-virtual-service".format(application_id),
+                    "namespace": service_level
+                },
+                "spec": {
+                    "hosts": [
+                        "\"*\""
+                    ],
+                    "gateways": [
+                        "rekcurd-ingress-gateway"
+                    ],
+                    "http": [
+                        {
+                            "match": [
+                                {
+                                    "headers": {
+                                        "x-rekcurd-application-name": {
+                                            "exact": application_name
+                                        },
+                                        "x-rekcurd-sevice-level": {
+                                            "exact": service_level
+                                        },
+                                        "x-rekcurd-grpc-version": {
+                                            "exact": version
+                                        },
+                                    }
+                                }
+                            ],
+                            "route": [
+                                {
+                                    "destination": {
+                                        "port": {
+                                            "number": service_port
+                                        },
+                                        "host": "{0}-service".format(service_id)
+                                    },
+                                    "weight": 100
+                                }
+                            ],
+                            "retries": {
+                                "attempts": 25,
+                                "perTryTimeout": "1s"
+                            }
+                        }
+                    ]
+                }
+            }
             api.logger.info("Istio created.")
             custom_object_api.create_namespaced_custom_object(
-                group="",
-                version="",
+                group="apiVersion: networking.istio.io",
+                version="v1alpha3",
                 namespace=service_level,
-                plural="",
-                body=None
-            )
-        else:
-            api.logger.info("Istio patched.")
-            custom_object_api.patch_namespaced_custom_object(
-                group="",
-                version="",
-                namespace=service_level,
-                plural="",
-                name="",
-                body=None
+                plural="virtualservices",
+                body=ingress_virtual_service_body
             )
 
-        """Register service."""
+        """Add service model."""
         display_name = "{0}-{1}".format(service_level, service_id)
         if is_creation_mode:
             service_model = ServiceModel(
@@ -461,14 +502,15 @@ def apply_rekcurd_to_kubernetes(
             db.session.add(service_model)
             db.session.flush()
 
-        """Finish."""
-        return service_id
+    """Finish."""
+    return service_id
 
 
-def delete_kubernetes_deployment(kubernetes_models: list, service_id: str):
+def delete_kubernetes_deployment(kubernetes_models: list, application_id: str, service_id: str):
     """
     Delete Kubernetes deployment.
     :param kubernetes_models:
+    :param application_id:
     :param service_id:
     :return:
     """
@@ -499,14 +541,77 @@ def delete_kubernetes_deployment(kubernetes_models: list, service_id: str):
             body=client.V1DeleteOptions()
         )
         """Istio"""
-        # TODO: Implement
         custom_object_api = client.CustomObjectsApi()
+        ingress_virtual_service_body = custom_object_api.get_namespaced_custom_object(
+            group="apiVersion: networking.istio.io",
+            version="v1alpha3",
+            namespace=service_model.service_level,
+            plural="virtualservices",
+            name="{0}-ingress-virtual-service".format(application_id),
+        )
+        routes = ingress_virtual_service_body["spec"]["http"][0]["route"]
+        new_routes = [route for route in routes if route["destination"]["host"] != "{0}-service".format(service_id)]
+        if new_routes:
+            weights = [route["weight"] for route in new_routes]
+            norm_factor = 100.0/sum(weights)
+            for route in new_routes:
+                route["weight"] = round(route["weight"]*norm_factor)
+            ingress_virtual_service_body["spec"]["http"][0]["route"] = new_routes
+            custom_object_api.patch_namespaced_custom_object(
+                group="apiVersion: networking.istio.io",
+                version="v1alpha3",
+                namespace=service_model.service_level,
+                plural="virtualservices",
+                name="{0}-ingress-virtual-service".format(application_id),
+                body=ingress_virtual_service_body
+            )
+        else:
+            custom_object_api.delete_namespaced_custom_object(
+                group="apiVersion: networking.istio.io",
+                version="v1alpha3",
+                namespace=service_model.service_level,
+                plural="virtualservices",
+                name="{0}-ingress-virtual-service".format(application_id),
+                body=client.V1DeleteOptions()
+            )
     db.session.query(ServiceModel).filter(ServiceModel.service_id == service_id).delete()
     db.session.flush()
     return
 
 
-def load_kubernetes_deployment_info(project_id: int, application_id: int, service_id: str) -> dict:
+def apply_new_route_weight(
+        project_id: int, application_id: str, service_level: str, service_ids: list, service_weights: list):
+    service_weight_dict = dict()
+    for i in range(len(service_ids)):
+        key = "{0}-service".format(service_ids[i])
+        service_weight_dict[key] = int(service_weights[i])
+    for kubernetes_model in db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all():
+        full_config_path = get_full_config_path(kubernetes_model.config_path)
+        from kubernetes import client, config
+        config.load_kube_config(full_config_path)
+        custom_object_api = client.CustomObjectsApi()
+        ingress_virtual_service_body = custom_object_api.get_namespaced_custom_object(
+            group="apiVersion: networking.istio.io",
+            version="v1alpha3",
+            namespace=service_level,
+            plural="virtualservices",
+            name="{0}-ingress-virtual-service".format(application_id),
+        )
+        routes = ingress_virtual_service_body["spec"]["http"][0]["route"]
+        for route in routes:
+            route["weight"] = service_weight_dict[route["destination"]["host"]]
+        custom_object_api.patch_namespaced_custom_object(
+            group="apiVersion: networking.istio.io",
+            version="v1alpha3",
+            namespace=service_level,
+            plural="virtualservices",
+            name="{0}-ingress-virtual-service".format(application_id),
+            body=ingress_virtual_service_body
+        )
+    return
+
+
+def load_kubernetes_deployment_info(project_id: int, application_id: str, service_id: str) -> dict:
     """
     Load deployment info from Kubernetes.
     :param project_id:
@@ -536,7 +641,7 @@ def load_kubernetes_deployment_info(project_id: int, application_id: int, servic
 
     deployment_info = {}
     filepath = None
-    deployment_info["application_name"] = v1_deployment.metadata.labels["app"]
+    deployment_info["application_name"] = v1_deployment.metadata.labels["name"]
     deployment_info["service_id"] = service_id
     for env_ent in v1_deployment.spec.template.spec.containers[0].env:
         if env_ent.name == "REKCURD_SERVICE_UPDATE_FLAG":
@@ -579,7 +684,7 @@ def load_kubernetes_deployment_info(project_id: int, application_id: int, servic
     return deployment_info
 
 
-def switch_model_assignment(project_id: int, application_id: int, service_id: str, model_id: int):
+def switch_model_assignment(project_id: int, application_id: str, service_id: str, model_id: int):
     """
     Switch model assignment.
     :param project_id:
@@ -651,7 +756,55 @@ def backup_kubernetes_deployment(
     json.dump(api_client.sanitize_for_serialization(v1_horizontal_pod_autoscaler),
               Path(save_dir, "{0}-autoscaling.json".format(service_model.service_id)).open("w", encoding='utf-8'),
               ensure_ascii=False, indent=2)
-    """Istio"""
-    # TODO: Implement
+    return
+
+
+def load_istio_routing(kubernetes_model: KubernetesModel, application_model: ApplicationModel, service_level: str):
+    """
+    Load istio routing info from Kubernetes.
+    :param kubernetes_model:
+    :param application_model:
+    :param service_level:
+    :return:
+    """
+    full_config_path = get_full_config_path(kubernetes_model.config_path)
+    from kubernetes import client, config
+    config.load_kube_config(full_config_path)
     custom_object_api = client.CustomObjectsApi()
+    ingress_virtual_service_body = custom_object_api.get_namespaced_custom_object(
+        group="apiVersion: networking.istio.io",
+        version="v1alpha3",
+        namespace=service_level,
+        plural="virtualservices",
+        name="{0}-ingress-virtual-service".format(application_model.application_id),
+    )
+    return ingress_virtual_service_body["spec"]["http"][0]["route"]
+
+
+def backup_istio_routing(kubernetes_model: KubernetesModel, application_model: ApplicationModel, service_level: str):
+    """
+    Backup Kubernetes deployment.
+    :param kubernetes_model:
+    :param application_model:
+    :param service_level:
+    :return:
+    """
+    full_config_path = get_full_config_path(kubernetes_model.config_path)
+    from kubernetes import client, config
+    config.load_kube_config(full_config_path)
+    save_dir = Path(api.dashboard_config.DIR_KUBE_CONFIG, application_model.application_name)
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    """Istio"""
+    custom_object_api = client.CustomObjectsApi()
+    ingress_virtual_service_body = custom_object_api.get_namespaced_custom_object(
+        group="apiVersion: networking.istio.io",
+        version="v1alpha3",
+        namespace=service_level,
+        plural="virtualservices",
+        name="{0}-ingress-virtual-service".format(application_model.application_id),
+    )
+    json.dump(ingress_virtual_service_body,
+              Path(save_dir, "{0}-ingress-virtual-service.json".format(
+                  application_model.application_id)).open("w", encoding='utf-8'), ensure_ascii=False, indent=2)
     return

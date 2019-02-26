@@ -2,7 +2,7 @@ import enum
 from .dao import db
 from sqlalchemy import (
     Column, Integer,
-    Enum,
+    Enum, String,
     ForeignKey,
     UniqueConstraint
 )
@@ -28,7 +28,7 @@ class ApplicationUserRoleModel(db.Model):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.user_id', ondelete="CASCADE"), nullable=False)
-    application_id = Column(Integer, ForeignKey('applications.application_id', ondelete="CASCADE"), nullable=True)
+    application_id = Column(String, ForeignKey('applications.application_id', ondelete="CASCADE"), nullable=True)
     application_role = Column(Enum(ApplicationRole), nullable=False, default=ApplicationRole.viewer)
 
     application = relationship(

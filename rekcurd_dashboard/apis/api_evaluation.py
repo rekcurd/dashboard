@@ -31,14 +31,14 @@ eval_data_upload = evaluation_api_namespace.model('Result of uploading evaluatio
 })
 
 
-@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/evaluations')
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluations')
 class ApiEvaluations(Resource):
     upload_parser = reqparse.RequestParser()
     upload_parser.add_argument('file', location='files', type=FileStorage, required=True)
 
     @evaluation_api_namespace.expect(upload_parser)
     @evaluation_api_namespace.marshal_with(eval_data_upload)
-    def post(self, project_id: int, application_id: int):
+    def post(self, project_id: int, application_id: str):
         """update data to be evaluated"""
         args = self.upload_parser.parse_args()
         file = args['file']
@@ -73,10 +73,10 @@ class ApiEvaluations(Resource):
         return {"status": True, "evaluation_id": evaluation_id}
 
 
-@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/evaluations/<int:evaluation_id>')
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluations/<int:evaluation_id>')
 class ApiEvaluationId(Resource):
     @evaluation_api_namespace.marshal_with(success_or_not)
-    def delete(self, project_id: int, application_id: int, evaluation_id: int):
+    def delete(self, project_id: int, application_id: str, evaluation_id: int):
         """delete data to be evaluated"""
         eval_query = db.session.query(EvaluationModel).filter(
             EvaluationModel.application_id == application_id,
@@ -90,7 +90,7 @@ class ApiEvaluationId(Resource):
         return {"status": True, "message": "Success."}
 
 
-@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/evaluate')
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluate')
 class ApiEvaluate(Resource):
     eval_parser = reqparse.RequestParser()
     eval_parser.add_argument('model_id', location='form', type=int, required=True)
@@ -99,7 +99,7 @@ class ApiEvaluate(Resource):
 
     @evaluation_api_namespace.expect(eval_parser)
     @evaluation_api_namespace.marshal_with(eval_metrics)
-    def post(self, project_id: int, application_id: int):
+    def post(self, project_id: int, application_id: str):
         """evaluate"""
         args = self.eval_parser.parse_args()
         eval_id = args.get('evaluation_id', None)
@@ -155,10 +155,10 @@ class ApiEvaluate(Resource):
         return response_body
 
 
-@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/evaluation_results/<int:eval_result_id>')
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluation_results/<int:eval_result_id>')
 class ApiEvaluationResults(Resource):
 
-    def get(self, project_id: int, application_id: int, eval_result_id: int):
+    def get(self, project_id: int, application_id: str, eval_result_id: int):
         """get detailed evaluation result"""
         eval_with_result = db.session.query(EvaluationModel, EvaluationResultModel)\
             .filter(EvaluationModel.application_id == application_id,
@@ -189,7 +189,7 @@ class ApiEvaluationResults(Resource):
         }
 
     @evaluation_api_namespace.marshal_with(success_or_not)
-    def delete(self, project_id: int, application_id: int, eval_result_id: int):
+    def delete(self, project_id: int, application_id: str, eval_result_id: int):
         """get detailed evaluation result"""
         eval_with_result = db.session.query(EvaluationModel, EvaluationResultModel)\
             .filter(EvaluationModel.application_id == application_id,

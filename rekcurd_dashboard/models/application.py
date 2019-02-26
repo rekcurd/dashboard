@@ -19,7 +19,7 @@ class ApplicationModel(db.Model):
         {'mysql_engine': 'InnoDB'}
     )
 
-    application_id = Column(Integer, primary_key=True, autoincrement=True)
+    application_id = Column(String(32), primary_key=True)
     project_id = Column(Integer, ForeignKey('projects.project_id', ondelete="CASCADE"), nullable=False)
     application_name = Column(String(128), nullable=False)
     description = Column(Text, nullable=True)

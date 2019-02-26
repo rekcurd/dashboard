@@ -7,7 +7,8 @@ from werkzeug.datastructures import FileStorage
 
 from . import (
     api, DatetimeToTimestamp, status_model, update_kubernetes_deployment_info,
-    save_kubernetes_access_file, remove_kubernetes_access_file, backup_kubernetes_deployment
+    save_kubernetes_access_file, remove_kubernetes_access_file, backup_kubernetes_deployment,
+    backup_istio_routing
 )
 from rekcurd_dashboard.models import db, KubernetesModel, ProjectUserRoleModel, ProjectRole, ApplicationModel, ServiceModel
 from rekcurd_dashboard.utils import ProjectUserRoleException
@@ -134,8 +135,11 @@ class ApiKubernetesBackup(Resource):
         if kubernetes_models:
             kubernetes_model = kubernetes_models[0]
             for application_model in ApplicationModel.query.filter_by(project_id=project_id).all():
+                service_level = None
                 for service_model in ServiceModel.query.filter_by(application_id=application_model.application_id).all():
+                    service_level = service_model.service_level
                     backup_kubernetes_deployment(kubernetes_model, application_model, service_model)
+                backup_istio_routing(kubernetes_model, application_model, service_level)
         response_body = {"status": True, "message": "Success."}
         return response_body
 

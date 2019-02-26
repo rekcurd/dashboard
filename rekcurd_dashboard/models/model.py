@@ -20,7 +20,7 @@ class ModelModel(db.Model):
     )
 
     model_id = Column(Integer, primary_key=True, autoincrement=True)
-    application_id = Column(Integer, ForeignKey('applications.application_id', ondelete="CASCADE"), nullable=False)
+    application_id = Column(String, ForeignKey('applications.application_id', ondelete="CASCADE"), nullable=False)
     filepath = Column(String(512), nullable=False)
     description = Column(Text, nullable=True)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)

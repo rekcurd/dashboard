@@ -121,7 +121,7 @@ class ApiProjectIdACL(Resource):
         return {"status": True, "message": "Success."}, 200
 
 
-@admin_api_namespace.route('/projects/<int:project_id>/applications/<int:application_id>/acl')
+@admin_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/acl')
 class ApiApplicationIdACL(Resource):
     method_decorators = [check_owner_role]
 
