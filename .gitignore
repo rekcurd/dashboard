@@ -108,7 +108,7 @@ db.sqlite3
 db.test.sqlite3
 
 # Kube config
-rekcurd_dashboard/kube-config/
+kube-config/
 
 # frontend
 rekcurd_dashboard/static/
