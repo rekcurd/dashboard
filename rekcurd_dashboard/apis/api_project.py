@@ -67,10 +67,9 @@ class ApiProjects(Resource):
                 project_role=ProjectRole.admin.name)
             db.session.add(project_user_role_model)
             db.session.flush()
-        response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()
-        return response_body
+        return {"status": True, "message": "Success."}
 
 
 @project_api_namespace.route('/projects/<int:project_id>')
@@ -103,5 +102,4 @@ class ApiProjectId(Resource):
         if is_update:
             db.session.commit()
         db.session.close()
-        response_body = {"status": True, "message": "Success."}
-        return response_body
+        return {"status": True, "message": "Success."}

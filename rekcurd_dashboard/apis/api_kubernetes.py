@@ -65,7 +65,7 @@ class ApiKubernetes(Resource):
         help='Kubernetes access_token configuration file.')
     kubernetes_model_parser.add_argument(
         'display_name', location='form', type=str, required=True,
-        help="Must be unique. If empty, automatically generated.")
+        help="Must be unique.")
     kubernetes_model_parser.add_argument(
         'description', location='form', type=str, required=False,
         help='Description.')
@@ -95,8 +95,7 @@ class ApiKubernetes(Resource):
         update_kubernetes_deployment_info(kubernetes_model)
         db.session.commit()
         db.session.close()
-        response_body = {"status": True, "message": "Success."}
-        return response_body
+        return {"status": True, "message": "Success."}
 
     @kubernetes_api_namespace.marshal_with(success_or_not)
     @kubernetes_api_namespace.expect(kubernetes_model_parser)
@@ -119,11 +118,10 @@ class ApiKubernetes(Resource):
             update_kubernetes_deployment_info(kubernetes_model)
             db.session.commit()
             db.session.close()
-            response_body = {"status": True, "message": "Success."}
         except Exception as error:
             remove_kubernetes_access_file(config_path)
             raise error
-        return response_body
+        return {"status": True, "message": "Success."}
 
 
 @kubernetes_api_namespace.route('/projects/<int:project_id>/backup')
@@ -140,8 +138,7 @@ class ApiKubernetesBackup(Resource):
                     service_level = service_model.service_level
                     backup_kubernetes_deployment(kubernetes_model, application_model, service_model)
                 backup_istio_routing(kubernetes_model, application_model, service_level)
-        response_body = {"status": True, "message": "Success."}
-        return response_body
+        return {"status": True, "message": "Success."}
 
 
 @kubernetes_api_namespace.route('/projects/<int:project_id>/kubernetes/<int:kubernetes_id>')
@@ -182,8 +179,7 @@ class ApiKubernetesId(Resource):
         update_kubernetes_deployment_info(kubernetes_model)
         db.session.commit()
         db.session.close()
-        response_body = {"status": True, "message": "Success."}
-        return response_body
+        return {"status": True, "message": "Success."}
 
     @kubernetes_api_namespace.marshal_with(success_or_not)
     @kubernetes_api_namespace.expect(kubernetes_model_parser)
@@ -232,7 +228,6 @@ class ApiKubernetesId(Resource):
     def delete(self, project_id: int, kubernetes_id: int):
         """delete_kubernetes_id"""
         db.session.query(KubernetesModel).filter(KubernetesModel.kubernetes_id == kubernetes_id).delete()
-        response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()
-        return response_body
+        return {"status": True, "message": "Success."}

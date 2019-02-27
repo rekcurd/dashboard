@@ -1,5 +1,3 @@
-import datetime
-
 from flask_restplus import Namespace, fields, Resource, reqparse
 
 from . import (
@@ -57,10 +55,6 @@ service_model_params = service_api_namespace.model('Service', {
     'register_date': DatetimeToTimestamp(
         readOnly=True,
         description='Register date.'
-    ),
-    'update_date': DatetimeToTimestamp(
-        readOnly=True,
-        description='Update date.'
     )
 })
 
@@ -120,11 +114,9 @@ class ApiServiceId(Resource):
             is_updated = True
             service_model.version = version
         if is_updated:
-            service_model.update_date = datetime.datetime.utcnow()
             db.session.commit()
-        response_body = {"status": True, "message": "Success."}
         db.session.close()
-        return response_body
+        return {"status": True, "message": "Success."}
 
     @service_api_namespace.marshal_with(success_or_not)
     def delete(self, project_id: int, application_id: str, service_id: str):
@@ -139,7 +131,6 @@ class ApiServiceId(Resource):
             # TODO: Kill service process.
             db.session.query(ServiceModel).filter(ServiceModel.service_id == service_id).delete()
             db.session.flush()
-        response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()
-        return response_body
+        return {"status": True, "message": "Success."}

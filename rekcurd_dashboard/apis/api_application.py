@@ -81,10 +81,9 @@ class ApiApplications(Resource):
                 db.session.add(role)
                 db.session.flush()
 
-        response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()
-        return response_body
+        return {"status": True, "message": "Success."}
 
 
 @application_api_namespace.route('/projects/<int:project_id>/applications/<application_id>')
@@ -106,7 +105,6 @@ class ApiApplicationId(Resource):
         application_model = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).one()
         application_model.description = description
-        response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()
-        return response_body
+        return {"status": True, "message": "Success."}

@@ -109,10 +109,9 @@ class ApiModelId(Resource):
 
         model_model = db.session.query(ModelModel).filter(ModelModel.model_id==model_id).one()
         model_model.description = description
-        response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()
-        return response_body
+        return {"status": True, "message": "Success."}
 
     @model_api_namespace.marshal_with(success_or_not)
     def delete(self, project_id: int, application_id: str, model_id: int):
@@ -125,7 +124,6 @@ class ApiModelId(Resource):
             raise RekcurdDashboardException("Model is used by some services.")
         # TODO: Delete file.
         db.session.query(ModelModel).filter(ModelModel.model_id==model_id).delete()
-        response_body = {"status": True, "message": "Success."}
         db.session.commit()
         db.session.close()
-        return response_body
+        return {"status": True, "message": "Success."}
