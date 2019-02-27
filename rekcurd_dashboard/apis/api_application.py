@@ -46,7 +46,7 @@ class ApiApplications(Resource):
     @application_api_namespace.marshal_list_with(application_model_params)
     def get(self, project_id: int):
         """get_applications"""
-        return ApplicationModel.query.all()
+        return ApplicationModel.query.filter_by(project_id=project_id).all()
 
     @application_api_namespace.marshal_with(success_or_not)
     @application_api_namespace.expect(add_application_parser)

@@ -258,7 +258,7 @@ def apply_rekcurd_to_kubernetes(
             api_version="apps/v1",
             kind="Deployment",
             metadata=client.V1ObjectMeta(
-                name="{0}-deployment".format(service_id),
+                name="deploy-{0}".format(service_id),
                 namespace=service_level,
                 labels={"rekcurd-worker": "True", "id": application_id,
                         "name": application_name, "sel": service_id}
@@ -344,7 +344,7 @@ def apply_rekcurd_to_kubernetes(
             api.logger.info("Deployment patched.")
             apps_v1.patch_namespaced_deployment(
                 body=v1_deployment,
-                name="{0}-deployment".format(service_id),
+                name="deploy-{0}".format(service_id),
                 namespace=service_level
             )
 
@@ -353,7 +353,7 @@ def apply_rekcurd_to_kubernetes(
             api_version="v1",
             kind="Service",
             metadata=client.V1ObjectMeta(
-                name="{0}-service".format(service_id),
+                name="svc-{0}".format(service_id),
                 namespace=service_level,
                 labels={"rekcurd-worker": "True", "id": application_id,
                         "name": application_name, "sel": service_id}
@@ -382,7 +382,7 @@ def apply_rekcurd_to_kubernetes(
             api.logger.info("Service patched.")
             core_vi.patch_namespaced_service(
                 namespace=service_level,
-                name="{0}-service".format(service_id),
+                name="svc-{0}".format(service_id),
                 body=v1_service
             )
 
@@ -391,7 +391,7 @@ def apply_rekcurd_to_kubernetes(
             api_version="autoscaling/v1",
             kind="HorizontalPodAutoscaler",
             metadata=client.V1ObjectMeta(
-                name="{0}-autoscaling".format(service_id),
+                name="hpa-{0}".format(service_id),
                 namespace=service_level,
                 labels={"rekcurd-worker": "True", "id": application_id,
                         "name": application_name, "sel": service_id}
@@ -402,7 +402,7 @@ def apply_rekcurd_to_kubernetes(
                 scale_target_ref=client.V1CrossVersionObjectReference(
                     api_version="apps/v1",
                     kind="Deployment",
-                    name="{0}-deployment".format(service_id)
+                    name="deploy-{0}".format(service_id)
                 ),
                 target_cpu_utilization_percentage=autoscale_cpu_threshold
             )
@@ -418,7 +418,7 @@ def apply_rekcurd_to_kubernetes(
             api.logger.info("Autoscaler patched.")
             autoscaling_v1.patch_namespaced_horizontal_pod_autoscaler(
                 namespace=service_level,
-                name="{0}-autoscaling".format(service_id),
+                name="hpa-{0}".format(service_id),
                 body=v1_horizontal_pod_autoscaler
             )
 
@@ -426,18 +426,18 @@ def apply_rekcurd_to_kubernetes(
         custom_object_api = client.CustomObjectsApi()
         try:
             custom_object_api.get_namespaced_custom_object(
-                group="apiVersion: networking.istio.io",
+                group="networking.istio.io",
                 version="v1alpha3",
                 namespace=service_level,
                 plural="virtualservices",
-                name="{0}-ingress-virtual-service".format(application_id),
+                name="ing-vs-{0}".format(application_id),
             )
         except:
             ingress_virtual_service_body = {
                 "apiVersion": "networking.istio.io/v1alpha3",
                 "kind": "VirtualService",
                 "metadata": {
-                    "name": "{0}-ingress-virtual-service".format(application_id),
+                    "name": "ing-vs-{0}".format(application_id),
                     "namespace": service_level
                 },
                 "spec": {
@@ -470,7 +470,7 @@ def apply_rekcurd_to_kubernetes(
                                         "port": {
                                             "number": service_port
                                         },
-                                        "host": "{0}-service".format(service_id)
+                                        "host": "svc-{0}".format(service_id)
                                     },
                                     "weight": 100
                                 }
@@ -485,7 +485,7 @@ def apply_rekcurd_to_kubernetes(
             }
             api.logger.info("Istio created.")
             custom_object_api.create_namespaced_custom_object(
-                group="apiVersion: networking.istio.io",
+                group="networking.istio.io",
                 version="v1alpha3",
                 namespace=service_level,
                 plural="virtualservices",
@@ -522,35 +522,35 @@ def delete_kubernetes_deployment(kubernetes_models: list, application_id: str, s
         """Deployment"""
         apps_v1 = client.AppsV1Api()
         apps_v1.delete_namespaced_deployment(
-            name="{0}-deployment".format(service_id),
+            name="deploy-{0}".format(service_id),
             namespace=service_model.service_level,
             body=client.V1DeleteOptions()
         )
         """Service"""
         core_vi = client.CoreV1Api()
         core_vi.delete_namespaced_service(
-            name="{0}-service".format(service_id),
+            name="svc-{0}".format(service_id),
             namespace=service_model.service_level,
             body=client.V1DeleteOptions()
         )
         """Autoscaler"""
         autoscaling_v1 = client.AutoscalingV1Api()
         autoscaling_v1.delete_namespaced_horizontal_pod_autoscaler(
-            name="{0}-autoscaling".format(service_id),
+            name="hpa-{0}".format(service_id),
             namespace=service_model.service_level,
             body=client.V1DeleteOptions()
         )
         """Istio"""
         custom_object_api = client.CustomObjectsApi()
         ingress_virtual_service_body = custom_object_api.get_namespaced_custom_object(
-            group="apiVersion: networking.istio.io",
+            group="networking.istio.io",
             version="v1alpha3",
             namespace=service_model.service_level,
             plural="virtualservices",
-            name="{0}-ingress-virtual-service".format(application_id),
+            name="ing-vs-{0}".format(application_id),
         )
         routes = ingress_virtual_service_body["spec"]["http"][0]["route"]
-        new_routes = [route for route in routes if route["destination"]["host"] != "{0}-service".format(service_id)]
+        new_routes = [route for route in routes if route["destination"]["host"] != "svc-{0}".format(service_id)]
         if new_routes:
             weights = [route["weight"] for route in new_routes]
             norm_factor = 100.0/sum(weights)
@@ -558,20 +558,20 @@ def delete_kubernetes_deployment(kubernetes_models: list, application_id: str, s
                 route["weight"] = round(route["weight"]*norm_factor)
             ingress_virtual_service_body["spec"]["http"][0]["route"] = new_routes
             custom_object_api.patch_namespaced_custom_object(
-                group="apiVersion: networking.istio.io",
+                group="networking.istio.io",
                 version="v1alpha3",
                 namespace=service_model.service_level,
                 plural="virtualservices",
-                name="{0}-ingress-virtual-service".format(application_id),
+                name="ing-vs-{0}".format(application_id),
                 body=ingress_virtual_service_body
             )
         else:
             custom_object_api.delete_namespaced_custom_object(
-                group="apiVersion: networking.istio.io",
+                group="networking.istio.io",
                 version="v1alpha3",
                 namespace=service_model.service_level,
                 plural="virtualservices",
-                name="{0}-ingress-virtual-service".format(application_id),
+                name="ing-vs-{0}".format(application_id),
                 body=client.V1DeleteOptions()
             )
     db.session.query(ServiceModel).filter(ServiceModel.service_id == service_id).delete()
@@ -583,7 +583,7 @@ def apply_new_route_weight(
         project_id: int, application_id: str, service_level: str, service_ids: list, service_weights: list):
     service_weight_dict = dict()
     for i in range(len(service_ids)):
-        key = "{0}-service".format(service_ids[i])
+        key = "svc-{0}".format(service_ids[i])
         service_weight_dict[key] = int(service_weights[i])
     for kubernetes_model in db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all():
         full_config_path = get_full_config_path(kubernetes_model.config_path)
@@ -591,21 +591,21 @@ def apply_new_route_weight(
         config.load_kube_config(full_config_path)
         custom_object_api = client.CustomObjectsApi()
         ingress_virtual_service_body = custom_object_api.get_namespaced_custom_object(
-            group="apiVersion: networking.istio.io",
+            group="networking.istio.io",
             version="v1alpha3",
             namespace=service_level,
             plural="virtualservices",
-            name="{0}-ingress-virtual-service".format(application_id),
+            name="ing-vs-{0}".format(application_id),
         )
         routes = ingress_virtual_service_body["spec"]["http"][0]["route"]
         for route in routes:
             route["weight"] = service_weight_dict[route["destination"]["host"]]
         custom_object_api.patch_namespaced_custom_object(
-            group="apiVersion: networking.istio.io",
+            group="networking.istio.io",
             version="v1alpha3",
             namespace=service_level,
             plural="virtualservices",
-            name="{0}-ingress-virtual-service".format(application_id),
+            name="ing-vs-{0}".format(application_id),
             body=ingress_virtual_service_body
         )
     return
@@ -630,12 +630,12 @@ def load_kubernetes_deployment_info(project_id: int, application_id: str, servic
 
     apps_v1 = client.AppsV1Api()
     v1_deployment = apps_v1.read_namespaced_deployment(
-        name="{0}-deployment".format(service_id),
+        name="deploy-{0}".format(service_id),
         namespace=service_model.service_level
     )
     autoscaling_v1 = client.AutoscalingV1Api()
     v1_horizontal_pod_autoscaler = autoscaling_v1.read_namespaced_horizontal_pod_autoscaler(
-        name="{0}-autoscaling".format(service_id),
+        name="hpa-{0}".format(service_id),
         namespace=service_model.service_level
     )
 
@@ -726,35 +726,35 @@ def backup_kubernetes_deployment(
     """Deployment"""
     apps_v1 = client.AppsV1Api()
     v1_deployment = apps_v1.read_namespaced_deployment(
-        name="{0}-deployment".format(service_model.service_id),
+        name="deploy-{0}".format(service_model.service_id),
         namespace=service_model.service_level,
         exact=True,
         export=True
     )
     json.dump(api_client.sanitize_for_serialization(v1_deployment),
-              Path(save_dir, "{0}-deployment.json".format(service_model.service_id)).open("w", encoding='utf-8'),
+              Path(save_dir, "deploy-{0}.json".format(service_model.service_id)).open("w", encoding='utf-8'),
               ensure_ascii=False, indent=2)
     """Service"""
     core_vi = client.CoreV1Api()
     v1_service = core_vi.read_namespaced_service(
-        name="{0}-service".format(service_model.service_id),
+        name="svc-{0}".format(service_model.service_id),
         namespace=service_model.service_level,
         exact=True,
         export=True
     )
     json.dump(api_client.sanitize_for_serialization(v1_service),
-              Path(save_dir, "{0}-service.json".format(service_model.service_id)).open("w", encoding='utf-8'),
+              Path(save_dir, "svc-{0}.json".format(service_model.service_id)).open("w", encoding='utf-8'),
               ensure_ascii=False, indent=2)
     """Autoscaler"""
     autoscaling_v1 = client.AutoscalingV1Api()
     v1_horizontal_pod_autoscaler = autoscaling_v1.read_namespaced_horizontal_pod_autoscaler(
-        name="{0}-autoscaling".format(service_model.service_id),
+        name="hpa-{0}".format(service_model.service_id),
         namespace=service_model.service_level,
         exact=True,
         export=True
     )
     json.dump(api_client.sanitize_for_serialization(v1_horizontal_pod_autoscaler),
-              Path(save_dir, "{0}-autoscaling.json".format(service_model.service_id)).open("w", encoding='utf-8'),
+              Path(save_dir, "hpa-{0}.json".format(service_model.service_id)).open("w", encoding='utf-8'),
               ensure_ascii=False, indent=2)
     return
 
@@ -772,11 +772,11 @@ def load_istio_routing(kubernetes_model: KubernetesModel, application_model: App
     config.load_kube_config(full_config_path)
     custom_object_api = client.CustomObjectsApi()
     ingress_virtual_service_body = custom_object_api.get_namespaced_custom_object(
-        group="apiVersion: networking.istio.io",
+        group="networking.istio.io",
         version="v1alpha3",
         namespace=service_level,
         plural="virtualservices",
-        name="{0}-ingress-virtual-service".format(application_model.application_id),
+        name="ing-vs-{0}".format(application_model.application_id),
     )
     return ingress_virtual_service_body["spec"]["http"][0]["route"]
 
@@ -798,13 +798,13 @@ def backup_istio_routing(kubernetes_model: KubernetesModel, application_model: A
     """Istio"""
     custom_object_api = client.CustomObjectsApi()
     ingress_virtual_service_body = custom_object_api.get_namespaced_custom_object(
-        group="apiVersion: networking.istio.io",
+        group="networking.istio.io",
         version="v1alpha3",
         namespace=service_level,
         plural="virtualservices",
-        name="{0}-ingress-virtual-service".format(application_model.application_id),
+        name="ing-vs-{0}".format(application_model.application_id),
     )
     json.dump(ingress_virtual_service_body,
-              Path(save_dir, "{0}-ingress-virtual-service.json".format(
+              Path(save_dir, "ing-vs-{0}.json".format(
                   application_model.application_id)).open("w", encoding='utf-8'), ensure_ascii=False, indent=2)
     return

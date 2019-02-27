@@ -1,4 +1,5 @@
 import datetime
+import math
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 
@@ -133,77 +134,9 @@ service_deployment_params = service_deployment_api_namespace.model('Deployment',
     )
 })
 
-service_deployment_parser = reqparse.RequestParser()
-service_deployment_parser.add_argument(
-    'application_name', location='form', type=str, required=True, help='Application name.')
-service_deployment_parser.add_argument(
-    'service_level', location='form', type=str, required=True,
-    choices=('development','beta','staging','sandbox','production'),
-    help='Service level. [development/beta/staging/sandbox/production].')
-service_deployment_parser.add_argument(
-    'version', location='form', type=str, required=False,
-    help='Rekcurd gRPC spec version. Default is the latest version.')
-service_deployment_parser.add_argument(
-    'service_host', location='form', type=str, default="localhost", required=False,
-    help='Rekcurd server host. Default is "localhost".')
-service_deployment_parser.add_argument(
-    'service_port', location='form', type=int, default=5000, required=False,
-    help='Rekcurd server port. Default is "5000".')
-service_deployment_parser.add_argument(
-    'replicas_default', location='form', type=int, default=1, required=False,
-    help='Number of pod at beginning. Default is "1".')
-service_deployment_parser.add_argument(
-    'replicas_minimum', location='form', type=int, default=1, required=False,
-    help='Minimum number of pod for auto-scaling. Default is "1".')
-service_deployment_parser.add_argument(
-    'replicas_maximum', location='form', type=int, default=1, required=False,
-    help='Maximum number of pod for auto-scaling. Default is "1".')
-service_deployment_parser.add_argument(
-    'autoscale_cpu_threshold', location='form', type=int, default=80, required=False,
-    help='Threshold of CPU usage for auto-scaling. Default "80".')
-service_deployment_parser.add_argument(
-    'policy_max_surge', location='form', type=int, required=False,
-    help='Maximum number of surged pod when updating. Default "ceil(0.25 * <replicas_default>)".')
-service_deployment_parser.add_argument(
-    'policy_max_unavailable', location='form', type=int, required=False,
-    help='Maximum number of unavailable pod when updating. Default "floor(0.25 * <replicas_default>)".')
-service_deployment_parser.add_argument(
-    'policy_wait_seconds', location='form', type=int, default=300, required=False,
-    help='Booting second of your service. You MUST specify the accurate number. '
-         'This value become a safety net for your production services. Default is "300".')
-service_deployment_parser.add_argument(
-    'container_image', location='form', type=str, required=True,
-    help='Location of your service container image.')
-service_deployment_parser.add_argument(
-    'service_model_assignment', location='form', type=int, required=True,
-    help='Model ID which is assigned to the service.')
-service_deployment_parser.add_argument(
-    'service_git_url', location='form', type=str, required=False,
-    help='URL of your git repository. If you use "rekcurd/rekcurd:tagname" image, this field is necessary.')
-service_deployment_parser.add_argument(
-    'service_git_branch', location='form', type=str, required=False,
-    help='Name of your git branch. If you use "rekcurd/rekcurd:tagname" image, this field is necessary.')
-service_deployment_parser.add_argument(
-    'service_boot_script', location='form', type=str, required=False,
-    help='Booting script for your service. If you use "rekcurd/rekcurd:tagname" image, this field is necessary.')
-service_deployment_parser.add_argument(
-    'resource_request_cpu', location='form', type=float, default=1.0, required=True,
-    help='CPU reservation for your service.')
-service_deployment_parser.add_argument(
-    'resource_request_memory', location='form', type=str, default='128Mi', required=True,
-    help='Memory reservation for your service.')
-service_deployment_parser.add_argument(
-    'resource_limit_cpu', location='form', type=float, required=False,
-    help='Upper limit of CPU reservation. Default is "resource_request_cpu".')
-service_deployment_parser.add_argument(
-    'resource_limit_memory', location='form', type=str, required=False,
-    help='Upper limit of memory reservation. Default is "resource_request_memory".')
-service_deployment_parser.add_argument(
-    'commit_message', location='form', type=str, required=False,
-    help='Initial deployment for "development" env. Default is a commit date.')
 
-
-@service_deployment_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/single_service_registration')
+@service_deployment_api_namespace.route(
+    '/projects/<int:project_id>/applications/<application_id>/single_service_registration')
 class ApiSingleServiceRegistration(Resource):
     """
     Registration for non-Kubernetes service.
@@ -264,11 +197,86 @@ class ApiSingleServiceRegistration(Resource):
 
 @service_deployment_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/service_deployment')
 class ApiServiceDeployment(Resource):
+    service_deployment_parser = reqparse.RequestParser()
+    service_deployment_parser.add_argument(
+        'service_level', location='form', type=str, required=True,
+        choices=('development','beta','staging','sandbox','production'),
+        help='Service level. [development/beta/staging/sandbox/production].')
+    service_deployment_parser.add_argument(
+        'version', location='form', type=str, required=False,
+        default=rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version],
+        choices=('v0', 'v1', 'v2'),
+        help='Rekcurd gRPC spec version. Default is the latest version.')
+    service_deployment_parser.add_argument(
+        'service_host', location='form', type=str, default="localhost", required=False,
+        help='Rekcurd server host. Default is "localhost".')
+    service_deployment_parser.add_argument(
+        'service_port', location='form', type=int, default=5000, required=False,
+        help='Rekcurd server port. Default is "5000".')
+    service_deployment_parser.add_argument(
+        'replicas_default', location='form', type=int, default=1, required=False,
+        help='Number of pod at beginning. Default is "1".')
+    service_deployment_parser.add_argument(
+        'replicas_minimum', location='form', type=int, default=1, required=False,
+        help='Minimum number of pod for auto-scaling. Default is "1".')
+    service_deployment_parser.add_argument(
+        'replicas_maximum', location='form', type=int, default=1, required=False,
+        help='Maximum number of pod for auto-scaling. Default is "1".')
+    service_deployment_parser.add_argument(
+        'autoscale_cpu_threshold', location='form', type=int, default=80, required=False,
+        help='Threshold of CPU usage for auto-scaling. Default "80".')
+    service_deployment_parser.add_argument(
+        'policy_max_surge', location='form', type=int, required=False,
+        help='Maximum number of surged pod when updating. Default "ceil(0.25 * <replicas_default>)".')
+    service_deployment_parser.add_argument(
+        'policy_max_unavailable', location='form', type=int, required=False,
+        help='Maximum number of unavailable pod when updating. Default "floor(0.25 * <replicas_default>)".')
+    service_deployment_parser.add_argument(
+        'policy_wait_seconds', location='form', type=int, default=300, required=False,
+        help='Booting second of your service. You MUST specify the accurate number. '
+             'This value become a safety net for your production services. Default is "300".')
+    service_deployment_parser.add_argument(
+        'container_image', location='form', type=str, required=True,
+        help='Location of your service container image.')
+    service_deployment_parser.add_argument(
+        'service_model_assignment', location='form', type=int, required=True,
+        help='Model ID which is assigned to the service.')
+    service_deployment_parser.add_argument(
+        'service_git_url', location='form', type=str, default="", required=False,
+        help='URL of your git repository. If you use "rekcurd/rekcurd:tagname" image, this field is necessary.')
+    service_deployment_parser.add_argument(
+        'service_git_branch', location='form', type=str, default="", required=False,
+        help='Name of your git branch. If you use "rekcurd/rekcurd:tagname" image, this field is necessary.')
+    service_deployment_parser.add_argument(
+        'service_boot_script', location='form', type=str, default="", required=False,
+        help='Booting script for your service. If you use "rekcurd/rekcurd:tagname" image, this field is necessary.')
+    service_deployment_parser.add_argument(
+        'resource_request_cpu', location='form', type=float, default=1.0, required=True,
+        help='CPU reservation for your service.')
+    service_deployment_parser.add_argument(
+        'resource_request_memory', location='form', type=str, default='128Mi', required=True,
+        help='Memory reservation for your service.')
+    service_deployment_parser.add_argument(
+        'resource_limit_cpu', location='form', type=float, required=False,
+        help='Upper limit of CPU reservation. Default is "resource_request_cpu".')
+    service_deployment_parser.add_argument(
+        'resource_limit_memory', location='form', type=str, required=False,
+        help='Upper limit of memory reservation. Default is "resource_request_memory".')
+
     @service_deployment_api_namespace.marshal_with(success_or_not)
     @service_deployment_api_namespace.expect(service_deployment_parser)
     def post(self, project_id: int, application_id: str):
         """Add Kubenetes service."""
-        args = service_deployment_parser.parse_args()
+        args = self.service_deployment_parser.parse_args()
+        args['commit_message'] = "Update at {0:%Y%m%d%H%M%S}".format(datetime.datetime.utcnow())
+        if args['policy_max_surge'] is None:
+            args['policy_max_surge'] = math.ceil(0.25 * args['replicas_default'])
+        if args['policy_max_unavailable'] is None:
+            args['policy_max_unavailable'] = math.floor(0.25 * args['replicas_default'])
+        if args['resource_limit_cpu'] is None:
+            args['resource_limit_cpu'] = args['resource_request_cpu']
+        if args['resource_limit_memory'] is None:
+            args['resource_limit_memory'] = args['resource_request_memory']
         apply_rekcurd_to_kubernetes(project_id=project_id, application_id=application_id, **args)
         db.session.commit()
         db.session.close()
@@ -277,6 +285,71 @@ class ApiServiceDeployment(Resource):
 
 @service_deployment_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/service_deployment/<service_id>')
 class ApiServiceIdDeployment(Resource):
+    patch_parser = reqparse.RequestParser()
+    patch_parser.add_argument(
+        'service_level', location='form', type=str, required=True,
+        choices=('development','beta','staging','sandbox','production'),
+        help='Service level. [development/beta/staging/sandbox/production].')
+    patch_parser.add_argument(
+        'version', location='form', type=str, required=True,
+        choices=('v0', 'v1', 'v2'),
+        help='Rekcurd gRPC spec version. Default is the latest version.')
+    patch_parser.add_argument(
+        'service_host', location='form', type=str, required=True,
+        help='Rekcurd server host. Default is "localhost".')
+    patch_parser.add_argument(
+        'service_port', location='form', type=int, required=True,
+        help='Rekcurd server port. Default is "5000".')
+    patch_parser.add_argument(
+        'replicas_default', location='form', type=int, required=True,
+        help='Number of pod at beginning. Default is "1".')
+    patch_parser.add_argument(
+        'replicas_minimum', location='form', type=int, required=True,
+        help='Minimum number of pod for auto-scaling. Default is "1".')
+    patch_parser.add_argument(
+        'replicas_maximum', location='form', type=int, required=True,
+        help='Maximum number of pod for auto-scaling. Default is "1".')
+    patch_parser.add_argument(
+        'autoscale_cpu_threshold', location='form', type=int, required=True,
+        help='Threshold of CPU usage for auto-scaling. Default "80".')
+    patch_parser.add_argument(
+        'policy_max_surge', location='form', type=int, required=True,
+        help='Maximum number of surged pod when updating. Default "ceil(0.25 * <replicas_default>)".')
+    patch_parser.add_argument(
+        'policy_max_unavailable', location='form', type=int, required=True,
+        help='Maximum number of unavailable pod when updating. Default "floor(0.25 * <replicas_default>)".')
+    patch_parser.add_argument(
+        'policy_wait_seconds', location='form', type=int, required=True,
+        help='Booting second of your service. You MUST specify the accurate number. '
+             'This value become a safety net for your production services. Default is "300".')
+    patch_parser.add_argument(
+        'container_image', location='form', type=str, required=True,
+        help='Location of your service container image.')
+    patch_parser.add_argument(
+        'service_model_assignment', location='form', type=int, required=True,
+        help='Model ID which is assigned to the service.')
+    patch_parser.add_argument(
+        'service_git_url', location='form', type=str, required=True,
+        help='URL of your git repository. If you use "rekcurd/rekcurd:tagname" image, this field is necessary.')
+    patch_parser.add_argument(
+        'service_git_branch', location='form', type=str, required=True,
+        help='Name of your git branch. If you use "rekcurd/rekcurd:tagname" image, this field is necessary.')
+    patch_parser.add_argument(
+        'service_boot_script', location='form', type=str, required=True,
+        help='Booting script for your service. If you use "rekcurd/rekcurd:tagname" image, this field is necessary.')
+    patch_parser.add_argument(
+        'resource_request_cpu', location='form', type=float, required=True,
+        help='CPU reservation for your service.')
+    patch_parser.add_argument(
+        'resource_request_memory', location='form', type=str, required=True,
+        help='Memory reservation for your service.')
+    patch_parser.add_argument(
+        'resource_limit_cpu', location='form', type=float, required=True,
+        help='Upper limit of CPU reservation. Default is "resource_request_cpu".')
+    patch_parser.add_argument(
+        'resource_limit_memory', location='form', type=str, required=True,
+        help='Upper limit of memory reservation. Default is "resource_request_memory".')
+
     @service_deployment_api_namespace.marshal_with(service_deployment_params)
     def get(self, project_id: int, application_id: str, service_id: str):
         """Get Kubernetes deployment info."""
@@ -308,10 +381,10 @@ class ApiServiceIdDeployment(Resource):
         return {"status": True, "message": "Success."}
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
-    @service_deployment_api_namespace.expect(service_deployment_parser)
+    @service_deployment_api_namespace.expect(patch_parser)
     def patch(self, project_id: int, application_id: str, service_id: str):
         """Rolling update of Kubernetes deployment configurations."""
-        args = service_deployment_parser.parse_args()
+        args = self.patch_parser.parse_args()
         args['commit_message'] = "Update at {0:%Y%m%d%H%M%S}".format(datetime.datetime.utcnow())
         apply_rekcurd_to_kubernetes(
             project_id=project_id, application_id=application_id, service_id=service_id, **args)
