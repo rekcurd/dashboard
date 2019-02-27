@@ -59,6 +59,7 @@ from .kubernetes_handler import (
 )
 from .api_admin import admin_api_namespace
 from .api_project import project_api_namespace
+from .api_data_server import data_server_api_namespace
 from .api_kubernetes import kubernetes_api_namespace
 from .api_application import application_api_namespace
 from .api_service import service_api_namespace
@@ -98,6 +99,7 @@ def default_error_handler(error):
 
 api.add_namespace(admin_api_namespace, path='/api')
 api.add_namespace(project_api_namespace, path='/api')
+api.add_namespace(data_server_api_namespace, path='/api')
 api.add_namespace(kubernetes_api_namespace, path='/api')
 api.add_namespace(application_api_namespace, path='/api')
 api.add_namespace(service_api_namespace, path='/api')
