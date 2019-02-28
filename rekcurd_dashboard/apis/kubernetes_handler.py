@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-from . import api
+from . import api, RekcurdDashboardException
 from .common import kubernetes_cpu_to_float
 from rekcurd_dashboard.models import db, DataServerModel, KubernetesModel, ApplicationModel, ServiceModel, ModelModel
 
@@ -482,7 +482,7 @@ def apply_rekcurd_to_kubernetes(
                 },
                 "spec": {
                     "hosts": [
-                        "\"*\""
+                        "*"
                     ],
                     "gateways": [
                         "rekcurd-ingress-gateway"
@@ -622,9 +622,13 @@ def delete_kubernetes_deployment(kubernetes_models: list, application_id: str, s
 def apply_new_route_weight(
         project_id: int, application_id: str, service_level: str, service_ids: list, service_weights: list):
     service_weight_dict = dict()
+    service_weight_checker = list()
     for i in range(len(service_ids)):
         key = "svc-{0}".format(service_ids[i])
         service_weight_dict[key] = int(service_weights[i])
+        service_weight_checker.append(int(service_weights[i]))
+    if sum(service_weight_checker) != 100:
+        raise RekcurdDashboardException("total weight must be 100.")
     for kubernetes_model in db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all():
         full_config_path = get_full_config_path(kubernetes_model.config_path)
         from kubernetes import client, config
