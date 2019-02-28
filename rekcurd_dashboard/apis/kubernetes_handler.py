@@ -187,6 +187,10 @@ def apply_rekcurd_to_kubernetes(
                 value=commit_message
             ),
             client.V1EnvVar(
+                name="REKCURD_KUBERNETES_MODE",
+                value="True"
+            ),
+            client.V1EnvVar(
                 name="REKCURD_DEBUG_MODE",
                 value="False"
             ),
@@ -222,6 +226,43 @@ def apply_rekcurd_to_kubernetes(
                 name="REKCURD_MODEL_FILE_PATH",
                 value=model_model.filepath
             ),
+            client.V1EnvVar(
+                name="REKCURD_CEPH_ACCESS_KEY",
+                value=str(data_server_model.ceph_access_key)
+            ),
+            client.V1EnvVar(
+                name="REKCURD_CEPH_SECRET_KEY",
+                value=str(data_server_model.ceph_secret_key)
+            ),
+            client.V1EnvVar(
+                name="REKCURD_CEPH_HOST",
+                value=str(data_server_model.ceph_host)
+            ),
+            client.V1EnvVar(
+                name="REKCURD_CEPH_PORT",
+                value=str(data_server_model.ceph_port)
+            ),
+            client.V1EnvVar(
+                name="REKCURD_CEPH_IS_SECURE",
+                value=str(data_server_model.ceph_is_secure)
+            ),
+            client.V1EnvVar(
+                name="REKCURD_CEPH_BUCKET_NAME",
+                value=str(data_server_model.ceph_bucket_name)
+            ),
+            client.V1EnvVar(
+                name="REKCURD_AWS_ACCESS_KEY",
+                value=str(data_server_model.aws_access_key)
+            ),
+            client.V1EnvVar(
+                name="REKCURD_AWS_SECRET_KEY",
+                value=str(data_server_model.aws_secret_key)
+            ),
+            client.V1EnvVar(
+                name="REKCURD_AWS_BUCKET_NAME",
+                value=str(data_server_model.aws_bucket_name)
+            ),
+            # TODO: GCP
             client.V1EnvVar(
                 name="REKCURD_SERVICE_GIT_URL",
                 value=service_git_url
