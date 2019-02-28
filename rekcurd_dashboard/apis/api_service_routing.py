@@ -43,10 +43,10 @@ service_routing_parser.add_argument(
     choices=('development','beta','staging','sandbox','production'),
     help='Service level. [development/beta/staging/sandbox/production].')
 service_routing_parser.add_argument(
-    'service_ids', location='form', type=list, required=True,
+    'service_ids', location='form', type=str, action='append', required=True,
     help='Service Ids.')
 service_routing_parser.add_argument(
-    'service_weights', location='form', type=list, required=True,
+    'service_weights', location='form', type=int, action='append', required=True,
     help='Service weights.')
 
 
@@ -75,7 +75,7 @@ class ApiServiceRouting(Resource):
         service_weights = list()
         response_body["service_weights"] = service_weights
         for route in routes:
-            service_id = route["destination"]["host"]
+            service_id = route["destination"]["host"][4:]
             weight = route["weight"]
             service_model: ServiceModel = db.session.query(ServiceModel).filter(
                 ServiceModel.service_id == service_id).one()

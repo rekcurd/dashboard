@@ -624,7 +624,7 @@ def apply_new_route_weight(
     service_weight_dict = dict()
     service_weight_checker = list()
     for i in range(len(service_ids)):
-        key = "svc-{0}".format(service_ids[i])
+        key = service_ids[i]
         service_weight_dict[key] = int(service_weights[i])
         service_weight_checker.append(int(service_weights[i]))
     if sum(service_weight_checker) != 100:
@@ -641,9 +641,21 @@ def apply_new_route_weight(
             plural="virtualservices",
             name="ing-vs-{0}".format(application_id),
         )
-        routes = ingress_virtual_service_body["spec"]["http"][0]["route"]
-        for route in routes:
-            route["weight"] = service_weight_dict[route["destination"]["host"]]
+        routes = []
+        for service_id in service_ids:
+            service_model: ServiceModel = db.session.query(ServiceModel).filter(
+                ServiceModel.service_id == service_id).one()
+            route = {
+                "destination": {
+                    "port": {
+                        "number": service_model.port
+                    },
+                    "host": "svc-{0}".format(service_id)
+                },
+                "weight": service_weight_dict[service_id]
+            }
+            routes.append(route)
+        ingress_virtual_service_body["spec"]["http"][0]["route"] = routes
         custom_object_api.patch_namespaced_custom_object(
             group="networking.istio.io",
             version="v1alpha3",
