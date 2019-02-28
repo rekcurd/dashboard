@@ -33,14 +33,14 @@ service_deployment_params = service_deployment_api_namespace.model('Deployment',
         description='Rekcurd gRPC spec version. Default is the latest version.',
         example='v1'
     ),
-    'service_host': fields.String(
+    'service_insecure_host': fields.String(
         required=False,
-        description='Rekcurd server host. Default is "localhost".',
-        example='rekcurd-sample.example.com'
+        description='Rekcurd server insecure host. Default is "[::]".',
+        example='[::]'
     ),
-    'service_port': fields.Integer(
+    'service_insecure_port': fields.Integer(
         required=False,
-        description='Rekcurd server port. Default is "5000".',
+        description='Rekcurd server insecure port. Default is "5000".',
         example=5000
     ),
     'replicas_default': fields.Integer(
@@ -208,11 +208,11 @@ class ApiServiceDeployment(Resource):
         choices=('v0', 'v1', 'v2'),
         help='Rekcurd gRPC spec version. Default is the latest version.')
     service_deployment_parser.add_argument(
-        'service_host', location='form', type=str, default="localhost", required=False,
-        help='Rekcurd server host. Default is "localhost".')
+        'service_insecure_host', location='form', type=str, default="[::]", required=False,
+        help='Rekcurd server insecure host. Default is "[::]".')
     service_deployment_parser.add_argument(
-        'service_port', location='form', type=int, default=5000, required=False,
-        help='Rekcurd server port. Default is "5000".')
+        'service_insecure_port', location='form', type=int, default=5000, required=False,
+        help='Rekcurd server insecure port. Default is "5000".')
     service_deployment_parser.add_argument(
         'replicas_default', location='form', type=int, default=1, required=False,
         help='Number of pod at beginning. Default is "1".')
@@ -295,11 +295,11 @@ class ApiServiceIdDeployment(Resource):
         choices=('v0', 'v1', 'v2'),
         help='Rekcurd gRPC spec version. Default is the latest version.')
     patch_parser.add_argument(
-        'service_host', location='form', type=str, required=True,
-        help='Rekcurd server host. Default is "localhost".')
+        'service_insecure_host', location='form', type=str, required=True,
+        help='Rekcurd server insecure host. Default is "[::]".')
     patch_parser.add_argument(
-        'service_port', location='form', type=int, required=True,
-        help='Rekcurd server port. Default is "5000".')
+        'service_insecure_port', location='form', type=int, required=True,
+        help='Rekcurd server insecure port. Default is "5000".')
     patch_parser.add_argument(
         'replicas_default', location='form', type=int, required=True,
         help='Number of pod at beginning. Default is "1".')
@@ -369,12 +369,12 @@ class ApiServiceIdDeployment(Resource):
         if service_model.model_id != deployment_info["service_model_assignment"]:
             is_updated = True
             service_model.model_id = deployment_info["service_model_assignment"]
-        if service_model.host != deployment_info["service_host"]:
+        if service_model.host != deployment_info["service_insecure_host"]:
             is_updated = True
-            service_model.host = deployment_info["service_host"]
-        if service_model.port != deployment_info["service_port"]:
+            service_model.host = deployment_info["service_insecure_host"]
+        if service_model.port != deployment_info["service_insecure_port"]:
             is_updated = True
-            service_model.port = deployment_info["service_port"]
+            service_model.port = deployment_info["service_insecure_port"]
         if is_updated:
             db.session.commit()
         db.session.close()
@@ -398,30 +398,13 @@ class ApiServiceIdDeployment(Resource):
         if service_model.model_id != args["service_model_assignment"]:
             is_updated = True
             service_model.model_id = args["service_model_assignment"]
-        if service_model.host != args["service_host"]:
+        if service_model.host != args["service_insecure_host"]:
             is_updated = True
-            service_model.host = args["service_host"]
-        if service_model.port != args["service_port"]:
+            service_model.host = args["service_insecure_host"]
+        if service_model.port != args["service_insecure_port"]:
             is_updated = True
-            service_model.port = args["service_port"]
+            service_model.port = args["service_insecure_port"]
         if is_updated:
             db.session.commit()
-        db.session.close()
-        return {"status": True, "message": "Success."}
-
-    @service_deployment_api_namespace.marshal_with(success_or_not)
-    def delete(self, project_id: int, application_id: str, service_id: str):
-        """Delete deployment."""
-        kubernetes_models = db.session.query(KubernetesModel).filter(
-            KubernetesModel.project_id == project_id).all()
-        if len(kubernetes_models):
-            """If Kubernetes mode, then request deletion to Kubernetes WebAPI"""
-            delete_kubernetes_deployment(kubernetes_models, application_id, service_id)
-        else:
-            """Otherwise, delete DB entry."""
-            # TODO: Kill service process.
-            db.session.query(ServiceModel).filter(ServiceModel.service_id == service_id).delete()
-            db.session.flush()
-        db.session.commit()
         db.session.close()
         return {"status": True, "message": "Success."}

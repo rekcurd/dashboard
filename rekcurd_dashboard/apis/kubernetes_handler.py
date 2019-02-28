@@ -92,9 +92,9 @@ def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel):
                     version = env_ent.value
                 elif env_ent.name == "REKCURD_MODEL_FILE_PATH":
                     filepath = env_ent.value
-                elif env_ent.name == "REKCURD_SERVICE_HOST":
+                elif env_ent.name == "REKCURD_SERVICE_INSECURE_HOST":
                     host = env_ent.value
-                elif env_ent.name == "REKCURD_SERVICE_PORT":
+                elif env_ent.name == "REKCURD_SERVICE_INSECURE_PORT":
                     port = int(env_ent.value)
 
             """Model registration."""
@@ -124,7 +124,7 @@ def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel):
 
 def apply_rekcurd_to_kubernetes(
         project_id: int, application_id: str, service_level: str, version: str,
-        service_host: str, service_port: int, replicas_default: int, replicas_minimum: int,
+        service_insecure_host: str, service_insecure_port: int, replicas_default: int, replicas_minimum: int,
         replicas_maximum: int, autoscale_cpu_threshold: str, policy_max_surge: int,
         policy_max_unavailable: int, policy_wait_seconds: int, container_image: str,
         resource_request_cpu: str, resource_request_memory: str, resource_limit_cpu: str,
@@ -138,8 +138,8 @@ def apply_rekcurd_to_kubernetes(
     :param application_id:
     :param service_level:
     :param version:
-    :param service_host:
-    :param service_port:
+    :param service_insecure_host:
+    :param service_insecure_port:
     :param replicas_default:
     :param replicas_minimum:
     :param replicas_maximum:
@@ -195,12 +195,12 @@ def apply_rekcurd_to_kubernetes(
                 value=application_name
             ),
             client.V1EnvVar(
-                name="REKCURD_SERVICE_HOST",
-                value=service_host
+                name="REKCURD_SERVICE_INSECURE_HOST",
+                value=service_insecure_host
             ),
             client.V1EnvVar(
-                name="REKCURD_SERVICE_PORT",
-                value=str(service_port)
+                name="REKCURD_SERVICE_INSECURE_PORT",
+                value=str(service_insecure_port)
             ),
             client.V1EnvVar(
                 name="REKCURD_SERVICE_ID",
@@ -311,7 +311,7 @@ def apply_rekcurd_to_kubernetes(
                                 image_pull_policy="Always",
                                 name=service_id,
                                 ports=[
-                                    client.V1ContainerPort(container_port=service_port)
+                                    client.V1ContainerPort(container_port=service_insecure_port)
                                 ],
                                 resources=client.V1ResourceRequirements(
                                     limits={
@@ -361,14 +361,13 @@ def apply_rekcurd_to_kubernetes(
             spec=client.V1ServiceSpec(
                 ports=[
                     client.V1ServicePort(
-                        name="grpc",
-                        port=service_port,
+                        name="grpc-backend",
+                        port=service_insecure_port,
                         protocol="TCP",
-                        target_port=service_port
+                        target_port=service_insecure_port
                     )
                 ],
-                selector={"sel": service_id},
-                type="NodePort"
+                selector={"sel": service_id}
             )
         )
         core_vi = client.CoreV1Api()
@@ -468,7 +467,7 @@ def apply_rekcurd_to_kubernetes(
                                 {
                                     "destination": {
                                         "port": {
-                                            "number": service_port
+                                            "number": service_insecure_port
                                         },
                                         "host": "svc-{0}".format(service_id)
                                     },
@@ -498,7 +497,7 @@ def apply_rekcurd_to_kubernetes(
             service_model = ServiceModel(
                 service_id=service_id, application_id=application_id, display_name=display_name,
                 description=commit_message, service_level=service_level, version=version,
-                model_id=service_model_assignment, host=service_host, port=service_port)
+                model_id=service_model_assignment, host=service_insecure_host, port=service_insecure_port)
             db.session.add(service_model)
             db.session.flush()
 
@@ -646,10 +645,10 @@ def load_kubernetes_deployment_info(project_id: int, application_id: str, servic
     for env_ent in v1_deployment.spec.template.spec.containers[0].env:
         if env_ent.name == "REKCURD_SERVICE_UPDATE_FLAG":
             deployment_info["commit_message"] = env_ent.value
-        elif env_ent.name == "REKCURD_SERVICE_HOST":
-            deployment_info["service_host"] = env_ent.value
-        elif env_ent.name == "REKCURD_SERVICE_PORT":
-            deployment_info["service_port"] = int(env_ent.value)
+        elif env_ent.name == "REKCURD_SERVICE_INSECURE_HOST":
+            deployment_info["service_insecure_host"] = env_ent.value
+        elif env_ent.name == "REKCURD_SERVICE_INSECURE_PORT":
+            deployment_info["service_insecure_port"] = int(env_ent.value)
         elif env_ent.name == "REKCURD_SERVICE_LEVEL":
             deployment_info["service_level"] = env_ent.value
         elif env_ent.name == "REKCURD_GRPC_PROTO_VERSION":
