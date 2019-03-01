@@ -3,8 +3,8 @@ import uuid
 from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse
 
-from . import api, status_model
-from rekcurd_dashboard.models import db, ApplicationModel, ApplicationUserRoleModel, ApplicationRole
+from . import api, status_model, delete_kubernetes_deployment
+from rekcurd_dashboard.models import db, ApplicationModel, ApplicationUserRoleModel, ApplicationRole, KubernetesModel, ServiceModel
 from rekcurd_dashboard.utils import RekcurdDashboardException
 from rekcurd_dashboard.apis import DatetimeToTimestamp
 
@@ -105,6 +105,29 @@ class ApiApplicationId(Resource):
         application_model = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).one()
         application_model.description = description
+        db.session.commit()
+        db.session.close()
+        return {"status": True, "message": "Success."}
+
+    @application_api_namespace.marshal_with(success_or_not)
+    def delete(self, project_id: int, application_id: str):
+        """delete_application"""
+        kubernetes_models = db.session.query(KubernetesModel).filter(
+            KubernetesModel.project_id == project_id).all()
+        application_model = db.session.query(ApplicationModel).filter(
+            ApplicationModel.application_id == application_id).one()
+        service_models = db.session.query(ServiceModel).filter(
+            ServiceModel.application_id == application_id).all()
+        if len(kubernetes_models):
+            """If Kubernetes mode, then request deletion to Kubernetes WebAPI"""
+            for service_model in service_models:
+                delete_kubernetes_deployment(kubernetes_models, application_id, service_model.service_id)
+            db.session.flush()
+        else:
+            """Otherwise, delete DB entry."""
+            # TODO: Kill service process.
+            pass
+        db.session.delete(application_model)
         db.session.commit()
         db.session.close()
         return {"status": True, "message": "Success."}
