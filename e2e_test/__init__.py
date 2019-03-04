@@ -1,4 +1,4 @@
 import os
 
 
-os.environ["REKCURD_TEST_MODE"] = "True"
+os.environ["DASHBOARD_TEST_MODE"] = "True"

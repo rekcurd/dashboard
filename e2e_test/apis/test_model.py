@@ -5,7 +5,7 @@ from rekcurd_dashboard.models import db, Model
 
 from e2e_test.base import BaseTestCase
 from e2e_test.base import kube_setting1, WorkerConfiguration
-from e2e_test.base import create_kube_obj, create_app_obj, create_model_obj, create_service_obj
+from e2e_test.base import create_kube_obj, create_application_model, create_model_obj, create_service_model
 from e2e_test.base import POSITIVE_MODEL_PATH
 
 
@@ -15,7 +15,7 @@ class TestApiApplicationIdModels(BaseTestCase):
     def test_get(self):
         # Should be empty at beginning
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
+        aobj = create_application_model(kobj.kubernetes_id)
         application_id = aobj.application_id
         # Add a model
         model = create_model_obj(application_id)
@@ -26,8 +26,8 @@ class TestApiApplicationIdModels(BaseTestCase):
     def test_post(self):
         # Create service and upload the positive model
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
+        aobj = create_application_model(kobj.kubernetes_id)
+        sobj = create_service_model(aobj.application_id)
         namespace = sobj.service_level
         model_name = 'positive.pkl'
         core_v1 = k8s_client.CoreV1Api()
@@ -62,7 +62,7 @@ class TestApiApplicationIdModelId(BaseTestCase):
     def test_get(self):
         # Create model and check
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
+        aobj = create_application_model(kobj.kubernetes_id)
         mobj = create_model_obj(aobj.application_id)
 
         response = self.client.get(
@@ -76,7 +76,7 @@ class TestApiApplicationIdModelId(BaseTestCase):
 
     def test_patch(self):
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
+        aobj = create_application_model(kobj.kubernetes_id)
         mobj = create_model_obj(aobj.application_id)
         model_id = mobj.model_id
         updated_description = 'UPDATE ' + mobj.description

@@ -1,9 +1,6 @@
-import uuid
-
-from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse
 
-from . import api, status_model
+from . import status_model
 from rekcurd_dashboard.models import db, DataServerModel, DataServerModeEnum
 from rekcurd_dashboard.utils import RekcurdDashboardException
 from rekcurd_dashboard.apis import DatetimeToTimestamp
@@ -205,8 +202,19 @@ class ApiDataServers(Resource):
             data_server_model.aws_bucket_name = aws_bucket_name
 
         if data_server_mode_enum == DataServerModeEnum.LOCAL:
-            pass
+            data_server_model.ceph_access_key = None
+            data_server_model.ceph_secret_key = None
+            data_server_model.ceph_host = None
+            data_server_model.ceph_port = None
+            data_server_model.ceph_is_secure = None
+            data_server_model.ceph_bucket_name = None
+            data_server_model.aws_access_key = None
+            data_server_model.aws_secret_key = None
+            data_server_model.aws_bucket_name = None
         elif data_server_mode_enum == DataServerModeEnum.CEPH_S3:
+            data_server_model.aws_access_key = None
+            data_server_model.aws_secret_key = None
+            data_server_model.aws_bucket_name = None
             if data_server_model.ceph_access_key and data_server_model.ceph_secret_key and \
                     data_server_model.ceph_host and data_server_model.ceph_port and \
                     data_server_model.ceph_is_secure is not None and data_server_model.ceph_bucket_name:
@@ -216,6 +224,12 @@ class ApiDataServers(Resource):
                     "Need to set \"ceph_access_key\", \"ceph_secret_key\", \"ceph_host\", \"ceph_port\", "
                     "\"ceph_is_secure\" and \"ceph_bucket_name\"")
         elif data_server_mode_enum == DataServerModeEnum.AWS_S3:
+            data_server_model.ceph_access_key = None
+            data_server_model.ceph_secret_key = None
+            data_server_model.ceph_host = None
+            data_server_model.ceph_port = None
+            data_server_model.ceph_is_secure = None
+            data_server_model.ceph_bucket_name = None
             if data_server_model.aws_bucket_name:
                 pass
             else:

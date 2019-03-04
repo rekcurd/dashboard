@@ -10,7 +10,9 @@ from . import (
     save_kubernetes_access_file, remove_kubernetes_access_file, backup_kubernetes_deployment,
     backup_istio_routing
 )
-from rekcurd_dashboard.models import db, KubernetesModel, ProjectUserRoleModel, ProjectRole, ApplicationModel, ServiceModel
+from rekcurd_dashboard.models import (
+    db, KubernetesModel, ProjectUserRoleModel, ProjectRole, ApplicationModel, ServiceModel
+)
 from rekcurd_dashboard.utils import ProjectUserRoleException
 
 

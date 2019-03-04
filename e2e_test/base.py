@@ -107,8 +107,8 @@ class BaseTestCase(TestCase):
             db.drop_all()
             db.create_all()
             kobj = create_kube_obj(first=True, save=True)
-            aobj = create_app_obj(kobj.kubernetes_id, save=True)
-            create_service_obj(aobj.application_id, save=True)
+            aobj = create_application_model(kobj.kubernetes_id, save=True)
+            create_service_model(aobj.application_id, save=True)
             create_model_obj(aobj.application_id, save=True)
             create_model_obj(aobj.application_id, positive_model=False, save=True)
             start_worker(kobj.config_path)
@@ -119,8 +119,8 @@ class BaseTestCase(TestCase):
     def setUp(self):
         db.create_all()
         kobj = create_kube_obj(first=True, save=True)
-        aobj = create_app_obj(kobj.kubernetes_id, save=True)
-        create_service_obj(aobj.application_id, save=True)
+        aobj = create_application_model(kobj.kubernetes_id, save=True)
+        create_service_model(aobj.application_id, save=True)
         create_model_obj(aobj.application_id, save=True)
         create_model_obj(aobj.application_id, positive_model=False, save=True)
         start_worker(kobj.config_path)
@@ -240,7 +240,7 @@ def create_kube_obj(first=True, save=False):
         return kobj_
 
 
-def create_app_obj(kubernetes_id, save=False):
+def create_application_model(kubernetes_id, save=False):
     aobj = Application(application_name=WorkerConfiguration.service['metadata']['labels']['app'], kubernetes_id=kubernetes_id)
     aobj_ = Application.query.filter_by(
         application_name=WorkerConfiguration.service['metadata']['labels']['app'],
@@ -253,7 +253,7 @@ def create_app_obj(kubernetes_id, save=False):
         return aobj_
 
 
-def create_service_obj(
+def create_service_model(
         application_id,
         service_name=WorkerConfiguration.deployment['metadata']['labels']['sel'],
         service_level=WorkerConfiguration.deployment['metadata']['namespace'],

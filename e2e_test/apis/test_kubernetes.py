@@ -7,7 +7,7 @@ from rekcurd_dashboard.models import db, Kubernetes, Application, Service, Model
 from rekcurd_dashboard.apis.api_kubernetes import get_full_config_path
 
 from e2e_test.base import BaseTestCase
-from e2e_test.base import kube_setting2, create_kube_obj, create_app_obj, create_service_obj, create_model_obj
+from e2e_test.base import kube_setting2, create_kube_obj, create_application_model, create_service_model, create_model_obj
 from e2e_test.base import WorkerConfiguration
 
 
@@ -142,10 +142,10 @@ class TestApiKubernetesId(BaseTestCase):
         kobj = create_kube_obj(first=False, save=True)
         kubernetes_id = kobj.kubernetes_id
 
-        aobj = create_app_obj(kobj.kubernetes_id, save=True)
+        aobj = create_application_model(kobj.kubernetes_id, save=True)
         application_id = aobj.application_id
 
-        sobj = create_service_obj(
+        sobj = create_service_model(
             aobj.application_id, service_name=uuid.uuid4().hex, save=True)
         service_id = sobj.service_id
 
@@ -166,7 +166,7 @@ class TestApiKubernetesIdApplication(BaseTestCase):
         kobj = create_kube_obj()
         kubernetes_id = kobj.kubernetes_id
         # Add an application and check
-        create_app_obj(kubernetes_id)
+        create_application_model(kubernetes_id)
         response = self.client.get(f'/api/kubernetes/{kobj.kubernetes_id}/applications')
         self.assertEqual(200, response.status_code)
         self.assertIsNotNone(response)
@@ -201,10 +201,10 @@ class TestApiKubernetesIdApplicationIdServices(BaseTestCase):
         self.assertEqual(response.status_code, 500)
 
         # Check if return services correctly
-        aobj = create_app_obj(kubernetes_id)
+        aobj = create_application_model(kubernetes_id)
         application_id = aobj.application_id
 
-        sobj = create_service_obj(application_id)
+        sobj = create_service_model(application_id)
         response = self.client.get(f'/api/kubernetes/{kubernetes_id}/applications/{application_id}/services')
         self.assertEqual(200, response.status_code)
         self.assertIsNotNone(response)
@@ -212,7 +212,7 @@ class TestApiKubernetesIdApplicationIdServices(BaseTestCase):
     def test_put(self):
         kobj = create_kube_obj()
 
-        aobj = create_app_obj(kobj.kubernetes_id)
+        aobj = create_application_model(kobj.kubernetes_id)
         application_id = aobj.application_id
         application_name = aobj.application_name
 
@@ -227,7 +227,7 @@ class TestApiKubernetesIdApplicationIdServices(BaseTestCase):
 
     def test_post(self):
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
+        aobj = create_application_model(kobj.kubernetes_id)
         application_id = aobj.application_id
         args = get_default_args()
         del args['app_name']
@@ -247,16 +247,16 @@ class TestApiKubernetesIdApplicationIdServices(BaseTestCase):
 class TestApiKubernetesIdApplicationIdServiceId(BaseTestCase):
     def test_get(self):
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
+        aobj = create_application_model(kobj.kubernetes_id)
+        sobj = create_service_model(aobj.application_id)
         response = self.client.get(
             f'/api/kubernetes/{kobj.kubernetes_id}/applications/{aobj.application_id}/services/{sobj.service_id}')
         self.assertEqual(response.json['service_name'], sobj.service_name)
 
     def test_patch(self):
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
+        aobj = create_application_model(kobj.kubernetes_id)
+        sobj = create_service_model(aobj.application_id)
         application_name = aobj.application_name
         service_name = sobj.service_name
         namespace = sobj.service_level

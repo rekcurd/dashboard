@@ -4,24 +4,26 @@ from copy import deepcopy
 
 from rekcurd_dashboard.protobuf import rekcurd_pb2
 from test.base import (
-    BaseTestCase, create_application_model, create_service_model, create_eval_model, create_eval_result_model,
-    TEST_PROJECT_ID, TEST_APPLICATION_ID, TEST_MODEL_ID,
-    TEST_SERVICE_ID, TEST_USER_ID_1, TEST_USER_ID_2, TEST_AUTH_ID_1, TEST_AUTH_ID_2
+    BaseTestCase, create_service_model, create_eval_model, create_eval_result_model,
+    TEST_PROJECT_ID, TEST_APPLICATION_ID, TEST_MODEL_ID
 )
 from io import BytesIO
 from rekcurd_dashboard.models import EvaluationResultModel, EvaluationModel, db
 
-default_metrics = {'accuracy': 0.0, 'fvalue': [0.0], 'num': 0,
-                   'option': {}, 'precision': [0.0], 'recall': [0.0], 'label': ['label']}
+default_metrics = {
+    'accuracy': 0.0, 'fvalue': [0.0], 'num': 0, 'option': {}, 'precision': [0.0], 'recall': [0.0], 'label': ['label']
+}
 
 
 def patch_stub(func):
     def inner_method(*args, **kwargs):
         mock_stub_obj = Mock()
-        metrics = rekcurd_pb2.EvaluationMetrics(precision=[0.0], recall=[0.0], fvalue=[0.0],
-                                                label=[rekcurd_pb2.IO(str=rekcurd_pb2.ArrString(val=['label']))])
+        metrics = rekcurd_pb2.EvaluationMetrics(
+            precision=[0.0], recall=[0.0], fvalue=[0.0],
+            label=[rekcurd_pb2.IO(str=rekcurd_pb2.ArrString(val=['label']))])
         mock_stub_obj.EvaluateModel.return_value = rekcurd_pb2.EvaluateModelResponse(metrics=metrics)
-        mock_stub_obj.UploadEvaluationData.return_value = rekcurd_pb2.UploadEvaluationDataResponse(status=1, message='success')
+        mock_stub_obj.UploadEvaluationData.return_value = \
+            rekcurd_pb2.UploadEvaluationDataResponse(status=1, message='success')
         res = rekcurd_pb2.EvaluationResultResponse(
             metrics=metrics,
             detail=[
@@ -56,16 +58,14 @@ class ApiEvaluationTest(BaseTestCase):
         url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluations'
         content_type = 'multipart/form-data'
         file_content = b'my file contents'
-        response = self.client.post(url,
-                                    content_type=content_type,
-                                    data={'file': (BytesIO(file_content), "file.txt")})
+        response = self.client.post(
+            url, content_type=content_type, data={'file': (BytesIO(file_content), "file.txt")})
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, {'status': True, 'evaluation_id': 1})
 
         # duplication check
-        response = self.client.post(url,
-                                    content_type=content_type,
-                                    data={'file': (BytesIO(file_content), "file.txt")})
+        response = self.client.post(
+            url, content_type=content_type, data={'file': (BytesIO(file_content), "file.txt")})
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, {'status': True, 'evaluation_id': 1})
 

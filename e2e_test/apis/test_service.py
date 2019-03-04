@@ -17,7 +17,7 @@ from rekcurd_dashboard.apis.api_kubernetes import get_full_config_path
 from e2e_test.base import BaseTestCase
 from e2e_test.base import WorkerConfiguration
 from e2e_test.base import kube_setting1
-from e2e_test.base import create_kube_obj, create_app_obj, create_service_obj, create_model_obj
+from e2e_test.base import create_kube_obj, create_application_model, create_service_model, create_model_obj
 from e2e_test.base import NEGATIVE_MODEL_PATH, POSITIVE_MODEL_PATH
 
 
@@ -25,8 +25,8 @@ class TestApiApplicationIdServices(BaseTestCase):
 
     def test_get(self):
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
+        aobj = create_application_model(kobj.kubernetes_id)
+        sobj = create_service_model(aobj.application_id)
         response = self.client.get(f'/api/applications/{aobj.application_id}/services')
         self.assertEqual(200, response.status_code)
         self.assertIsNotNone(response)
@@ -36,17 +36,17 @@ class TestApiApplicationIdServiceId(BaseTestCase):
 
     def test_get(self):
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
+        aobj = create_application_model(kobj.kubernetes_id)
+        sobj = create_service_model(aobj.application_id)
         response = self.client.get(f'/api/applications/{aobj.application_id}/services/{sobj.service_id}')
         self.assertEqual(response.json['service_id'], sobj.service_id)
         self.assertEqual(response.json['display_name'], sobj.display_name)
 
     def test_put(self):
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
+        aobj = create_application_model(kobj.kubernetes_id)
         application_id = aobj.application_id
-        sobj = create_service_obj(application_id)
+        sobj = create_service_model(application_id)
         service_id = sobj.service_id
 
         positive_model = create_model_obj(application_id)
@@ -89,8 +89,8 @@ class TestApiApplicationIdServiceId(BaseTestCase):
 
     def test_patch(self):
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
+        aobj = create_application_model(kobj.kubernetes_id)
+        sobj = create_service_model(aobj.application_id)
         service_id = sobj.service_id
 
         updated_display_name = f'updated_{sobj.display_name}'
@@ -103,8 +103,8 @@ class TestApiApplicationIdServiceId(BaseTestCase):
 
     def test_delete(self):
         kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
+        aobj = create_application_model(kobj.kubernetes_id)
+        sobj = create_service_model(aobj.application_id)
         namespace = sobj.service_level
 
         # Confirm each components exist -> no exception raises
