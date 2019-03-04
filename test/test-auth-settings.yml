@@ -1,4 +1,14 @@
-use.db: sqlite
-kube.datadir: test-kube-config
+## Debug mode.
+debug: True
+
+## Service parameters.
+port: 18080                   # Service port.
+kube_config_dir: kube-config  # Kubernetes configuration file directory.
+
+## DB parameters
+db:
+  mode: sqlite                # DB option. One of [sqlite/mysql]. Default "sqlite"
+
+## LDAP. Comment out if you DO NOT use.
 auth:
-  secret: 'test-secret'
+  secret: 'super-secret'
