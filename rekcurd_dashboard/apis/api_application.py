@@ -77,7 +77,7 @@ class ApiApplications(Resource):
                 role = ApplicationUserRoleModel(
                     application_id=application_model.application_id,
                     user_id=user_id,
-                    role=ApplicationRole.admin.name)
+                    application_role=ApplicationRole.admin.name)
                 db.session.add(role)
                 db.session.flush()
 

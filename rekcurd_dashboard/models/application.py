@@ -16,6 +16,7 @@ class ApplicationModel(db.Model):
     __tablename__ = 'applications'
     __table_args__ = (
         UniqueConstraint('application_id'),
+        UniqueConstraint('project_id', 'application_name'),
         {'mysql_engine': 'InnoDB'}
     )
 

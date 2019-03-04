@@ -31,12 +31,12 @@ def check_owner_role(fn):
             if project_user_role == ProjectRole.admin:
                 return fn(*args, **kwargs)
             else:
-                raise ProjectUserRoleException
+                raise ProjectUserRoleException("ProjectUserRoleException")
         application_user_role = fetch_application_role(user_id, application_id)
         if project_user_role is not None and application_user_role == ApplicationRole.admin:
             return fn(*args, **kwargs)
         else:
-            raise ApplicationUserRoleException
+            raise ApplicationUserRoleException("ApplicationUserRoleException")
     return wrapper
 
 
@@ -53,7 +53,8 @@ class ApiProjectIdACL(Resource):
 
     save_acl_parser = reqparse.RequestParser()
     save_acl_parser.add_argument('uid', type=str, required=True, location='form')
-    save_acl_parser.add_argument('role', type=str, required=True, location='form')
+    save_acl_parser.add_argument('role', type=str, required=True, location='form',
+                                 choices=('admin', 'member'))
 
     delete_acl_parser = reqparse.RequestParser()
     delete_acl_parser.add_argument('uid', type=str, required=True, location='form')
@@ -127,7 +128,8 @@ class ApiApplicationIdACL(Resource):
 
     save_acl_parser = reqparse.RequestParser()
     save_acl_parser.add_argument('uid', type=str, required=True, location='form')
-    save_acl_parser.add_argument('role', type=str, required=True, location='form')
+    save_acl_parser.add_argument('role', type=str, required=True, location='form',
+                                 choices=('admin', 'editor', 'viewer'))
 
     delete_acl_parser = reqparse.RequestParser()
     delete_acl_parser.add_argument('uid', type=str, required=True, location='form')
@@ -156,7 +158,7 @@ class ApiApplicationIdACL(Resource):
                 ownerObj = ApplicationUserRoleModel(
                     application_id=application_id,
                     user_id=sender_id,
-                    role=ApplicationRole.admin.name)
+                    application_role=ApplicationRole.admin.name)
                 db.session.add(ownerObj)
                 db.session.flush()
             else:
@@ -168,7 +170,7 @@ class ApiApplicationIdACL(Resource):
             application_user_role_model = ApplicationUserRoleModel(
                 application_id=application_id,
                 user_id=user_model.user_id,
-                role=role)
+                application_role=role)
             db.session.add(application_user_role_model)
             db.session.commit()
             db.session.close()
@@ -184,10 +186,10 @@ class ApiApplicationIdACL(Resource):
         user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
         if user_model is None:
             raise RekcurdDashboardException("No user found.")
-        application_user_role_model = db.session.query(ApplicationUserRoleModel).filter(
+        application_user_role_model: ApplicationUserRoleModel = db.session.query(ApplicationUserRoleModel).filter(
             ApplicationUserRoleModel.application_id == application_id,
             ApplicationUserRoleModel.user_id == user_model.user_id).one()
-        application_user_role_model.role = args['role']
+        application_user_role_model.application_role = args['role']
         db.session.commit()
         db.session.close()
         return {"status": True, "message": "Success."}, 200

@@ -79,17 +79,17 @@ auth = Auth()
 
 
 def fetch_project_role(user_id, project_id):
-    role = db.session.query(ProjectUserRoleModel).filter(
+    role: ProjectUserRoleModel = db.session.query(ProjectUserRoleModel).filter(
         ProjectUserRoleModel.project_id == project_id,
         ProjectUserRoleModel.user_id == user_id).one_or_none()
     if role is None:
         return None
     else:
-        return role.role
+        return role.project_role
 
 
 def fetch_application_role(user_id, application_id):
-    role = db.session.query(ApplicationUserRoleModel).filter(
+    role: ApplicationUserRoleModel = db.session.query(ApplicationUserRoleModel).filter(
         ApplicationUserRoleModel.application_id == application_id,
         ApplicationUserRoleModel.user_id == user_id).one_or_none()
     if role is None:
@@ -101,7 +101,7 @@ def fetch_application_role(user_id, application_id):
         else:
             return ApplicationRole.viewer
     else:
-        return role.role
+        return role.application_role
 
 
 def auth_required(fn):
@@ -118,17 +118,17 @@ def auth_required(fn):
                 user_id = get_jwt_identity()
                 project_user_role = fetch_project_role(user_id, project_id)
                 if project_user_role is None:
-                    raise ProjectUserRoleException
+                    raise ProjectUserRoleException("ProjectUserRoleException")
                 application_id = kwargs.get('application_id')
                 if application_id is None:
                     if request.method != 'GET' and project_user_role == ProjectRole.member:
-                        raise ProjectUserRoleException
+                        raise ProjectUserRoleException("ProjectUserRoleException")
                     else:
                         return fn(*args, **kwargs)
 
                 application_user_role = fetch_application_role(user_id, application_id)
                 if request.method != 'GET' and application_user_role == ApplicationRole.viewer:
-                    raise ApplicationUserRoleException
+                    raise ApplicationUserRoleException("ApplicationUserRoleException")
                 else:
                     return fn(*args, **kwargs)
             return run()
