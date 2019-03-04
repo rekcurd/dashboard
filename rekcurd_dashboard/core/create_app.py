@@ -21,8 +21,8 @@ def create_app(config_file: str = None, logger_file: str = None, **options) -> (
     for h in app.logger.handlers[:]:
         app.logger.removeHandler(h)
 
-    @app.route('/')
-    @app.route('/<path:path>')
+    @app.route('/ui/')
+    @app.route('/ui/<path:path>')
     def root_url(**kwargs):
         return render_template('index.html')
 
