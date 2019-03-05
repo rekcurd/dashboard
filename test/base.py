@@ -59,6 +59,18 @@ def create_project_model(project_id=TEST_PROJECT_ID, save=False) -> ProjectModel
         return project_model_
 
 
+def create_data_server_model(
+        project_id=TEST_PROJECT_ID, mode=DataServerModeEnum.LOCAL, save=False) -> DataServerModel:
+    data_server_model = DataServerModel(project_id=project_id, data_server_mode=mode)
+    data_server_model_ = DataServerModel.query.filter_by(project_id=project_id).one_or_none()
+    if save and data_server_model_ is None:
+        db.session.add(data_server_model)
+        db.session.commit()
+        return data_server_model
+    else:
+        return data_server_model_
+
+
 def create_application_model(
         project_id=TEST_PROJECT_ID, application_id=TEST_APPLICATION_ID, save=False) -> ApplicationModel:
     application_name = 'test-application'
