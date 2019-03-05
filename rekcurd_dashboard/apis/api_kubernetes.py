@@ -172,7 +172,7 @@ class ApiKubernetesId(Resource):
                 ProjectUserRoleModel.user_id == user_id).one_or_none()
             if role is None or role.project_role != ProjectRole.admin:
                 raise ProjectUserRoleException("Invalid access.")
-        return KubernetesModel.query.filter_by(kubernetes_id=kubernetes_id).one()
+        return KubernetesModel.query.filter_by(kubernetes_id=kubernetes_id).first_or_404()
 
     @kubernetes_api_namespace.marshal_with(success_or_not)
     def put(self, project_id: int, kubernetes_id: int):

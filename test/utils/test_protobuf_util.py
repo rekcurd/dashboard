@@ -10,7 +10,7 @@ class ProtobufUtilTest(unittest.TestCase):
     """
 
     def test_stream_file(self):
-        with open('test/utils/dummy', 'rb') as fp:
+        with open('test/dummy', 'rb') as fp:
             file = FileStorage(fp)
             for rtn in ProtobufUtil.stream_file(file, size=4):
                 self.assertEqual(rtn, b'dumm')
