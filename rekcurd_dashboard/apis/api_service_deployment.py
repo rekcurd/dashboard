@@ -3,12 +3,9 @@ import math
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 
-from . import (
-    status_model, apply_rekcurd_to_kubernetes,
-    delete_kubernetes_deployment, load_kubernetes_deployment_info
-)
+from . import status_model, apply_rekcurd_to_kubernetes, load_kubernetes_deployment_info
 from rekcurd_dashboard.core import RekcurdDashboardClient
-from rekcurd_dashboard.models import db, KubernetesModel, ApplicationModel, ServiceModel
+from rekcurd_dashboard.models import db, ApplicationModel, ServiceModel
 from rekcurd_dashboard.protobuf import rekcurd_pb2
 
 
