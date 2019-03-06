@@ -42,12 +42,12 @@ kubernetes_model_params = kubernetes_api_namespace.model('Kubernetes', {
         description='Kubernetes configuration file path.',
         example='/kube-config/kube-1.config'
     ),
-    'ingress_host': fields.String(
+    'exposed_host': fields.String(
         required=True,
         description='Ingress host or External IP.',
         example='127.0.0.1'
     ),
-    'ingress_port': fields.Integer(
+    'exposed_port': fields.Integer(
         required=True,
         description='Ingress port or NodePort.',
         example='33000'
@@ -72,10 +72,10 @@ class ApiKubernetes(Resource):
         'description', location='form', type=str, required=False,
         help='Description.')
     kubernetes_model_parser.add_argument(
-        'ingress_host', location='form', type=str, required=True,
+        'exposed_host', location='form', type=str, required=True,
         help='Ingress host or External IP. e.g. "127.0.0.1", "example.com"')
     kubernetes_model_parser.add_argument(
-        'ingress_port', location='form', type=int, required=True,
+        'exposed_port', location='form', type=int, required=True,
         help='Ingress port or NodePort. e.g. "33000"')
 
     @kubernetes_api_namespace.marshal_list_with(kubernetes_model_params)
@@ -108,11 +108,11 @@ class ApiKubernetes(Resource):
         file = args['file']
         display_name = args['display_name']
         description = args['description']
-        ingress_host = args['ingress_host']
-        ingress_port = args['ingress_port']
+        exposed_host = args['exposed_host']
+        exposed_port = args['exposed_port']
         kubernetes_model = KubernetesModel(
             project_id=project_id, display_name=display_name, description=description,
-            config_path=config_path, ingress_host=ingress_host, ingress_port=ingress_port)
+            config_path=config_path, exposed_host=exposed_host, exposed_port=exposed_port)
         db.session.add(kubernetes_model)
         db.session.flush()
         save_kubernetes_access_file(file, config_path)
@@ -156,10 +156,10 @@ class ApiKubernetesId(Resource):
         'description', location='form', type=str, required=False,
         help='Description.')
     kubernetes_model_parser.add_argument(
-        'ingress_host', location='form', type=str, required=False,
+        'exposed_host', location='form', type=str, required=False,
         help='Ingress host or External IP. e.g. "127.0.0.1", "example.com"')
     kubernetes_model_parser.add_argument(
-        'ingress_port', location='form', type=int, required=False,
+        'exposed_port', location='form', type=int, required=False,
         help='Ingress port or NodePort. e.g. "33000"')
 
     @kubernetes_api_namespace.marshal_with(kubernetes_model_params)
@@ -192,8 +192,8 @@ class ApiKubernetesId(Resource):
         file = args['file']
         display_name = args['display_name']
         description = args['description']
-        ingress_host = args['ingress_host']
-        ingress_port = args['ingress_port']
+        exposed_host = args['exposed_host']
+        exposed_port = args['exposed_port']
 
         kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
             KubernetesModel.kubernetes_id==kubernetes_id).one()
@@ -205,12 +205,12 @@ class ApiKubernetesId(Resource):
         if description is not None:
             is_update = True
             kubernetes_model.description = description
-        if ingress_host is not None:
+        if exposed_host is not None:
             is_update = True
-            kubernetes_model.ingress_host = ingress_host
-        if ingress_port is not None:
+            kubernetes_model.exposed_host = exposed_host
+        if exposed_port is not None:
             is_update = True
-            kubernetes_model.ingress_port = ingress_port
+            kubernetes_model.exposed_port = exposed_port
         if file is not None:
             is_update = True
             kubernetes_model.config_path = config_path

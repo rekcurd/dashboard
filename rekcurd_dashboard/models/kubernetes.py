@@ -17,7 +17,7 @@ class KubernetesModel(db.Model):
         UniqueConstraint('kubernetes_id'),
         UniqueConstraint('config_path'),
         UniqueConstraint('display_name'),
-        UniqueConstraint('ingress_host', 'ingress_port'),
+        UniqueConstraint('exposed_host', 'exposed_port'),
         {'mysql_engine': 'InnoDB'}
     )
 
@@ -26,8 +26,8 @@ class KubernetesModel(db.Model):
     display_name = Column(String(128), nullable=False)
     description = Column(Text, nullable=True)
     config_path = Column(String(512), nullable=False)
-    ingress_host = Column(String(512), nullable=False)
-    ingress_port = Column(Integer, nullable=False)
+    exposed_host = Column(String(512), nullable=False)
+    exposed_port = Column(Integer, nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     projects = relationship(
@@ -42,7 +42,7 @@ class KubernetesModel(db.Model):
             'display_name': self.display_name,
             'description': self.description,
             'config_path': self.config_path,
-            'ingress_host': self.ingress_host,
-            'ingress_port': self.ingress_port,
+            'exposed_host': self.exposed_host,
+            'exposed_port': self.exposed_port,
             'register_date': self.register_date.strftime('%Y-%m-%d %H:%M:%S'),
         }

@@ -63,11 +63,11 @@ def create_project_model(project_id=TEST_PROJECT_ID, save=False) -> ProjectModel
 def create_kubernetes_model(
         project_id=TEST_PROJECT_ID, display_name='test-kubernetes', save=False) -> KubernetesModel:
     config_path = uuid.uuid4().hex
-    ingress_host = 'localhost'
-    ingress_port = 80
+    exposed_host = 'localhost'
+    exposed_port = 80
     kubernetes_model = KubernetesModel(
         project_id=project_id, display_name=display_name, config_path=config_path,
-        ingress_host=ingress_host, ingress_port=ingress_port)
+        exposed_host=exposed_host, exposed_port=exposed_port)
     kubernetes_model_ = KubernetesModel.query.filter_by(
         project_id=project_id, display_name=display_name).one_or_none()
     if save and kubernetes_model_ is None:

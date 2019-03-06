@@ -45,7 +45,7 @@ class ApiKubernetesTest(BaseTestCase):
             self.__URL,
             data={'file': (open(dummy_file, 'rb'), dummy_file),
                   'display_name': display_name, 'description': 'test',
-                  'ingress_host': 'localhost', 'ingress_port': 80})
+                  'exposed_host': 'localhost', 'exposed_port': 80})
         kubernetes_model = db.session.query(KubernetesModel).filter(
             KubernetesModel.display_name == display_name).one_or_none()
         self.assertEqual(200, response.status_code)
@@ -80,7 +80,7 @@ class ApiKubernetesIdTest(BaseTestCase):
             self.__PREPARE_URL,
             data={'file': (open('test/dummy', 'rb'), 'test/dummy'),
                   'display_name': 'new_kube', 'description': 'test',
-                  'ingress_host': 'localhost', 'ingress_port': 80})
+                  'exposed_host': 'localhost', 'exposed_port': 80})
         response = self.client.get(self.__URL)
         self.assertEqual(200, response.status_code)
 
@@ -90,7 +90,7 @@ class ApiKubernetesIdTest(BaseTestCase):
             self.__PREPARE_URL,
             data={'file': (open('test/dummy', 'rb'), 'test/dummy'),
                   'display_name': 'new_kube', 'description': 'test',
-                  'ingress_host': 'localhost', 'ingress_port': 80})
+                  'exposed_host': 'localhost', 'exposed_port': 80})
         response = self.client.put(self.__URL)
         self.assertEqual(200, response.status_code)
         self.assertIsNotNone(response)
@@ -101,12 +101,12 @@ class ApiKubernetesIdTest(BaseTestCase):
             self.__PREPARE_URL,
             data={'file': (open('test/dummy', 'rb'), 'test/dummy'),
                   'display_name': 'new_kube', 'description': 'test',
-                  'ingress_host': 'localhost', 'ingress_port': 80})
+                  'exposed_host': 'localhost', 'exposed_port': 80})
         response = self.client.patch(
             self.__URL,
             data={'file': (open('test/dummy', 'rb'), 'test/dummy'),
                   'display_name': 'new_kube2', 'description': 'test',
-                  'ingress_host': 'localhost', 'ingress_port': 80})
+                  'exposed_host': 'localhost', 'exposed_port': 80})
         kubernetes_model = db.session.query(KubernetesModel).filter(
             KubernetesModel.display_name == 'new_kube2').one_or_none()
         self.assertEqual(200, response.status_code)
@@ -118,7 +118,7 @@ class ApiKubernetesIdTest(BaseTestCase):
             self.__PREPARE_URL,
             data={'file': (open('test/dummy', 'rb'), 'test/dummy'),
                   'display_name': 'new_kube', 'description': 'test',
-                  'ingress_host': 'localhost', 'ingress_port': 80})
+                  'exposed_host': 'localhost', 'exposed_port': 80})
         response = self.client.delete(self.__URL)
         self.assertEqual(200, response.status_code)
         self.assertIsNotNone(response)
