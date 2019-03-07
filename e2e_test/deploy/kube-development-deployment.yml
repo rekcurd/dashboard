@@ -4,7 +4,7 @@ metadata:
   labels:
     rekcurd-worker: "true"
     id: id-test20190307093000
-    name: rekcurd-test-app
+    name: app-test20190307093000
     sel: test20190307093000
   name: deploy-test20190307093000
   namespace: development
@@ -26,7 +26,7 @@ spec:
       labels:
         rekcurd-worker: "true"
         id: id-test20190307093000
-        name: rekcurd-test-app
+        name: app-test20190307093000
         sel: test20190307093000
     spec:
       affinity:
@@ -48,9 +48,9 @@ spec:
         - name: REKCURD_KUBERNETES_MODE
           value: "true"
         - name: REKCURD_DEBUG_MODE
-          value: "false"
+          value: "true"
         - name: REKCURD_APPLICATION_NAME
-          value: rekcurd-test-app
+          value: app-test20190307093000
         - name: REKCURD_SERVICE_INSECURE_HOST
           value: "[::]"
         - name: REKCURD_SERVICE_INSECURE_PORT
@@ -68,7 +68,7 @@ spec:
         - name: REKCURD_SERVICE_GIT_URL
           value: https://github.com/rekcurd/rekcurd-example.git
         - name: REKCURD_SERVICE_GIT_BRANCH
-          value: v0.5.0a0
+          value: master
         - name: REKCURD_SERVICE_BOOT_SHELL
           value: start.sh
         image: rekcurd/rekcurd:python-latest

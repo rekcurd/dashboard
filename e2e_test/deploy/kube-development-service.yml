@@ -4,7 +4,7 @@ metadata:
   labels:
     rekcurd-worker: "true"
     id: id-test20190307093000
-    name: rekcurd-test-app
+    name: app-test20190307093000
     sel: test20190307093000
   name: svc-test20190307093000
   namespace: development

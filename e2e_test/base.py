@@ -151,7 +151,7 @@ class BaseTestCase(TestCase):
         # Set a timeout in case the service fails to run
         timeout = int(self.START_TIMEOUT)
         while timeout > 0:
-            print (f'Remaining trial: {timeout}')
+            print(f'Remaining trial: {timeout}')
             logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
             dashboard_client = RekcurdDashboardClient(
                 host=host, port=port, application_name=application_name, service_level=service_level,
@@ -312,7 +312,8 @@ def create_service_model(
         application_id=TEST_APPLICATION_ID, model_id=TEST_MODEL_ID1,
         service_id=WorkerConfiguration.deployment['metadata']['labels']['sel'],
         service_level=WorkerConfiguration.deployment['metadata']['namespace'],
-        display_name='test-service', version='v2', host='localhost', port=5000, save=False) -> ServiceModel:
+        display_name='test-service', version='v2',
+        host=kube_setting1.ip, port=31380, save=False) -> ServiceModel:
     service_model = ServiceModel(
         service_id=service_id, application_id=application_id,
         display_name=display_name, service_level=service_level,
