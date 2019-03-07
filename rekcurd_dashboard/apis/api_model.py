@@ -33,7 +33,7 @@ model_model_params = model_api_namespace.model('Model', {
         description='Register date.'
     ),
     'description': fields.String(
-        required=False,
+        required=True,
         description='Description.',
         example='This is a sample.'
     )
@@ -45,7 +45,7 @@ class ApiModels(Resource):
     upload_model_parser = reqparse.RequestParser()
     upload_model_parser.add_argument('file', location='files',
                                      type=FileStorage, required=True)
-    upload_model_parser.add_argument('description', type=str, required=False, location='form')
+    upload_model_parser.add_argument('description', type=str, required=True, location='form')
 
     @model_api_namespace.marshal_list_with(model_model_params)
     def get(self, project_id: int, application_id: str):

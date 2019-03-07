@@ -488,7 +488,7 @@ export const kubernetesDeploymentDefultSettings = {
   policyWaitSeconds: 300,
   resourceRequestCpu: 1,
   resourceLimitCpu: 1,
-  resourceRequestMemory: '128Mi',
+  resourceRequestMemory: '256Mi',
   resourceLimitMemory: '256Mi',
   containerImage: 'rekcurd/rekcurd:python-latest',
   serviceGitUrl: 'https://github.com/rekcurd/rekcurd-example.git',

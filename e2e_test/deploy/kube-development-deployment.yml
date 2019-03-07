@@ -82,7 +82,7 @@ spec:
             memory: 256Mi
           requests:
             cpu: 0.5
-            memory: 128Mi
+            memory: 256Mi
         securityContext:
           privileged: true
       nodeSelector:

@@ -57,7 +57,7 @@ class ApiServiceDeploymentTest(BaseTestCase):
         container_image = 'test-image'
         service_model_assignment = 1
         resource_request_cpu = 1.0
-        resource_request_memory = '128Mi'
+        resource_request_memory = '256Mi'
         response = self.client.post(
             self.__URL, data={'service_level': service_level, 'container_image': container_image,
                               'service_model_assignment': service_model_assignment,
@@ -100,9 +100,9 @@ class ApiServiceIdDeploymentTest(BaseTestCase):
         service_git_branch = ''
         service_boot_script = ''
         resource_request_cpu = 1.0
-        resource_request_memory = '128Mi'
+        resource_request_memory = '256Mi'
         resource_limit_cpu = 1.0
-        resource_limit_memory = '128Mi'
+        resource_limit_memory = '256Mi'
         response = self.client.patch(
             self.__URL, data={'service_level': service_level, 'version': version,
                               'service_insecure_host': service_insecure_host,

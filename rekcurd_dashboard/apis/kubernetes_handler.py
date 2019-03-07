@@ -477,8 +477,8 @@ def apply_rekcurd_to_kubernetes(
                 "apiVersion": "networking.istio.io/v1alpha3",
                 "kind": "VirtualService",
                 "metadata": {
-                    "label": {"rekcurd-worker": "True", "id": application_id,
-                              "name": application_name, "sel": service_id},
+                    "labels": {"rekcurd-worker": "True", "id": application_id,
+                               "name": application_name, "sel": service_id},
                     "name": "ing-vs-{0}".format(application_id),
                     "namespace": service_level
                 },
