@@ -1,7 +1,6 @@
 import logging
 import os
 import pathlib
-import uuid
 
 import numpy as np
 
@@ -246,7 +245,7 @@ def create_project_model(project_id=TEST_PROJECT_ID, save=False) -> ProjectModel
 
 def create_kubernetes_model(project_id=TEST_PROJECT_ID, save=False, first=True) -> KubernetesModel:
     kube_setting = kube_setting1 if first else kube_setting2
-    config_path = uuid.uuid4().hex
+    config_path = "kube-config-path1" if first else "kube-config-path2"
     full_config_path = get_full_config_path(config_path)
     shutil.copyfile(kube_setting.config_path, full_config_path)
 
