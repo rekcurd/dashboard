@@ -2,9 +2,12 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 
 from . import (
     DatetimeToTimestamp, status_model,
-    switch_model_assignment, delete_kubernetes_deployment
+    switch_model_assignment, delete_kubernetes_deployment, RekcurdDashboardException
 )
-from rekcurd_dashboard.models import db, KubernetesModel, ServiceModel
+from rekcurd_dashboard.core import RekcurdDashboardClient
+from rekcurd_dashboard.models import (
+    db, KubernetesModel, DataServerModel, DataServerModeEnum, ApplicationModel, ServiceModel, ModelModel
+)
 
 
 service_api_namespace = Namespace('services', description='Service API Endpoint.')
@@ -88,7 +91,31 @@ class ApiServiceId(Resource):
         """switch_service_model_assignment"""
         args = self.switch_model_parser.parse_args()
         model_id = args['model_id']
-        response_body = switch_model_assignment(project_id, application_id, service_id, model_id)
+        kubernetes_models = db.session.query(KubernetesModel).filter(
+            KubernetesModel.project_id == project_id).all()
+        data_server_model: DataServerModel = db.session.query(DataServerModel).filter(
+            DataServerModel.project_id == project_id).one()
+        service_model: ServiceModel = db.session.query(ServiceModel).filter(
+            ServiceModel.service_id == service_id).one()
+        if service_model.model_id == model_id:
+            raise RekcurdDashboardException("No need to switch model.")
+        if len(kubernetes_models) and data_server_model.data_server_mode != DataServerModeEnum.LOCAL:
+            """If Kubernetes mode and data_sever_mode is not LOCAL, then request switch to Kubernetes WebAPI"""
+            response_body = switch_model_assignment(project_id, application_id, service_id, model_id)
+        else:
+            """Otherwise, switch model directly by requesting gRPC proto."""
+            application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
+                ApplicationModel.application_id == application_id).one()
+            model_model: ModelModel = db.session.query(ModelModel).filter(
+                ModelModel.model_id == model_id).one()
+            rekcurd_dashboard_application = RekcurdDashboardClient(
+                host=service_model.host, port=service_model.port, application_name=application_model.application_name,
+                service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
+            response_body = rekcurd_dashboard_application.run_switch_service_model_assignment(model_model.filepath)
+            if not response_body.get("status", True):
+                raise RekcurdDashboardException(response_body.get("message", "Error."))
+            service_model.model_id = model_id
+
         db.session.commit()
         db.session.close()
         return response_body
