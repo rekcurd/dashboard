@@ -6,7 +6,7 @@ set -e
 TEST_FILE_DIRECTORY=$(dirname "$0")
 cd $TEST_FILE_DIRECTORY
 export MINIKUBE_DRIVER=${MINIKUBE_DRIVER:-virtualbox}
-export MINIKUBE_BOOTSTRAPPER=${MINIKUBE_BOOTSTRAPPER:-localkube}
+export MINIKUBE_BOOTSTRAPPER=${MINIKUBE_BOOTSTRAPPER:-kubeadm}
 export ISTIO_HOME=${ISTIO_HOME:-istio-1.0.6}
 export PATH=$ISTIO_HOME/bin:$PATH
 
@@ -15,7 +15,10 @@ configure_cluster () {
     timeout=60
     ready=false
     echo "Start to configure $cluster_name"
-    minikube start --vm-driver $MINIKUBE_DRIVER -p $cluster_name --kubernetes-version v1.9.4 --bootstrapper $MINIKUBE_BOOTSTRAPPER --logtostderr
+    minikube start --memory=6144 --cpus=2 --kubernetes-version=v1.11.2 \
+    --extra-config=controller-manager.cluster-signing-cert-file="/var/lib/minikube/certs/ca.crt" \
+    --extra-config=controller-manager.cluster-signing-key-file="/var/lib/minikube/certs/ca.key" \
+    --vm-driver $MINIKUBE_DRIVER -p $cluster_name --bootstrapper $MINIKUBE_BOOTSTRAPPER --logtostderr
 
     MINIKUBE_OK=false
     echo "Waiting for minikube to start..."
