@@ -150,18 +150,21 @@ class BaseTestCase(TestCase):
         # Waiting for model becoming ready
         # Set a timeout in case the service fails to run
         timeout = int(self.START_TIMEOUT)
+        logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
+        dashboard_client = RekcurdDashboardClient(
+            host=host, port=port, application_name=application_name, service_level=service_level,
+            rekcurd_grpc_version=rekcurd_grpc_version)
+        dashboard_client.logger = logger
         while timeout > 0:
-            print(f'Remaining trial: {timeout}')
-            logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
-            dashboard_client = RekcurdDashboardClient(
-                host=host, port=port, application_name=application_name, service_level=service_level,
-                rekcurd_grpc_version=rekcurd_grpc_version)
-            dashboard_client.logger = logger
-            info = dashboard_client.run_service_info()
-            if 'status' not in info:
-                break
-            timeout -= 1
-            sleep(1)
+            try:
+                print(f'Remaining trial: {timeout}')
+                info = dashboard_client.run_service_info()
+                if 'status' not in info:
+                    break
+                timeout -= 1
+                sleep(1)
+            except Exception as e:
+                print(str(e))
         else:
             self.fail("Worker doesn't run successfully.")
 
