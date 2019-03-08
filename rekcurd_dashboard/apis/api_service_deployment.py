@@ -112,7 +112,7 @@ service_deployment_params = service_deployment_api_namespace.model('Deployment',
     'resource_request_memory': fields.String(
         required=True,
         description='Memory reservation for your service.',
-        example='256Mi'
+        example='512Mi'
     ),
     'resource_limit_cpu': fields.Float(
         required=False,
@@ -122,7 +122,7 @@ service_deployment_params = service_deployment_api_namespace.model('Deployment',
     'resource_limit_memory': fields.String(
         required=False,
         description='Upper limit of memory reservation. Default is "resource_request_memory".',
-        example='256Mi'
+        example='512Mi'
     ),
     'commit_message': fields.String(
         required=False,
@@ -251,7 +251,7 @@ class ApiServiceDeployment(Resource):
         'resource_request_cpu', location='form', type=float, default=1.0, required=True,
         help='CPU reservation for your service.')
     service_deployment_parser.add_argument(
-        'resource_request_memory', location='form', type=str, default='256Mi', required=True,
+        'resource_request_memory', location='form', type=str, default='512Mi', required=True,
         help='Memory reservation for your service.')
     service_deployment_parser.add_argument(
         'resource_limit_cpu', location='form', type=float, required=False,

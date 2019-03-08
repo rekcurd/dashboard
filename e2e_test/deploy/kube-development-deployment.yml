@@ -79,10 +79,10 @@ spec:
         resources:
           limits:
             cpu: 1
-            memory: 256Mi
+            memory: 512Mi
           requests:
             cpu: 0.5
-            memory: 256Mi
+            memory: 512Mi
         securityContext:
           privileged: true
       nodeSelector:
