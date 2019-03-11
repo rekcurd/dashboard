@@ -84,7 +84,7 @@ TEST_SERVICE_ID = "test20190307093000"
 
 
 class BaseTestCase(TestCase):
-    START_TIMEOUT = 200
+    START_TIMEOUT = 300
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     TESTING = True
 
