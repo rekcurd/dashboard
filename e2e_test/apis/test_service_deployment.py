@@ -65,7 +65,6 @@ class TestApiServiceDeployment(BaseTestCase):
         self.assertIsNotNone(service_model)
 
         application_model = create_application_model()
-        service_model = create_service_model()
         host = service_model.host
         port = service_model.port
         application_name = application_model.application_name
