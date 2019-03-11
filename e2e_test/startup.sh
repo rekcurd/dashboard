@@ -217,6 +217,8 @@ spec:
     - "*"
 EOF
 
+# Sleep 3 min
+sleep 180
 
 # Done
 echo "Finish startup.sh!"
