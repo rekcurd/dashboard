@@ -16,8 +16,6 @@ configure_cluster () {
     ready=false
     echo "Start to configure $cluster_name"
     minikube start --memory=6144 --kubernetes-version=v1.11.2 \
-    --extra-config=controller-manager.cluster-signing-cert-file="/var/lib/minikube/certs/ca.crt" \
-    --extra-config=controller-manager.cluster-signing-key-file="/var/lib/minikube/certs/ca.key" \
     --vm-driver $MINIKUBE_DRIVER -p $cluster_name --bootstrapper $MINIKUBE_BOOTSTRAPPER --logtostderr
 
     MINIKUBE_OK=false
