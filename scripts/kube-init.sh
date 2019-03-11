@@ -75,6 +75,7 @@ export KUBECONFIG=$HOME/.kube/config
 export MINIKUBE_HOME=$HOME
 export MINIKUBE_DRIVER=${MINIKUBE_DRIVER:-none}
 export MINIKUBE_BOOTSTRAPPER=${MINIKUBE_BOOTSTRAPPER:-kubeadm}
+export KUBE_CONFIG_PATH1=$KUBECONFIG/kube-config-path1
 
 echo "Starting minikube"
 TEST_FILE_DIRECTORY=$(dirname "$0")
