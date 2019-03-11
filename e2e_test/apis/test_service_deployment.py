@@ -46,9 +46,13 @@ class TestApiSingleServiceRegistration(BaseTestCase):
 
 
 class TestApiServiceDeployment(BaseTestCase):
+    __DELETE_URL = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/services/{TEST_SERVICE_ID}'
     __URL = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/service_deployment'
 
     def test_post(self):
+        response = self.client.delete(self.__DELETE_URL)
+        self.assertEqual(200, response.status_code)
+
         container = WorkerConfiguration.deployment['spec']['template']['spec']['containers'][0]
         service_level = WorkerConfiguration.deployment['metadata']['namespace']
         container_image = container['image']
