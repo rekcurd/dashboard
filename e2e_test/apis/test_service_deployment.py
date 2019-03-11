@@ -1,23 +1,10 @@
-import logging
-
 from kubernetes import client as k8s_client
-from kubernetes import config as k8s_config
-from kubernetes.client.rest import ApiException
 
-import numpy as np
-
-from werkzeug.datastructures import FileStorage
-
-from rekcurd_dashboard.core import RekcurdDashboardClient
-from rekcurd_client import RekcurdWorkerClient
-from rekcurd_dashboard.logger import JsonSystemLogger
-from rekcurd_dashboard.apis.kubernetes_handler import get_full_config_path
 from rekcurd_dashboard.models import ServiceModel
 
 from e2e_test.base import (
-    BaseTestCase, WorkerConfiguration, create_kubernetes_model,
-    create_application_model, create_service_model, create_model_model,
-    NEGATIVE_MODEL_PATH, POSITIVE_MODEL_PATH, TEST_MODEL_ID1, TEST_MODEL_ID2,
+    BaseTestCase, WorkerConfiguration,
+    create_application_model, create_service_model,
     TEST_PROJECT_ID, TEST_APPLICATION_ID, TEST_SERVICE_ID
 )
 
