@@ -51,6 +51,13 @@ wget -O minikube "https://storage.googleapis.com/minikube/releases/v0.30.0/minik
 sudo chmod +x minikube
 sudo mv minikube /usr/local/bin/
 
+echo "Download crictl"
+VERSION="v1.13.0"
+curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz
+sudo tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
+sudo chmod +x /usr/local/bin/crictl
+rm -f crictl-$VERSION-linux-amd64.tar.gz
+
 echo "Download helm"
 wget "https://storage.googleapis.com/kubernetes-helm/helm-v2.13.0-linux-amd64.tar.gz"
 sudo tar -zxvf helm-v2.13.0-linux-amd64.tar.gz
