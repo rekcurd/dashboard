@@ -64,7 +64,7 @@ spec:
         - name: REKCURD_MODEL_MODE
           value: local
         - name: REKCURD_MODEL_FILE_PATH
-          value: model/default.model
+          value: positive.pkl
         - name: REKCURD_SERVICE_GIT_URL
           value: https://github.com/rekcurd/rekcurd-example.git
         - name: REKCURD_SERVICE_GIT_BRANCH
