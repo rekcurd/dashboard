@@ -3,8 +3,9 @@ import uuid
 from rekcurd_dashboard.models import db, KubernetesModel
 from rekcurd_dashboard.apis.kubernetes_handler import get_full_config_path
 
-from e2e_test.base import  BaseTestCase, TEST_PROJECT_ID, kube_setting2, create_kubernetes_model
-from e2e_test.base import WorkerConfiguration
+from e2e_test.base import (
+    BaseTestCase, TEST_PROJECT_ID, kube_setting2, create_kubernetes_model, WorkerConfiguration
+)
 
 
 def get_default_args():

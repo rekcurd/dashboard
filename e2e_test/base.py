@@ -190,8 +190,8 @@ def start_worker(config_path, namespace='development'):
     # Autoscaling
     try:
         print('   Requested! (Autoscaling)')
-        autoscaling_v1 = k8s_client.AutoscalingV1Api()
-        autoscaling_v1.create_namespaced_horizontal_pod_autoscaler(
+        autoscaling_v1_api = k8s_client.AutoscalingV1Api()
+        autoscaling_v1_api.create_namespaced_horizontal_pod_autoscaler(
             body=WorkerConfiguration.autoscaling, namespace=namespace)
     except Exception as e:
         print(str(e))
@@ -212,7 +212,7 @@ def stop_worker(config_path, namespaces=('development', 'beta')):
     body = k8s_client.V1DeleteOptions()
     core_v1 = k8s_client.CoreV1Api()
     app_v1 = k8s_client.AppsV1Api()
-    autoscaling_v1 = k8s_client.AutoscalingV1Api()
+    autoscaling_v1_api = k8s_client.AutoscalingV1Api()
     custom_object_api = k8s_client.CustomObjectsApi()
     for ns in namespaces:
         # Delete Deployments
@@ -222,8 +222,8 @@ def stop_worker(config_path, namespaces=('development', 'beta')):
         for svc in core_v1.list_namespaced_service(ns).items:
             core_v1.delete_namespaced_service(name=svc.metadata.name, namespace=ns, body=body)
         # Delete autoscaling
-        for autoscaler in autoscaling_v1.list_namespaced_horizontal_pod_autoscaler(ns).items:
-            autoscaling_v1.delete_namespaced_horizontal_pod_autoscaler(
+        for autoscaler in autoscaling_v1_api.list_namespaced_horizontal_pod_autoscaler(ns).items:
+            autoscaling_v1_api.delete_namespaced_horizontal_pod_autoscaler(
                 name=autoscaler.metadata.name, namespace=ns, body=body)
         # Delete Istio
         for istio in custom_object_api.list_namespaced_custom_object(

@@ -1,10 +1,7 @@
-from kubernetes import client as k8s_client
-from kubernetes.stream import stream
-
-from e2e_test.base import BaseTestCase, TEST_PROJECT_ID, TEST_APPLICATION_ID, TEST_MODEL_ID1
-from e2e_test.base import kube_setting1, WorkerConfiguration
-from e2e_test.base import create_kubernetes_model, create_application_model, create_model_model, create_service_model
-from e2e_test.base import POSITIVE_MODEL_PATH
+from e2e_test.base import (
+    BaseTestCase, TEST_PROJECT_ID, TEST_APPLICATION_ID,
+    create_application_model, create_service_model, POSITIVE_MODEL_PATH
+)
 
 
 class TestApiModels(BaseTestCase):
