@@ -62,7 +62,7 @@ kube_setting2 = KubeSetting(display_name='rekcurd-test-kube-2',
                             ip=rekcurd_test1_ip,
                             port=31380,
                             exposed_host=rekcurd_test1_ip,
-                            exposed_port=31380)
+                            exposed_port=31381)
 
 POSITIVE_MODEL_PATH = pathlib.Path(__file__).parent.joinpath('test-models').joinpath('positive.pkl')
 NEGATIVE_MODEL_PATH = pathlib.Path(__file__).parent.joinpath('test-models').joinpath('negative.pkl')
