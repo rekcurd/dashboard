@@ -54,15 +54,15 @@ kube_setting1 = KubeSetting(display_name='rekcurd-test-kube-1',
                             config_path=os.getenv('KUBE_CONFIG_PATH1', '/tmp/kube-config-path1'),
                             ip=rekcurd_test1_ip,
                             port=31380,
-                            exposed_host='localhost',
-                            exposed_port='5000')
+                            exposed_host=rekcurd_test1_ip,
+                            exposed_port=31380)
 kube_setting2 = KubeSetting(display_name='rekcurd-test-kube-2',
                             description='Description 2',
                             config_path=os.getenv('KUBE_CONFIG_PATH1', '/tmp/kube-config-path1'),
                             ip=rekcurd_test1_ip,
                             port=31380,
-                            exposed_host='localhost',
-                            exposed_port='5001')
+                            exposed_host=rekcurd_test1_ip,
+                            exposed_port=31380)
 
 POSITIVE_MODEL_PATH = pathlib.Path(__file__).parent.joinpath('test-models').joinpath('positive.pkl')
 NEGATIVE_MODEL_PATH = pathlib.Path(__file__).parent.joinpath('test-models').joinpath('negative.pkl')
@@ -256,7 +256,7 @@ def create_kubernetes_model(project_id=TEST_PROJECT_ID, save=False, first=True) 
 
     display_name = kube_setting.display_name
     exposed_host = kube_setting.exposed_host
-    exposed_port = int(kube_setting.exposed_port)
+    exposed_port = kube_setting.exposed_port
     kubernetes_model = KubernetesModel(
         project_id=project_id, display_name=display_name, config_path=config_path,
         exposed_host=exposed_host, exposed_port=exposed_port)
