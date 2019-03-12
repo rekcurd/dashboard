@@ -47,18 +47,20 @@ class WorkerConfiguration:
 worker_container = WorkerConfiguration.deployment['spec']['template']['spec']['containers'][0]
 worker_env = {env['name']: env['value'] for env in worker_container['env']}
 
-KubeSetting = namedtuple('KubeSetting', 'display_name description config_path ip exposed_host exposed_port')
+KubeSetting = namedtuple('KubeSetting', 'display_name description config_path ip port exposed_host exposed_port')
 rekcurd_test1_ip = os.getenv('KUBE_IP1', get_minikube_ip('rekcurd-test1')).strip()
 kube_setting1 = KubeSetting(display_name='rekcurd-test-kube-1',
                             description='Description 1',
                             config_path=os.getenv('KUBE_CONFIG_PATH1', '/tmp/kube-config-path1'),
                             ip=rekcurd_test1_ip,
+                            port=31380,
                             exposed_host='localhost',
                             exposed_port='5000')
 kube_setting2 = KubeSetting(display_name='rekcurd-test-kube-2',
                             description='Description 2',
                             config_path=os.getenv('KUBE_CONFIG_PATH1', '/tmp/kube-config-path1'),
                             ip=rekcurd_test1_ip,
+                            port=31380,
                             exposed_host='localhost',
                             exposed_port='5001')
 
@@ -316,7 +318,7 @@ def create_service_model(
         service_id=WorkerConfiguration.deployment['metadata']['labels']['sel'],
         service_level=WorkerConfiguration.deployment['metadata']['namespace'],
         display_name='test-service', version='v2',
-        host=kube_setting1.ip, port=31380, save=False) -> ServiceModel:
+        host=kube_setting1.ip, port=kube_setting1.port, save=False) -> ServiceModel:
     service_model = ServiceModel(
         service_id=service_id, application_id=application_id,
         display_name=display_name, service_level=service_level,

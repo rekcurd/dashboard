@@ -130,7 +130,7 @@ def apply_rekcurd_to_kubernetes(
         resource_request_cpu: str, resource_request_memory: str, resource_limit_cpu: str,
         resource_limit_memory: str, commit_message: str, service_model_assignment: int,
         service_git_url: str = "", service_git_branch: str = "", service_boot_script: str = "",
-        service_id: str = None,
+        debug_mode: bool = False, service_id: str = None,
         **kwargs) -> str:
     """
     kubectl apply
@@ -157,6 +157,7 @@ def apply_rekcurd_to_kubernetes(
     :param service_git_url:
     :param service_git_branch:
     :param service_boot_script:
+    :param debug_mode:
     :param service_id:
     :param kwargs:
     :return:
@@ -192,7 +193,7 @@ def apply_rekcurd_to_kubernetes(
             ),
             client.V1EnvVar(
                 name="REKCURD_DEBUG_MODE",
-                value="False"
+                value=str(debug_mode)
             ),
             client.V1EnvVar(
                 name="REKCURD_APPLICATION_NAME",
@@ -228,39 +229,39 @@ def apply_rekcurd_to_kubernetes(
             ),
             client.V1EnvVar(
                 name="REKCURD_CEPH_ACCESS_KEY",
-                value=str(data_server_model.ceph_access_key)
+                value=str(data_server_model.ceph_access_key or "xxx")
             ),
             client.V1EnvVar(
                 name="REKCURD_CEPH_SECRET_KEY",
-                value=str(data_server_model.ceph_secret_key)
+                value=str(data_server_model.ceph_secret_key or "xxx")
             ),
             client.V1EnvVar(
                 name="REKCURD_CEPH_HOST",
-                value=str(data_server_model.ceph_host)
+                value=str(data_server_model.ceph_host or "xxx")
             ),
             client.V1EnvVar(
                 name="REKCURD_CEPH_PORT",
-                value=str(data_server_model.ceph_port)
+                value=str(data_server_model.ceph_port or "1234")
             ),
             client.V1EnvVar(
                 name="REKCURD_CEPH_IS_SECURE",
-                value=str(data_server_model.ceph_is_secure)
+                value=str(data_server_model.ceph_is_secure or "False")
             ),
             client.V1EnvVar(
                 name="REKCURD_CEPH_BUCKET_NAME",
-                value=str(data_server_model.ceph_bucket_name)
+                value=str(data_server_model.ceph_bucket_name or "xxx")
             ),
             client.V1EnvVar(
                 name="REKCURD_AWS_ACCESS_KEY",
-                value=str(data_server_model.aws_access_key)
+                value=str(data_server_model.aws_access_key or "xxx")
             ),
             client.V1EnvVar(
                 name="REKCURD_AWS_SECRET_KEY",
-                value=str(data_server_model.aws_secret_key)
+                value=str(data_server_model.aws_secret_key or "xxx")
             ),
             client.V1EnvVar(
                 name="REKCURD_AWS_BUCKET_NAME",
-                value=str(data_server_model.aws_bucket_name)
+                value=str(data_server_model.aws_bucket_name or "xxx")
             ),
             # TODO: GCP
             client.V1EnvVar(

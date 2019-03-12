@@ -259,6 +259,9 @@ class ApiServiceDeployment(Resource):
     service_deployment_parser.add_argument(
         'resource_limit_memory', location='form', type=str, required=False,
         help='Upper limit of memory reservation. Default is "resource_request_memory".')
+    service_deployment_parser.add_argument(
+        'debug_mode', location='form', type=bool, default=False, required=False,
+        help='Debug mode.')
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
     @service_deployment_api_namespace.expect(service_deployment_parser)
@@ -346,6 +349,9 @@ class ApiServiceIdDeployment(Resource):
     patch_parser.add_argument(
         'resource_limit_memory', location='form', type=str, required=True,
         help='Upper limit of memory reservation. Default is "resource_request_memory".')
+    patch_parser.add_argument(
+        'debug_mode', location='form', type=bool, default=False, required=False,
+        help='Debug mode.')
 
     @service_deployment_api_namespace.marshal_with(service_deployment_params)
     def get(self, project_id: int, application_id: str, service_id: str):

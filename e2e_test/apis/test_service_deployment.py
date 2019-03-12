@@ -3,7 +3,7 @@ from kubernetes import client as k8s_client
 from rekcurd_dashboard.models import ServiceModel
 
 from e2e_test.base import (
-    BaseTestCase, WorkerConfiguration,
+    BaseTestCase, WorkerConfiguration, kube_setting1,
     create_application_model, create_service_model,
     TEST_PROJECT_ID, TEST_APPLICATION_ID, TEST_SERVICE_ID
 )
@@ -59,18 +59,24 @@ class TestApiServiceDeployment(BaseTestCase):
         service_model_assignment = 1
         resource_request_cpu = container['resources']['requests']['cpu']
         resource_request_memory = container['resources']['requests']['memory']
+        service_git_url = "https://github.com/rekcurd/rekcurd-example.git"
+        service_git_branch = "master"
+        service_boot_script = "start.sh"
+
         response = self.client.post(
             self.__URL,
             data={'service_level': service_level, 'container_image': container_image,
                   'service_model_assignment': service_model_assignment,
-                  'resource_request_cpu': resource_request_cpu, 'resource_request_memory': resource_request_memory})
+                  'resource_request_cpu': resource_request_cpu, 'resource_request_memory': resource_request_memory,
+                  'service_git_url': service_git_url, 'service_git_branch': service_git_branch,
+                  'service_boot_script': service_boot_script, 'debug_mode': True})
         self.assertEqual(200, response.status_code)
         service_model = ServiceModel.query.filter(ServiceModel.service_id != TEST_SERVICE_ID).one_or_none()
         self.assertIsNotNone(service_model)
 
         application_model = create_application_model()
-        host = service_model.host
-        port = service_model.port
+        host = kube_setting1.ip
+        port = kube_setting1.port
         application_name = application_model.application_name
         service_level = service_model.service_level
         rekcurd_grpc_version = service_model.version
