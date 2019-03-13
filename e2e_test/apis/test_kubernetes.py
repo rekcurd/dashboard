@@ -15,7 +15,7 @@ def get_default_args():
     args['service_level'] = WorkerConfiguration.deployment['metadata']['namespace']
     container = WorkerConfiguration.deployment['spec']['template']['spec']['containers'][0]
     envs = {env['name']: env['value'] for env in container['env']}
-    args['service_port'] = container['ports'][0]['containerPort']
+    args['service_insecure_port'] = container['ports'][0]['containerPort']
     args['replicas_default'] = WorkerConfiguration.deployment['spec']['replicas']
     args['replicas_minimum'] = WorkerConfiguration.autoscaling['spec']['minReplicas']
     args['replicas_maximum'] = WorkerConfiguration.autoscaling['spec']['maxReplicas']

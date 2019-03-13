@@ -27,8 +27,8 @@ class TestApiServiceId(BaseTestCase):
     def test_put(self):
         application_model = create_application_model()
         service_model = create_service_model()
-        host = service_model.host
-        port = service_model.port
+        insecure_host = service_model.insecure_host
+        insecure_port = service_model.insecure_port
         application_name = application_model.application_name
         service_level = service_model.service_level
         rekcurd_grpc_version = service_model.version
@@ -39,13 +39,13 @@ class TestApiServiceId(BaseTestCase):
             name=WorkerConfiguration.service['metadata']['name'],
             namespace=service_level)
         self.wait_worker_ready(
-            host=host, port=port, application_name=application_name,
+            insecure_host=insecure_host, insecure_port=insecure_port, application_name=application_name,
             service_level=service_level, rekcurd_grpc_version=rekcurd_grpc_version)
 
         # Upload models
         logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
         dashboard_client = RekcurdDashboardClient(
-            host=host, port=port, application_name=application_name,
+            host=insecure_host, port=insecure_port, application_name=application_name,
             service_level=service_level, rekcurd_grpc_version=rekcurd_grpc_version)
         dashboard_client.logger = logger
         dashboard_client.run_upload_model(model_path=positive_model.filepath,
@@ -54,7 +54,7 @@ class TestApiServiceId(BaseTestCase):
                                           f=FileStorage(open(NEGATIVE_MODEL_PATH, 'rb')))
 
         worker_client = RekcurdWorkerClient(
-            host=host, port=port, application_name=application_name,
+            host=insecure_host, port=insecure_port, application_name=application_name,
             service_level=service_level, rekcurd_grpc_version=rekcurd_grpc_version)
         # Switch to the negative model
         self.client.put(self.__URL, data={'model_id': TEST_MODEL_ID2})
@@ -85,7 +85,8 @@ class TestApiServiceId(BaseTestCase):
         core_v1.read_namespaced_service(
             name=WorkerConfiguration.service['metadata']['name'],
             namespace=namespace)
-        self.wait_worker_ready(host=service_model.host, port=service_model.port,
+        self.wait_worker_ready(insecure_host=service_model.insecure_host,
+                               insecure_port=service_model.insecure_port,
                                application_name=application_model.application_name,
                                service_level=service_model.service_level,
                                rekcurd_grpc_version=service_model.version)

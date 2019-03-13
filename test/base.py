@@ -125,12 +125,12 @@ def create_model_model(
 def create_service_model(
         service_id=TEST_SERVICE_ID, application_id=TEST_APPLICATION_ID, model_id=TEST_MODEL_ID,
         display_name='test-service', service_level='development',
-        version='v2', host='localhost', port=5000, save=False) -> ServiceModel:
+        version='v2', insecure_host='localhost', insecure_port=5000, save=False) -> ServiceModel:
     service_model = ServiceModel(
         service_id=service_id, application_id=application_id,
         display_name=display_name, service_level=service_level,
         version=version, model_id=model_id,
-        host=host, port=port)
+        insecure_host=insecure_host, insecure_port=insecure_port)
     service_model_ = ServiceModel.query.filter_by(
         application_id=application_id, display_name=display_name).one_or_none()
     if save and service_model_ is None:

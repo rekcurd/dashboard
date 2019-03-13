@@ -109,7 +109,7 @@ class ApiServiceId(Resource):
             model_model: ModelModel = db.session.query(ModelModel).filter(
                 ModelModel.model_id == model_id).one()
             rekcurd_dashboard_application = RekcurdDashboardClient(
-                host=service_model.host, port=service_model.port, application_name=application_model.application_name,
+                host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
                 service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
             response_body = rekcurd_dashboard_application.run_switch_service_model_assignment(model_model.filepath)
             if not response_body.get("status", True):

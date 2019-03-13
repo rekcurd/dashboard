@@ -15,8 +15,8 @@ class TestApiSingleServiceRegistration(BaseTestCase):
     def test_post(self):
         application_model = create_application_model()
         service_model = create_service_model()
-        host = service_model.host
-        port = service_model.port
+        insecure_host = service_model.insecure_host
+        insecure_port = service_model.insecure_port
         application_name = application_model.application_name
         service_level = service_model.service_level
         rekcurd_grpc_version = service_model.version
@@ -25,7 +25,7 @@ class TestApiSingleServiceRegistration(BaseTestCase):
             name=WorkerConfiguration.service['metadata']['name'],
             namespace=service_level)
         self.wait_worker_ready(
-            host=host, port=port, application_name=application_name,
+            insecure_host=insecure_host, insecure_port=insecure_port, application_name=application_name,
             service_level=service_level, rekcurd_grpc_version=rekcurd_grpc_version)
 
         display_name = "test-service"
@@ -33,15 +33,15 @@ class TestApiSingleServiceRegistration(BaseTestCase):
         service_level = "development"
         version = service_model.version
         service_model_assignment = 1
-        service_host = service_model.host
-        service_port = service_model.port
+        service_insecure_host = service_model.insecure_host
+        service_insecure_port = service_model.insecure_port
         ServiceModel.query.filter(ServiceModel.service_id == TEST_SERVICE_ID).delete()
         response = self.client.post(
             self.__URL,
             data={'display_name': display_name, 'description': description,
                   'service_level': service_level, 'version': version,
                   'service_model_assignment': service_model_assignment,
-                  'service_host': service_host, 'service_port': service_port})
+                  'service_insecure_host': service_insecure_host, 'service_insecure_port': service_insecure_port})
         self.assertEqual(200, response.status_code)
 
 
@@ -75,13 +75,13 @@ class TestApiServiceDeployment(BaseTestCase):
         self.assertIsNotNone(service_model)
 
         application_model = create_application_model()
-        host = kube_setting1.ip
-        port = kube_setting1.port
+        insecure_host = kube_setting1.ip
+        insecure_port = kube_setting1.port
         application_name = application_model.application_name
         service_level = service_model.service_level
         rekcurd_grpc_version = service_model.version
         self.wait_worker_ready(
-            host=host, port=port, application_name=application_name,
+            insecure_host=insecure_host, insecure_port=insecure_port, application_name=application_name,
             service_level=service_level, rekcurd_grpc_version=rekcurd_grpc_version)
 
 

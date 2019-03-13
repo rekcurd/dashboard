@@ -146,7 +146,7 @@ class BaseTestCase(TestCase):
             db.session.remove()
             db.drop_all()
 
-    def wait_worker_ready(self, host: str = None, port: int = None,
+    def wait_worker_ready(self, insecure_host: str = None, insecure_port: int = None,
                           application_name: str = None, service_level: str = None,
                           rekcurd_grpc_version: str = None):
         # Waiting for model becoming ready
@@ -154,8 +154,8 @@ class BaseTestCase(TestCase):
         timeout = int(self.START_TIMEOUT)
         logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
         dashboard_client = RekcurdDashboardClient(
-            host=host, port=port, application_name=application_name, service_level=service_level,
-            rekcurd_grpc_version=rekcurd_grpc_version)
+            host=insecure_host, port=insecure_port, application_name=application_name,
+            service_level=service_level, rekcurd_grpc_version=rekcurd_grpc_version)
         dashboard_client.logger = logger
         while timeout > 0:
             try:
@@ -318,12 +318,12 @@ def create_service_model(
         service_id=WorkerConfiguration.deployment['metadata']['labels']['sel'],
         service_level=WorkerConfiguration.deployment['metadata']['namespace'],
         display_name='test-service', version='v2',
-        host=kube_setting1.ip, port=kube_setting1.port, save=False) -> ServiceModel:
+        insecure_host=kube_setting1.ip, insecure_port=kube_setting1.port, save=False) -> ServiceModel:
     service_model = ServiceModel(
         service_id=service_id, application_id=application_id,
         display_name=display_name, service_level=service_level,
         version=version, model_id=model_id,
-        host=host, port=port)
+        insecure_host=insecure_host, insecure_port=insecure_port)
     service_model_ = ServiceModel.query.filter_by(
         application_id=application_id, display_name=display_name).one_or_none()
     if save and service_model_ is None:

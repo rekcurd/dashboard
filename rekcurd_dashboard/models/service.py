@@ -26,8 +26,8 @@ class ServiceModel(db.Model):
     service_level = Column(String(128), nullable=False)
     version = Column(String(16), nullable=False)
     model_id = Column(Integer, ForeignKey('models.model_id', ondelete="CASCADE"), nullable=False)
-    host = Column(String(512), nullable=False)
-    port = Column(Integer, nullable=False)
+    insecure_host = Column(String(512), nullable=False)
+    insecure_port = Column(Integer, nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     application = relationship(
@@ -48,7 +48,7 @@ class ServiceModel(db.Model):
             'service_level': self.service_level,
             'version': self.version,
             'model_id': self.model_id,
-            'host': self.host,
-            'port': self.port,
+            'insecure_host': self.insecure_host,
+            'insecure_port': self.insecure_port,
             'register_date': self.register_date.strftime('%Y-%m-%d %H:%M:%S'),
         }

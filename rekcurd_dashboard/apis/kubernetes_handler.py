@@ -85,17 +85,17 @@ def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel):
             service_level = i.metadata.namespace
             version = None
             filepath = None
-            host = None
-            port = None
+            insecure_host = None
+            insecure_port = None
             for env_ent in i.spec.template.spec.containers[0].env:
                 if env_ent.name == "REKCURD_GRPC_PROTO_VERSION":
                     version = env_ent.value
                 elif env_ent.name == "REKCURD_MODEL_FILE_PATH":
                     filepath = env_ent.value
                 elif env_ent.name == "REKCURD_SERVICE_INSECURE_HOST":
-                    host = env_ent.value
+                    insecure_host = env_ent.value
                 elif env_ent.name == "REKCURD_SERVICE_INSECURE_PORT":
-                    port = int(env_ent.value)
+                    insecure_port = int(env_ent.value)
 
             """Model registration."""
             model_model: ModelModel = db.session.query(ModelModel).filter(
@@ -115,8 +115,8 @@ def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel):
                 service_level=service_level,
                 version=version,
                 model_id=model_model.model_id,
-                host=host,
-                port=port)
+                insecure_host=insecure_host,
+                insecure_port=insecure_port)
             db.session.add(service_model)
             db.session.flush()
     return
@@ -541,7 +541,8 @@ def apply_rekcurd_to_kubernetes(
             service_model = ServiceModel(
                 service_id=service_id, application_id=application_id, display_name=display_name,
                 description=commit_message, service_level=service_level, version=version,
-                model_id=service_model_assignment, host=service_insecure_host, port=service_insecure_port)
+                model_id=service_model_assignment, insecure_host=service_insecure_host,
+                insecure_port=service_insecure_port)
             db.session.add(service_model)
             db.session.flush()
 
@@ -651,7 +652,7 @@ def apply_new_route_weight(
             route = {
                 "destination": {
                     "port": {
-                        "number": service_model.port
+                        "number": service_model.insecure_port
                     },
                     "host": "svc-{0}".format(service_id)
                 },

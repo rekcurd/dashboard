@@ -10,7 +10,8 @@ class TestApiModels(BaseTestCase):
         application_model = create_application_model()
         service_model = create_service_model()
         model_name = 'positive.pkl'
-        self.wait_worker_ready(host=service_model.host, port=service_model.port,
+        self.wait_worker_ready(insecure_host=service_model.insecure_host,
+                               insecure_port=service_model.insecure_port,
                                application_name=application_model.application_name,
                                service_level=service_model.service_level,
                                rekcurd_grpc_version=service_model.version)

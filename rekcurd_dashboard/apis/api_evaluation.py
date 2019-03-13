@@ -57,7 +57,7 @@ class ApiEvaluations(Resource):
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
             ServiceModel.application_id == application_id).first_or_404()
         rekcurd_dashboard_client = RekcurdDashboardClient(
-            host=service_model.host, port=service_model.port, application_name=application_model.application_name,
+            host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
             service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
         response_body = rekcurd_dashboard_client.run_upload_evaluation_data(file, eval_data_path)
 
@@ -131,7 +131,7 @@ class ApiEvaluate(Resource):
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).one()
         rekcurd_dashboard_client = RekcurdDashboardClient(
-            host=service_model.host, port=service_model.port, application_name=application_model.application_name,
+            host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
             service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
         response_body = rekcurd_dashboard_client.run_evaluate_model(evaluation_model.data_path, eval_result_path)
 
@@ -172,7 +172,7 @@ class ApiEvaluationResults(Resource):
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
             ServiceModel.application_id == application_id).first_or_404()
         rekcurd_dashboard_client = RekcurdDashboardClient(
-            host=service_model.host, port=service_model.port, application_name=application_model.application_name,
+            host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
             service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
         evaluation_model = eval_with_result.EvaluationModel
         evaluation_result_model = eval_with_result.EvaluationResultModel

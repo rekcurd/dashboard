@@ -154,10 +154,10 @@ class ApiSingleServiceRegistration(Resource):
         'service_model_assignment', location='form', type=int, required=True,
         help='Model ID which is assigned to the service.')
     single_worker_parser.add_argument(
-        'service_host', location='form', type=str, default="localhost", required=False,
+        'service_insecure_host', location='form', type=str, default="localhost", required=False,
         help='Rekcurd server host. Default is "localhost".')
     single_worker_parser.add_argument(
-        'service_port', location='form', type=int, default=5000, required=False,
+        'service_insecure_port', location='form', type=int, default=5000, required=False,
         help='Rekcurd server port. Default is "5000".')
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
@@ -170,13 +170,13 @@ class ApiSingleServiceRegistration(Resource):
         service_level = args["service_level"]
         version = args["version"] or rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version]
         service_model_assignment = args["service_model_assignment"]
-        service_host = args["service_host"]
-        service_port = args["service_port"]
+        service_insecure_host = args["service_insecure_host"]
+        service_insecure_port = args["service_insecure_port"]
 
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).one()
         rekcurd_dashboard_client = RekcurdDashboardClient(
-            host=service_host, port=service_port, application_name=application_model.application_name,
+            host=service_insecure_host, port=service_insecure_port, application_name=application_model.application_name,
             service_level=service_level, rekcurd_grpc_version=version)
         service_info = rekcurd_dashboard_client.run_service_info()
         service_id = service_info["service_name"]  # TODO: renaming
@@ -184,7 +184,8 @@ class ApiSingleServiceRegistration(Resource):
         service_model = ServiceModel(
             service_id=service_id, application_id=application_id, display_name=display_name,
             description=description, service_level=service_level, version=version,
-            model_id=service_model_assignment, host=service_host, port=service_port
+            model_id=service_model_assignment, insecure_host=service_insecure_host,
+            insecure_port=service_insecure_port
         )
         db.session.add(service_model)
         db.session.commit()
@@ -372,12 +373,12 @@ class ApiServiceIdDeployment(Resource):
         if service_model.model_id != deployment_info["service_model_assignment"]:
             is_updated = True
             service_model.model_id = deployment_info["service_model_assignment"]
-        if service_model.host != deployment_info["service_insecure_host"]:
+        if service_model.insecure_host != deployment_info["service_insecure_host"]:
             is_updated = True
-            service_model.host = deployment_info["service_insecure_host"]
-        if service_model.port != deployment_info["service_insecure_port"]:
+            service_model.insecure_host = deployment_info["service_insecure_host"]
+        if service_model.insecure_port != deployment_info["service_insecure_port"]:
             is_updated = True
-            service_model.port = deployment_info["service_insecure_port"]
+            service_model.insecure_port = deployment_info["service_insecure_port"]
         if is_updated:
             db.session.commit()
         db.session.close()
@@ -401,12 +402,12 @@ class ApiServiceIdDeployment(Resource):
         if service_model.model_id != args["service_model_assignment"]:
             is_updated = True
             service_model.model_id = args["service_model_assignment"]
-        if service_model.host != args["service_insecure_host"]:
+        if service_model.insecure_host != args["service_insecure_host"]:
             is_updated = True
-            service_model.host = args["service_insecure_host"]
-        if service_model.port != args["service_insecure_port"]:
+            service_model.insecure_host = args["service_insecure_host"]
+        if service_model.insecure_port != args["service_insecure_port"]:
             is_updated = True
-            service_model.port = args["service_insecure_port"]
+            service_model.insecure_port = args["service_insecure_port"]
         if is_updated:
             db.session.commit()
         db.session.close()
