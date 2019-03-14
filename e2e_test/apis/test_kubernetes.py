@@ -70,12 +70,6 @@ class TestApiKubernetesId(BaseTestCase):
         self.assertEqual(kubernetes_model_.display_name, update_entry)
         self.assertEqual(kubernetes_model_.description, update_entry)
 
-    def test_put(self):
-        kubernetes_model = create_kubernetes_model(first=False, save=True)
-        response = self.client.put(f'/api/projects/{TEST_PROJECT_ID}/kubernetes/{kubernetes_model.kubernetes_id}')
-        self.assertEqual(200, response.status_code)
-        self.assertIsNotNone(response)
-
 
 class TestApiKubernetesBackup(BaseTestCase):
     def test_post(self):
