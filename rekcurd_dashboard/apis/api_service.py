@@ -94,9 +94,9 @@ class ApiServiceId(Resource):
         kubernetes_models = db.session.query(KubernetesModel).filter(
             KubernetesModel.project_id == project_id).all()
         data_server_model: DataServerModel = db.session.query(DataServerModel).filter(
-            DataServerModel.project_id == project_id).one()
+            DataServerModel.project_id == project_id).first_or_404()
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
-            ServiceModel.service_id == service_id).one()
+            ServiceModel.service_id == service_id).first_or_404()
         if service_model.model_id == model_id:
             raise RekcurdDashboardException("No need to switch model.")
         if len(kubernetes_models) and data_server_model.data_server_mode != DataServerModeEnum.LOCAL:
@@ -105,9 +105,9 @@ class ApiServiceId(Resource):
         else:
             """Otherwise, switch model directly by requesting gRPC proto."""
             application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
-                ApplicationModel.application_id == application_id).one()
+                ApplicationModel.application_id == application_id).first_or_404()
             model_model: ModelModel = db.session.query(ModelModel).filter(
-                ModelModel.model_id == model_id).one()
+                ModelModel.model_id == model_id).first_or_404()
             rekcurd_dashboard_application = RekcurdDashboardClient(
                 host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
                 service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
@@ -129,7 +129,7 @@ class ApiServiceId(Resource):
         description = args['description']
         version = args['version']
 
-        service_model: ServiceModel = db.session.query(ServiceModel).filter(ServiceModel.service_id == service_id).one()
+        service_model: ServiceModel = db.session.query(ServiceModel).filter(ServiceModel.service_id == service_id).first_or_404()
         is_updated = False
         if display_name is not None:
             is_updated = True

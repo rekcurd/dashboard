@@ -174,7 +174,7 @@ class ApiSingleServiceRegistration(Resource):
         service_insecure_port = args["service_insecure_port"]
 
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
-            ApplicationModel.application_id == application_id).one()
+            ApplicationModel.application_id == application_id).first_or_404()
         rekcurd_dashboard_client = RekcurdDashboardClient(
             host=service_insecure_host, port=service_insecure_port, application_name=application_model.application_name,
             service_level=service_level, rekcurd_grpc_version=version)
@@ -365,7 +365,7 @@ class ApiServiceIdDeployment(Resource):
         """Update Kubernetes deployment info."""
         deployment_info = load_kubernetes_deployment_info(project_id, application_id, service_id)
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
-            ServiceModel.service_id == service_id).one()
+            ServiceModel.service_id == service_id).first_or_404()
         is_updated = False
         if service_model.version != deployment_info["version"]:
             is_updated = True
@@ -394,7 +394,7 @@ class ApiServiceIdDeployment(Resource):
             project_id=project_id, application_id=application_id, service_id=service_id, **args)
 
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
-            ServiceModel.service_id == service_id).one()
+            ServiceModel.service_id == service_id).first_or_404()
         is_updated = False
         if service_model.version != args["version"]:
             is_updated = True

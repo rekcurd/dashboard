@@ -170,12 +170,12 @@ def apply_rekcurd_to_kubernetes(
         is_creation_mode = True
         service_id = uuid.uuid4().hex
     data_server_model: DataServerModel = db.session.query(DataServerModel).filter(
-        DataServerModel.project_id == project_id).one()
+        DataServerModel.project_id == project_id).first_or_404()
     application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
-        ApplicationModel.application_id == application_id).one()
+        ApplicationModel.application_id == application_id).first_or_404()
     application_name = application_model.application_name
     model_model: ModelModel = db.session.query(ModelModel).filter(
-        ModelModel.model_id == service_model_assignment).one()
+        ModelModel.model_id == service_model_assignment).first_or_404()
 
     for kubernetes_model in db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all():
         full_config_path = get_full_config_path(kubernetes_model.config_path)
@@ -558,7 +558,7 @@ def delete_kubernetes_deployment(kubernetes_models: list, application_id: str, s
     :param service_id:
     :return:
     """
-    service_model: ServiceModel = db.session.query(ServiceModel).filter(ServiceModel.service_id == service_id).one()
+    service_model: ServiceModel = db.session.query(ServiceModel).filter(ServiceModel.service_id == service_id).first_or_404()
     for kubernetes_model in kubernetes_models:
         full_config_path = get_full_config_path(kubernetes_model.config_path)
         from kubernetes import client, config
@@ -648,7 +648,7 @@ def apply_new_route_weight(
         routes = []
         for service_id in service_ids:
             service_model: ServiceModel = db.session.query(ServiceModel).filter(
-                ServiceModel.service_id == service_id).one()
+                ServiceModel.service_id == service_id).first_or_404()
             route = {
                 "destination": {
                     "port": {
@@ -682,7 +682,7 @@ def load_kubernetes_deployment_info(project_id: int, application_id: str, servic
     kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
         KubernetesModel.project_id == project_id).first()
     service_model: ServiceModel = db.session.query(ServiceModel).filter(
-        ServiceModel.service_id == service_id).one()
+        ServiceModel.service_id == service_id).first_or_404()
 
     full_config_path = get_full_config_path(kubernetes_model.config_path)
     from kubernetes import client, config
@@ -723,7 +723,7 @@ def load_kubernetes_deployment_info(project_id: int, application_id: str, servic
         elif env_ent.name == "REKCURD_SERVICE_BOOT_SHELL":
             deployment_info["service_boot_script"] = env_ent.value
     model_model: ModelModel = db.session.query(ModelModel).filter(
-        ModelModel.application_id == application_id, ModelModel.filepath == filepath).one()
+        ModelModel.application_id == application_id, ModelModel.filepath == filepath).first_or_404()
     deployment_info["service_model_assignment"] = model_model.model_id
     deployment_info["replicas_default"] = v1_deployment.spec.replicas
     deployment_info["replicas_minimum"] = v1_horizontal_pod_autoscaler.spec.min_replicas
@@ -754,7 +754,7 @@ def switch_model_assignment(project_id: int, application_id: str, service_id: st
     :return:
     """
     service_model: ServiceModel = db.session.query(ServiceModel).filter(
-        ServiceModel.service_id == service_id).one()
+        ServiceModel.service_id == service_id).first_or_404()
     deployment_info = load_kubernetes_deployment_info(project_id, application_id, service_id)
     deployment_info["service_model_assignment"] = model_id
     deployment_info["commit_message"] = "model_id={0} on {1:%Y%m%d%H%M%S}".format(model_id, datetime.utcnow())

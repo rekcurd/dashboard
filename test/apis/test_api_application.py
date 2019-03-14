@@ -45,12 +45,12 @@ class ApiApplicationIdTest(BaseTestCase):
         self.assertIsNotNone(application_model)
 
         response = self.client.patch(self.__INVALID_URL, data={'description': description})
-        self.assertEqual(500, response.status_code)
+        self.assertEqual(404, response.status_code)
 
     def test_delete(self):
         response = self.client.delete(self.__URL)
         self.assertEqual(200, response.status_code)
 
         response = self.client.delete(self.__INVALID_URL)
-        self.assertEqual(500, response.status_code)
+        self.assertEqual(404, response.status_code)
 

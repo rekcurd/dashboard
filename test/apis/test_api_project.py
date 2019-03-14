@@ -41,4 +41,4 @@ class ApiProjectIdTest(BaseTestCase):
         self.assertIsNotNone(project_model)
 
         response = self.client.patch(self.__INVALID_URL, data={'display_name': display_name})
-        self.assertEqual(500, response.status_code)
+        self.assertEqual(404, response.status_code)

@@ -177,7 +177,7 @@ class ApiKubernetesId(Resource):
     @kubernetes_api_namespace.marshal_with(success_or_not)
     def put(self, project_id: int, kubernetes_id: int):
         """update_dbs_of_kubernetes_app"""
-        kubernetes_model = KubernetesModel.query.filter_by(kubernetes_id=kubernetes_id).one()
+        kubernetes_model = KubernetesModel.query.filter_by(kubernetes_id=kubernetes_id).first_or_404()
         update_kubernetes_deployment_info(kubernetes_model)
         db.session.commit()
         db.session.close()
@@ -196,7 +196,7 @@ class ApiKubernetesId(Resource):
         exposed_port = args['exposed_port']
 
         kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
-            KubernetesModel.kubernetes_id==kubernetes_id).one()
+            KubernetesModel.kubernetes_id==kubernetes_id).first_or_404()
         prev_config_path = kubernetes_model.config_path
         is_update = False
         if display_name is not None:

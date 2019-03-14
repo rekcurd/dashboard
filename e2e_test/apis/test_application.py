@@ -9,4 +9,4 @@ class TestApiApplicationId(BaseTestCase):
         self.assertEqual(200, response.status_code)
 
         response = self.client.delete(self.__URL)
-        self.assertEqual(500, response.status_code)
+        self.assertEqual(404, response.status_code)

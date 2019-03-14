@@ -67,7 +67,7 @@ class ApiServiceRouting(Resource):
         kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
             KubernetesModel.project_id == project_id).first()
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
-            ApplicationModel.application_id == application_id).one()
+            ApplicationModel.application_id == application_id).first_or_404()
         routes = load_istio_routing(kubernetes_model, application_model, service_level)
         response_body = dict()
         response_body["application_name"] = application_model.application_name
@@ -78,7 +78,7 @@ class ApiServiceRouting(Resource):
             service_id = route["destination"]["host"][4:]
             weight = route["weight"]
             service_model: ServiceModel = db.session.query(ServiceModel).filter(
-                ServiceModel.service_id == service_id).one()
+                ServiceModel.service_id == service_id).first_or_404()
             service_weights.append({
                 "display_name": service_model.display_name,
                 "service_id": service_id,

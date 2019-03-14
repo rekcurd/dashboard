@@ -91,7 +91,7 @@ class ApiProjectId(Resource):
         display_name = args['display_name']
         description = args['description']
 
-        project_model = db.session.query(ProjectModel).filter(ProjectModel.project_id == project_id).one()
+        project_model = db.session.query(ProjectModel).filter(ProjectModel.project_id == project_id).first_or_404()
         is_update = False
         if display_name is not None:
             project_model.display_name = display_name

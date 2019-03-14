@@ -103,7 +103,7 @@ class ApiApplicationId(Resource):
         args = self.edit_application_parser.parse_args()
         description = args['description']
         application_model = db.session.query(ApplicationModel).filter(
-            ApplicationModel.application_id == application_id).one()
+            ApplicationModel.application_id == application_id).first_or_404()
         application_model.description = description
         db.session.commit()
         db.session.close()
@@ -115,7 +115,7 @@ class ApiApplicationId(Resource):
         kubernetes_models = db.session.query(KubernetesModel).filter(
             KubernetesModel.project_id == project_id).all()
         application_model = db.session.query(ApplicationModel).filter(
-            ApplicationModel.application_id == application_id).one()
+            ApplicationModel.application_id == application_id).first_or_404()
         service_models = db.session.query(ServiceModel).filter(
             ServiceModel.application_id == application_id).all()
         if len(kubernetes_models):

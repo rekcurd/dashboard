@@ -99,7 +99,7 @@ class ApiProjectIdACL(Resource):
             raise RekcurdDashboardException("No user found.")
         project_user_role_model = db.session.query(ProjectUserRoleModel).filter(
             ProjectUserRoleModel.project_id == project_id,
-            ProjectUserRoleModel.user_id == user_model.user_id).one()
+            ProjectUserRoleModel.user_id == user_model.user_id).first_or_404()
         project_user_role_model.project_role = args['role']
         db.session.commit()
         db.session.close()
@@ -188,7 +188,7 @@ class ApiApplicationIdACL(Resource):
             raise RekcurdDashboardException("No user found.")
         application_user_role_model: ApplicationUserRoleModel = db.session.query(ApplicationUserRoleModel).filter(
             ApplicationUserRoleModel.application_id == application_id,
-            ApplicationUserRoleModel.user_id == user_model.user_id).one()
+            ApplicationUserRoleModel.user_id == user_model.user_id).first_or_404()
         application_user_role_model.application_role = args['role']
         db.session.commit()
         db.session.close()

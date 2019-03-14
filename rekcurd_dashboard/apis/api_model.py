@@ -61,7 +61,7 @@ class ApiModels(Resource):
         description: str = args['description']
 
         data_server_model: DataServerModel = db.session.query(
-            DataServerModel).filter(DataServerModel.project_id == project_id).one()
+            DataServerModel).filter(DataServerModel.project_id == project_id).first_or_404()
         application_model: ApplicationModel = db.session.query(
             ApplicationModel).filter(ApplicationModel.application_id == application_id).first()
         if data_server_model.data_server_mode == DataServerModeEnum.LOCAL:
@@ -107,7 +107,7 @@ class ApiModelId(Resource):
         args = self.update_config_parser.parse_args()
         description = args['description']
 
-        model_model = db.session.query(ModelModel).filter(ModelModel.model_id==model_id).one()
+        model_model = db.session.query(ModelModel).filter(ModelModel.model_id==model_id).first_or_404()
         model_model.description = description
         db.session.commit()
         db.session.close()

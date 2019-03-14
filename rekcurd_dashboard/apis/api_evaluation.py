@@ -53,7 +53,7 @@ class ApiEvaluations(Resource):
         eval_data_path = "eval-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
 
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
-            ApplicationModel.application_id == application_id).one()
+            ApplicationModel.application_id == application_id).first_or_404()
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
             ServiceModel.application_id == application_id).first_or_404()
         rekcurd_dashboard_client = RekcurdDashboardClient(
@@ -129,7 +129,7 @@ class ApiEvaluate(Resource):
 
         eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
-            ApplicationModel.application_id == application_id).one()
+            ApplicationModel.application_id == application_id).first_or_404()
         rekcurd_dashboard_client = RekcurdDashboardClient(
             host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
             service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
@@ -168,7 +168,7 @@ class ApiEvaluationResults(Resource):
             return {"status": False, "message": "Not Found."}, 404
 
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
-            ApplicationModel.application_id == application_id).one()
+            ApplicationModel.application_id == application_id).first_or_404()
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
             ServiceModel.application_id == application_id).first_or_404()
         rekcurd_dashboard_client = RekcurdDashboardClient(

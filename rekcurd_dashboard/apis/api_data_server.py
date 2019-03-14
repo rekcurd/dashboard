@@ -168,7 +168,7 @@ class ApiDataServers(Resource):
         aws_bucket_name = args['aws_bucket_name']
 
         data_server_model: DataServerModel = db.session.query(DataServerModel).filter(
-            DataServerModel.project_id == project_id).one()
+            DataServerModel.project_id == project_id).first_or_404()
         is_updated = False
         if data_server_model.data_server_mode != data_server_mode_enum:
             is_updated = True
