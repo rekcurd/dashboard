@@ -56,9 +56,6 @@ class ApiProjectIdACL(Resource):
     save_acl_parser.add_argument('role', type=str, required=True, location='form',
                                  choices=('admin', 'member'))
 
-    delete_acl_parser = reqparse.RequestParser()
-    delete_acl_parser.add_argument('uid', type=str, required=True, location='form')
-
     @admin_api_namespace.marshal_list_with(role_info)
     def get(self, project_id):
         roles = ProjectUserRoleModel.query.filter_by(project_id=project_id).all()
@@ -105,11 +102,13 @@ class ApiProjectIdACL(Resource):
         db.session.close()
         return {"status": True, "message": "Success."}, 200
 
+
+@admin_api_namespace.route('/projects/<int:project_id>/acl/users/<uid>')
+class ApiProjectIdUserIdACL(Resource):
+    method_decorators = [check_owner_role]
+
     @admin_api_namespace.marshal_with(success_or_not)
-    @admin_api_namespace.expect(delete_acl_parser)
-    def delete(self, project_id):
-        args = self.delete_acl_parser.parse_args()
-        uid = args['uid']
+    def delete(self, project_id, uid):
         user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
         if user_model is None:
             raise RekcurdDashboardException("No user found.")
@@ -130,9 +129,6 @@ class ApiApplicationIdACL(Resource):
     save_acl_parser.add_argument('uid', type=str, required=True, location='form')
     save_acl_parser.add_argument('role', type=str, required=True, location='form',
                                  choices=('admin', 'editor', 'viewer'))
-
-    delete_acl_parser = reqparse.RequestParser()
-    delete_acl_parser.add_argument('uid', type=str, required=True, location='form')
 
     @admin_api_namespace.marshal_list_with(role_info)
     def get(self, project_id, application_id):
@@ -194,11 +190,13 @@ class ApiApplicationIdACL(Resource):
         db.session.close()
         return {"status": True, "message": "Success."}, 200
 
+
+@admin_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/acl/users/<uid>')
+class ApiApplicationIdUserIdACL(Resource):
+    method_decorators = [check_owner_role]
+
     @admin_api_namespace.marshal_with(success_or_not)
-    @admin_api_namespace.expect(delete_acl_parser)
-    def delete(self, project_id, application_id):
-        args = self.delete_acl_parser.parse_args()
-        uid = args['uid']
+    def delete(self, project_id, application_id, uid):
         user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
         if user_model is None:
             raise RekcurdDashboardException("No user found.")
