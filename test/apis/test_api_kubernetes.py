@@ -51,6 +51,12 @@ class ApiKubernetesTest(BaseTestCase):
         self.assertEqual(200, response.status_code)
         self.assertIsNotNone(kubernetes_model)
 
+    @mock_decorator()
+    def test_put(self):
+        response = self.client.put(self.__URL)
+        self.assertEqual(200, response.status_code)
+        self.assertIsNotNone(response)
+
 
 class ApiKubernetesBackupTest(BaseTestCase):
     __URL = f'/api/projects/{TEST_PROJECT_ID}/backup'
@@ -77,17 +83,6 @@ class ApiKubernetesIdTest(BaseTestCase):
                   'exposed_host': 'localhost', 'exposed_port': 80})
         response = self.client.get(self.__URL)
         self.assertEqual(200, response.status_code)
-
-    @mock_decorator()
-    def test_put(self):
-        self.client.post(
-            self.__PREPARE_URL,
-            data={'file': (open('test/dummy', 'rb'), 'test/dummy'),
-                  'display_name': 'new_kube', 'description': 'test',
-                  'exposed_host': 'localhost', 'exposed_port': 80})
-        response = self.client.put(self.__URL)
-        self.assertEqual(200, response.status_code)
-        self.assertIsNotNone(response)
 
     @mock_decorator()
     def test_patch(self):
