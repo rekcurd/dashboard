@@ -51,12 +51,6 @@ class ApiKubernetesTest(BaseTestCase):
         self.assertEqual(200, response.status_code)
         self.assertIsNotNone(kubernetes_model)
 
-    @mock_decorator()
-    def test_put(self):
-        response = self.client.put(self.__URL)
-        self.assertEqual(200, response.status_code)
-        self.assertIsNotNone(response)
-
 
 class ApiKubernetesBackupTest(BaseTestCase):
     __URL = f'/api/projects/{TEST_PROJECT_ID}/backup'

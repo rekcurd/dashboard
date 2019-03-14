@@ -49,11 +49,6 @@ class TestApiKubernetes(BaseTestCase):
             KubernetesModel.display_name == kube_setting2.display_name).one_or_none()
         self.assertIsNotNone(kubernetes_model)
 
-    def test_put(self):
-        response = self.client.put(f'/api/projects/{TEST_PROJECT_ID}/kubernetes')
-        self.assertEqual(200, response.status_code)
-        self.assertIsNotNone(response)
-
 
 class TestApiKubernetesId(BaseTestCase):
     def test_patch(self):

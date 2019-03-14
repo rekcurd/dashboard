@@ -175,15 +175,6 @@ class ApiKubernetesId(Resource):
         return KubernetesModel.query.filter_by(kubernetes_id=kubernetes_id).first_or_404()
 
     @kubernetes_api_namespace.marshal_with(success_or_not)
-    def put(self, project_id: int, kubernetes_id: int):
-        """update_dbs_of_kubernetes_app"""
-        kubernetes_model = KubernetesModel.query.filter_by(kubernetes_id=kubernetes_id).first_or_404()
-        update_kubernetes_deployment_info(kubernetes_model)
-        db.session.commit()
-        db.session.close()
-        return {"status": True, "message": "Success."}
-
-    @kubernetes_api_namespace.marshal_with(success_or_not)
     @kubernetes_api_namespace.expect(kubernetes_model_parser)
     def patch(self, project_id: int, kubernetes_id: int):
         """update_kubernetes_id"""
