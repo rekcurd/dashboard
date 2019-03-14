@@ -269,7 +269,7 @@ export function fetchAllProjects(): Promise<Project[]> {
       );
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects`, convert)
 }
-interface FetchProjectByIdParam {
+export interface FetchProjectByIdParam {
   id: number
 }
 export async function fetchProjectById(params: FetchProjectByIdParam): Promise<Project> {
@@ -301,7 +301,7 @@ export class DataServer {
     public date: Date = null
   ) { }
 }
-interface FetchDataServerByIdParam {
+export interface FetchDataServerByIdParam {
   id: number
 }
 export async function fetchDataServer(params: FetchDataServerByIdParam): Promise<DataServer> {
@@ -328,7 +328,7 @@ export class Kubernetes {
     public date: Date = null
   ) { }
 }
-interface FetchKubernetesById {
+export interface FetchKubernetesById {
   id?: number
   projectId: number
 
@@ -374,7 +374,7 @@ export class Application {
     public projectId: number
   ) { }
 }
-interface FetchApplicationByIdParam {
+export interface FetchApplicationByIdParam {
   id?: string
   projectId: number
 }
@@ -572,18 +572,6 @@ export interface SwitchModelParam {
   applicationId: string
   serviceId: string
   modelId: string
-}
-export async function switchModel(params: SwitchModelParam) {
-  const requestBody = {
-    model_id: params.modelId
-  };
-  const convert = (result) => result.status;
-
-  return APICore.putJsonRequest(
-    `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/services/${params.serviceId}`,
-    requestBody,
-    convert
-  )
 }
 export async function switchModels(params: SwitchModelParam[]) {
   const requestOptions = params.map(
