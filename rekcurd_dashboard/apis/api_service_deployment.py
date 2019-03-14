@@ -30,12 +30,12 @@ service_deployment_params = service_deployment_api_namespace.model('Deployment',
         description='Rekcurd gRPC spec version. Default is the latest version.',
         example='v1'
     ),
-    'service_insecure_host': fields.String(
+    'insecure_host': fields.String(
         required=False,
         description='Rekcurd server insecure host. Default is "[::]".',
         example='[::]'
     ),
-    'service_insecure_port': fields.Integer(
+    'insecure_port': fields.Integer(
         required=False,
         description='Rekcurd server insecure port. Default is "5000".',
         example=5000
@@ -154,10 +154,10 @@ class ApiSingleServiceRegistration(Resource):
         'service_model_assignment', location='form', type=int, required=True,
         help='Model ID which is assigned to the service.')
     single_worker_parser.add_argument(
-        'service_insecure_host', location='form', type=str, default="localhost", required=False,
+        'insecure_host', location='form', type=str, default="localhost", required=False,
         help='Rekcurd server host. Default is "localhost".')
     single_worker_parser.add_argument(
-        'service_insecure_port', location='form', type=int, default=5000, required=False,
+        'insecure_port', location='form', type=int, default=5000, required=False,
         help='Rekcurd server port. Default is "5000".')
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
@@ -170,13 +170,13 @@ class ApiSingleServiceRegistration(Resource):
         service_level = args["service_level"]
         version = args["version"] or rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version]
         service_model_assignment = args["service_model_assignment"]
-        service_insecure_host = args["service_insecure_host"]
-        service_insecure_port = args["service_insecure_port"]
+        insecure_host = args["insecure_host"]
+        insecure_port = args["insecure_port"]
 
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
         rekcurd_dashboard_client = RekcurdDashboardClient(
-            host=service_insecure_host, port=service_insecure_port, application_name=application_model.application_name,
+            host=insecure_host, port=insecure_port, application_name=application_model.application_name,
             service_level=service_level, rekcurd_grpc_version=version)
         service_info = rekcurd_dashboard_client.run_service_info()
         service_id = service_info["service_name"]  # TODO: renaming
@@ -184,8 +184,8 @@ class ApiSingleServiceRegistration(Resource):
         service_model = ServiceModel(
             service_id=service_id, application_id=application_id, display_name=display_name,
             description=description, service_level=service_level, version=version,
-            model_id=service_model_assignment, insecure_host=service_insecure_host,
-            insecure_port=service_insecure_port
+            model_id=service_model_assignment, insecure_host=insecure_host,
+            insecure_port=insecure_port
         )
         db.session.add(service_model)
         db.session.commit()
@@ -206,10 +206,10 @@ class ApiServiceDeployment(Resource):
         choices=('v0', 'v1', 'v2'),
         help='Rekcurd gRPC spec version. Default is the latest version.')
     service_deployment_parser.add_argument(
-        'service_insecure_host', location='form', type=str, default="[::]", required=False,
+        'insecure_host', location='form', type=str, default="[::]", required=False,
         help='Rekcurd server insecure host. Default is "[::]".')
     service_deployment_parser.add_argument(
-        'service_insecure_port', location='form', type=int, default=5000, required=False,
+        'insecure_port', location='form', type=int, default=5000, required=False,
         help='Rekcurd server insecure port. Default is "5000".')
     service_deployment_parser.add_argument(
         'replicas_default', location='form', type=int, default=1, required=False,
@@ -296,10 +296,10 @@ class ApiServiceIdDeployment(Resource):
         choices=('v0', 'v1', 'v2'),
         help='Rekcurd gRPC spec version. Default is the latest version.')
     patch_parser.add_argument(
-        'service_insecure_host', location='form', type=str, required=True,
+        'insecure_host', location='form', type=str, required=True,
         help='Rekcurd server insecure host. Default is "[::]".')
     patch_parser.add_argument(
-        'service_insecure_port', location='form', type=int, required=True,
+        'insecure_port', location='form', type=int, required=True,
         help='Rekcurd server insecure port. Default is "5000".')
     patch_parser.add_argument(
         'replicas_default', location='form', type=int, required=True,
@@ -373,12 +373,12 @@ class ApiServiceIdDeployment(Resource):
         if service_model.model_id != deployment_info["service_model_assignment"]:
             is_updated = True
             service_model.model_id = deployment_info["service_model_assignment"]
-        if service_model.insecure_host != deployment_info["service_insecure_host"]:
+        if service_model.insecure_host != deployment_info["insecure_host"]:
             is_updated = True
-            service_model.insecure_host = deployment_info["service_insecure_host"]
-        if service_model.insecure_port != deployment_info["service_insecure_port"]:
+            service_model.insecure_host = deployment_info["insecure_host"]
+        if service_model.insecure_port != deployment_info["insecure_port"]:
             is_updated = True
-            service_model.insecure_port = deployment_info["service_insecure_port"]
+            service_model.insecure_port = deployment_info["insecure_port"]
         if is_updated:
             db.session.commit()
         db.session.close()
@@ -402,12 +402,12 @@ class ApiServiceIdDeployment(Resource):
         if service_model.model_id != args["service_model_assignment"]:
             is_updated = True
             service_model.model_id = args["service_model_assignment"]
-        if service_model.insecure_host != args["service_insecure_host"]:
+        if service_model.insecure_host != args["insecure_host"]:
             is_updated = True
-            service_model.insecure_host = args["service_insecure_host"]
-        if service_model.insecure_port != args["service_insecure_port"]:
+            service_model.insecure_host = args["insecure_host"]
+        if service_model.insecure_port != args["insecure_port"]:
             is_updated = True
-            service_model.insecure_port = args["service_insecure_port"]
+            service_model.insecure_port = args["insecure_port"]
         if is_updated:
             db.session.commit()
         db.session.close()

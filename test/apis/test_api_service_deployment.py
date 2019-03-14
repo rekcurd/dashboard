@@ -21,8 +21,8 @@ def mock_decorator():
                     patch('rekcurd_dashboard.apis.api_service_deployment.RekcurdDashboardClient',
                           new=Mock(return_value=Mock())) as rekcurd_dashboard_application:
                 deployment_info.return_value = {'version': 'vn', 'service_model_assignment': 1,
-                                                'service_insecure_host': 'new_host',
-                                                'service_insecure_port': 18080}
+                                                'insecure_host': 'new_host',
+                                                'insecure_port': 18080}
                 rekcurd_dashboard_application.return_value.run_service_info = Mock()
                 rekcurd_dashboard_application.return_value.run_service_info.return_value = \
                     {"service_name": "nonkube-service"}  # TODO: renaming
@@ -85,8 +85,8 @@ class ApiServiceIdDeploymentTest(BaseTestCase):
     def test_patch(self):
         service_level = 'development'
         version = 'v2'
-        service_insecure_host = 'service_insecure_host'
-        service_insecure_port = 5000
+        insecure_host = 'insecure_host'
+        insecure_port = 5000
         replicas_default = 1
         replicas_minimum = 1
         replicas_maximum = 1
@@ -105,8 +105,8 @@ class ApiServiceIdDeploymentTest(BaseTestCase):
         resource_limit_memory = '512Mi'
         response = self.client.patch(
             self.__URL, data={'service_level': service_level, 'version': version,
-                              'service_insecure_host': service_insecure_host,
-                              'service_insecure_port': service_insecure_port,
+                              'insecure_host': insecure_host,
+                              'insecure_port': insecure_port,
                               'replicas_default': replicas_default, 'replicas_minimum': replicas_minimum,
                               'replicas_maximum': replicas_maximum, 'autoscale_cpu_threshold': autoscale_cpu_threshold,
                               'policy_max_surge': policy_max_surge, 'policy_max_unavailable': policy_max_unavailable,

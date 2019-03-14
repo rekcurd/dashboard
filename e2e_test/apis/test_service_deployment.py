@@ -33,15 +33,15 @@ class TestApiSingleServiceRegistration(BaseTestCase):
         service_level = "development"
         version = service_model.version
         service_model_assignment = 1
-        service_insecure_host = service_model.insecure_host
-        service_insecure_port = service_model.insecure_port
+        insecure_host = service_model.insecure_host
+        insecure_port = service_model.insecure_port
         ServiceModel.query.filter(ServiceModel.service_id == TEST_SERVICE_ID).delete()
         response = self.client.post(
             self.__URL,
             data={'display_name': display_name, 'description': description,
                   'service_level': service_level, 'version': version,
                   'service_model_assignment': service_model_assignment,
-                  'service_insecure_host': service_insecure_host, 'service_insecure_port': service_insecure_port})
+                  'insecure_host': insecure_host, 'insecure_port': insecure_port})
         self.assertEqual(200, response.status_code)
 
 
