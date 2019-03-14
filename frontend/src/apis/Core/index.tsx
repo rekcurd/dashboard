@@ -2,7 +2,7 @@
  * Core implementations for handling external APIs
  */
 
-export const JWT_TOKEN_KEY = 'jwt_token'
+export const JWT_TOKEN_KEY = 'jwt_token';
 
 export enum APIErrorType {
   unknown,
@@ -14,7 +14,7 @@ export enum APIErrorType {
  *
  */
 export class APIError implements Error {
-  name = 'APIError'
+  name = 'APIError';
 
   constructor(
     public message: string,
@@ -86,7 +86,7 @@ export async function getRequest(
 ) {
   const options = {
     method: 'GET',
-  }
+  };
   return rawRequest(entryPoint, convert, options)
 }
 
@@ -101,7 +101,7 @@ export async function postJsonRequest(
     headers: {
       'Content-Type': 'application/json'
     }
-  }
+  };
   return rawRequest(entryPoint, convert, options)
 }
 
@@ -116,7 +116,7 @@ export async function putJsonRequest(
     headers: {
       'Content-Type': 'application/json'
     }
-  }
+  };
   return rawRequest(entryPoint, convert, options)
 }
 
@@ -126,7 +126,7 @@ export async function deleteRequest(
 ) {
   const options = {
     method: 'DELETE',
-  }
+  };
   return rawRequest(entryPoint, convert, options)
 }
 
@@ -199,7 +199,7 @@ export async function rawRequest<T = any>(
  *
  * @param entryPoints {string[]} Target API entrypoints
  * @param convert
- * @param paramsList {any[]}
+ * @param requestList {any[]}
  */
 export async function rawMultiRequest<T = any>(
   entryPoints: string[],
