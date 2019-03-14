@@ -45,14 +45,14 @@ service_model_params = service_api_namespace.model('Service', {
         readOnly=True,
         description='Model ID.'
     ),
-    'host': fields.String(
+    'insecure_host': fields.String(
         required=True,
-        description='host.',
+        description='Insecure host.',
         example='rekcurd-sample.example.com'
     ),
-    'port': fields.Integer(
+    'insecure_port': fields.Integer(
         required=True,
-        description='port.',
+        description='Insecure port.',
         example='5000'
     ),
     'register_date': DatetimeToTimestamp(
