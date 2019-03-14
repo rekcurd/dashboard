@@ -4,6 +4,7 @@ from sqlalchemy import (
     Column, Integer, String, DateTime,
     UniqueConstraint
 )
+from sqlalchemy.orm import relationship
 
 
 class UserModel(db.Model):
@@ -21,6 +22,9 @@ class UserModel(db.Model):
     auth_id = Column(String(512), nullable=True)
     user_name = Column(String(512), nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    project_roles = relationship('ProjectUserRoleModel', lazy='select', innerjoin=True)
+    application_roles = relationship('ApplicationUserRoleModel', lazy='select', innerjoin=True)
 
     @property
     def serialize(self):

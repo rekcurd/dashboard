@@ -4,7 +4,7 @@
 import traceback
 
 from functools import wraps
-from flask import jsonify, request
+from flask import jsonify, request, abort
 from flask_jwt_simple import JWTManager, create_jwt, get_jwt_identity, jwt_required
 from jwt.exceptions import PyJWTError
 from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
@@ -12,7 +12,9 @@ from flask_jwt_simple.exceptions import InvalidHeaderError, NoAuthorizationError
 from .ldap import LdapAuthenticator
 from rekcurd_dashboard.utils.exceptions import ProjectUserRoleException, ApplicationUserRoleException
 from .authenticator import EmptyAuthenticator
-from rekcurd_dashboard.models import db, UserModel, ProjectUserRoleModel, ProjectRole, ApplicationUserRoleModel, ApplicationRole
+from rekcurd_dashboard.models import (
+    db, ApplicationModel, UserModel, ProjectUserRoleModel, ProjectRole, ApplicationUserRoleModel, ApplicationRole
+)
 
 
 class Auth(object):
@@ -50,6 +52,30 @@ class Auth(object):
                 return jsonify(ret), 200
             else:
                 return jsonify({'message': 'Authentication failed'}), 401
+
+        @app.route('/api/credential', methods=['GET'])
+        @jwt_required
+        def credential():
+            user_id = get_jwt_identity()
+            user_model: UserModel = db.session.query(UserModel).filter(UserModel.user_id == user_id).one_or_none()
+            if user_model is None:
+                abort(404)
+
+            project_roles = user_model.project_roles
+            projects = [{'project_id': pr.project_id, 'project_role': pr.project_role.name} for pr in project_roles]
+            application_roles = user_model.application_roles
+            applications = [{'application_id': ar.application_id, 'application_role': ar.application_role.name}
+                            for ar in application_roles]
+            # applications which don't have users are also accesssible as admin
+            application_ids = db.session.query(ApplicationUserRoleModel.application_id).distinct().all()
+            ids = [application_id for application_id, in application_ids]
+            public_applications = db.session.query(ApplicationModel).filter(
+                ~ApplicationModel.application_id.in_(ids)).all()
+            applications += [
+                {'application_id': application.application_id, 'role': ApplicationRole.admin.name}
+                for application in public_applications]
+
+            return jsonify({'user': user_model.serialize, 'projects': projects, 'applications': applications}), 200
 
         @api.errorhandler(NoAuthorizationError)
         @api.errorhandler(InvalidHeaderError)
