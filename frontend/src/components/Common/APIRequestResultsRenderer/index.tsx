@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
 import { isAPISucceeded, APIRequestStatusList } from '@src/apis/Core'
-import { UserRole } from "@src/apis";
-import { role } from "@components/App/Admin/constants";
+import { UserProjectRole, UserApplicationRole } from "@src/apis";
+import { projectRole, applicationRole } from "@components/App/Admin/constants";
 
 /**
  * Render component with API requests
@@ -14,6 +14,7 @@ interface Props {
   APIStatus: {}
   render: (result: any, canEdit: boolean) => JSX.Element
   renderFailed?: () => JSX.Element
+  projectId?: number
   applicationId?: string
 }
 
@@ -30,15 +31,21 @@ class APIRequestResults extends React.Component<Props & RouteComponentProps<{}>,
   }
 
   render() {
-    const { render, renderFailed, applicationId } = this.props
+    const { render, renderFailed, projectId, applicationId } = this.props
     const currentStatus: RequestResultsPair = this.checkAllRequestResults()
 
     if (currentStatus[0] === APIRequestStatusList.success) {
       const fetchedResults = currentStatus[1]
-      if (fetchedResults.userInfoStatus && applicationId) {
-        const canEdit = fetchedResults.userInfoStatus.roles.some((userRole: UserRole) => {
+      if (fetchedResults.userInfoStatus && projectId && applicationId) {
+        const canEdit = fetchedResults.userInfoStatus.applicationRoles.some((userRole: UserApplicationRole) => {
           return String(userRole.applicationId) === applicationId &&
-            (userRole.role === role.editor || userRole.role === role.owner)
+            (userRole.role === applicationRole.editor || userRole.role === applicationRole.admin)
+        })
+        return render(fetchedResults, canEdit)
+      } else if (fetchedResults.userInfoStatus && projectId) {
+        const canEdit = fetchedResults.userInfoStatus.projectRoles.some((userRole: UserProjectRole) => {
+          return Number(userRole.projectId) === projectId &&
+            (userRole.role === projectRole.admin)
         })
         return render(fetchedResults, canEdit)
       } else {
