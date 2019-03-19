@@ -6,18 +6,15 @@ from flask import abort
 from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
-from . import api
-from rekcurd_dashboard.models import db, Service, Evaluation, EvaluationResult
+from . import status_model
+from rekcurd_dashboard.models import db, ApplicationModel, ServiceModel, EvaluationModel, EvaluationResultModel
 from rekcurd_dashboard.core import RekcurdDashboardClient
-from rekcurd_dashboard.utils.hash_util import HashUtil
+from rekcurd_dashboard.utils import HashUtil, RekcurdDashboardException
 
 
-eval_info_namespace = Namespace('evaluation', description='Evaluation Endpoint.')
-success_or_not = eval_info_namespace.model('Success', {
-    'status': fields.Boolean(required=True),
-    'message': fields.String(required=True)
-})
-eval_metrics = eval_info_namespace.model('Evaluation result', {
+evaluation_api_namespace = Namespace('evaluation', description='Evaluation API Endpoint.')
+success_or_not = evaluation_api_namespace.model('Success', status_model)
+eval_metrics = evaluation_api_namespace.model('Evaluation result', {
     'num': fields.Integer(required=True, description='number of evaluated data'),
     'accuracy': fields.Float(required=True, description='accuracy of evaluation'),
     'fvalue': fields.List(fields.Float, required=True, description='F-value of evaluation'),
@@ -28,146 +25,160 @@ eval_metrics = eval_info_namespace.model('Evaluation result', {
     'status': fields.Boolean(required=True),
     'result_id': fields.Integer(required=True, description='ID of evaluation result')
 })
-eval_data_upload = eval_info_namespace.model('Result of uploading evaluation data', {
+eval_data_upload = evaluation_api_namespace.model('Result of uploading evaluation data', {
     'status': fields.Boolean(required=True),
     'evaluation_id': fields.Integer(required=True, description='ID of uploaded data')
 })
 
 
-@eval_info_namespace.route('/<int:application_id>/evaluations')
-class ApiEvaluation(Resource):
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluations')
+class ApiEvaluations(Resource):
     upload_parser = reqparse.RequestParser()
     upload_parser.add_argument('file', location='files', type=FileStorage, required=True)
 
-    @eval_info_namespace.expect(upload_parser)
-    @eval_info_namespace.marshal_with(eval_data_upload)
-    def post(self, application_id:int):
+    @evaluation_api_namespace.expect(upload_parser)
+    @evaluation_api_namespace.marshal_with(eval_data_upload)
+    def post(self, project_id: int, application_id: str):
         """update data to be evaluated"""
         args = self.upload_parser.parse_args()
         file = args['file']
         checksum = HashUtil.checksum(file)
 
-        eobj = db.session.query(Evaluation).filter(
-            Evaluation.application_id == application_id,
-            Evaluation.checksum == checksum).one_or_none()
-        if eobj is not None:
-            return {"status": True, "evaluation_id": eobj.evaluation_id}
+        evaluation_model = db.session.query(EvaluationModel).filter(
+            EvaluationModel.application_id == application_id,
+            EvaluationModel.checksum == checksum).one_or_none()
+        if evaluation_model is not None:
+            return {"status": True, "evaluation_id": evaluation_model.evaluation_id}
 
         eval_data_path = "eval-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
 
-        sobj = Service.query.filter_by(application_id=application_id).first_or_404()
-
-        rekcurd_dashboard_application = RekcurdDashboardClient(logger=api.logger, host=sobj.host)
-        response_body = rekcurd_dashboard_application.run_upload_evaluation_data(file, eval_data_path)
+        application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
+            ApplicationModel.application_id == application_id).first_or_404()
+        service_model: ServiceModel = db.session.query(ServiceModel).filter(
+            ServiceModel.application_id == application_id).first_or_404()
+        rekcurd_dashboard_client = RekcurdDashboardClient(
+            host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
+            service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
+        response_body = rekcurd_dashboard_client.run_upload_evaluation_data(file, eval_data_path)
 
         if not response_body['status']:
-            raise Exception('Failed to upload')
-        eobj = Evaluation(checksum=checksum, application_id=application_id, data_path=eval_data_path)
-        db.session.add(eobj)
+            raise RekcurdDashboardException('Failed to upload')
+        evaluation_model = EvaluationModel(
+            checksum=checksum, application_id=application_id, data_path=eval_data_path)
+        db.session.add(evaluation_model)
         db.session.flush()
-        evaluation_id = eobj.evaluation_id
+        evaluation_id = evaluation_model.evaluation_id
         db.session.commit()
         db.session.close()
-
         return {"status": True, "evaluation_id": evaluation_id}
 
 
-@eval_info_namespace.route('/<int:application_id>/evaluations/<int:evaluation_id>')
-class ApiEvaluation(Resource):
-    @eval_info_namespace.marshal_with(success_or_not)
-    def delete(self, application_id:int, evaluation_id:int):
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluations/<int:evaluation_id>')
+class ApiEvaluationId(Resource):
+    @evaluation_api_namespace.marshal_with(success_or_not)
+    def delete(self, project_id: int, application_id: str, evaluation_id: int):
         """delete data to be evaluated"""
-        eval_query = db.session.query(Evaluation)\
-            .filter(Evaluation.application_id == application_id,
-                    Evaluation.evaluation_id == evaluation_id)
+        eval_query = db.session.query(EvaluationModel).filter(
+            EvaluationModel.application_id == application_id,
+            EvaluationModel.evaluation_id == evaluation_id)
         if eval_query.one_or_none() is None:
             return {"status": False, "message": "Not Found."}, 404
 
         eval_query.delete()
         db.session.commit()
         db.session.close()
-
         return {"status": True, "message": "Success."}
 
 
-@eval_info_namespace.route('/<int:application_id>/evaluate')
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluate')
 class ApiEvaluate(Resource):
     eval_parser = reqparse.RequestParser()
     eval_parser.add_argument('model_id', location='form', type=int, required=True)
     eval_parser.add_argument('evaluation_id', location='form', type=int, required=False)
     eval_parser.add_argument('overwrite', location='form', type=bool, required=False)
 
-    @eval_info_namespace.expect(eval_parser)
-    @eval_info_namespace.marshal_with(eval_metrics)
-    def post(self, application_id:int):
+    @evaluation_api_namespace.expect(eval_parser)
+    @evaluation_api_namespace.marshal_with(eval_metrics)
+    def post(self, project_id: int, application_id: str):
         """evaluate"""
         args = self.eval_parser.parse_args()
         eval_id = args.get('evaluation_id', None)
         model_id = args.get('model_id')
         if eval_id:
-            eobj = Evaluation.query.filter_by(
+            evaluation_model = EvaluationModel.query.filter_by(
                 application_id=application_id,
                 evaluation_id=eval_id).first_or_404()
         else:
             # if evaluation_id is not given, use the lastest one.
-            eobj = Evaluation.query\
-                .filter_by(application_id=application_id)\
-                .order_by(Evaluation.register_date.desc()).first_or_404()
+            evaluation_model = EvaluationModel.query.filter_by(
+                application_id=application_id).order_by(EvaluationModel.register_date.desc()).first_or_404()
 
         # TODO: deploy a temporary service to evaluate, not use an existing service.
-        sobj = Service.query.filter(
-            Service.application_id == application_id,
-            Service.model_id == model_id,
-            Service.service_level != 'production').first()
-        if sobj is None:
+        service_model = ServiceModel.query.filter(
+            ServiceModel.application_id == application_id,
+            ServiceModel.model_id == model_id,
+            ServiceModel.service_level != 'production').first()
+        if service_model is None:
             raise abort(404, 'The model is not used in any services or used only in production.')
 
-        robj = db.session.query(EvaluationResult)\
-            .filter(EvaluationResult.model_id == sobj.model_id,
-                    EvaluationResult.evaluation_id == eobj.evaluation_id).one_or_none()
-        if robj is not None and args.get('overwrite', False):
-            return robj.result
+        evaluation_result_model = db.session.query(EvaluationResultModel).filter(
+            EvaluationResultModel.model_id == service_model.model_id,
+            EvaluationResultModel.evaluation_id == evaluation_model.evaluation_id).one_or_none()
+        if evaluation_result_model is not None and args.get('overwrite', False):
+            return evaluation_result_model.result
 
         eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
-        rekcurd_dashboard_application = RekcurdDashboardClient(logger=api.logger, host=sobj.host)
-        response_body = rekcurd_dashboard_application.run_evaluate_model(eobj.data_path, eval_result_path)
+        application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
+            ApplicationModel.application_id == application_id).first_or_404()
+        rekcurd_dashboard_client = RekcurdDashboardClient(
+            host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
+            service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
+        response_body = rekcurd_dashboard_client.run_evaluate_model(evaluation_model.data_path, eval_result_path)
 
         if response_body['status']:
             result = json.dumps(response_body)
-            if robj is None:
-                robj = EvaluationResult(model_id=sobj.model_id,
-                                        data_path=eval_result_path,
-                                        evaluation_id=eobj.evaluation_id,
-                                        result=result)
-                db.session.add(robj)
+            if evaluation_result_model is None:
+                evaluation_result_model = EvaluationResultModel(
+                    model_id=service_model.model_id,
+                    data_path=eval_result_path,
+                    evaluation_id=evaluation_model.evaluation_id,
+                    result=result)
+                db.session.add(evaluation_result_model)
             else:
-                robj.data_path = eval_result_path
-                robj.result = result
+                evaluation_result_model.data_path = eval_result_path
+                evaluation_result_model.result = result
             db.session.flush()
-            response_body = robj.result
+            response_body = evaluation_result_model.result
             db.session.commit()
-            db.session.close()
 
+        db.session.close()
         return response_body
 
 
-@eval_info_namespace.route('/<int:application_id>/evaluation_results/<int:eval_result_id>')
-class ApiEvaluationResult(Resource):
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluation_results/<int:eval_result_id>')
+class ApiEvaluationResults(Resource):
 
-    def get(self, application_id:int, eval_result_id:int):
+    def get(self, project_id: int, application_id: str, eval_result_id: int):
         """get detailed evaluation result"""
-        eval_with_result = db.session.query(Evaluation, EvaluationResult)\
-            .filter(Evaluation.application_id == application_id,
-                    EvaluationResult.evaluation_id == Evaluation.evaluation_id,
-                    EvaluationResult.evaluation_result_id == eval_result_id).one_or_none()
+        eval_with_result = db.session.query(EvaluationModel, EvaluationResultModel)\
+            .filter(EvaluationModel.application_id == application_id,
+                    EvaluationResultModel.evaluation_id == EvaluationModel.evaluation_id,
+                    EvaluationResultModel.evaluation_result_id == eval_result_id).one_or_none()
         if eval_with_result is None:
             return {"status": False, "message": "Not Found."}, 404
-        sobj = Service.query.filter_by(application_id=application_id).first_or_404()
-        rekcurd_dashboard_application = RekcurdDashboardClient(logger=api.logger, host=sobj.host)
-        eobj = eval_with_result.Evaluation
-        robj = eval_with_result.EvaluationResult
 
-        response_body = list(rekcurd_dashboard_application.run_evaluation_data(eobj.data_path, robj.data_path))
+        application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
+            ApplicationModel.application_id == application_id).first_or_404()
+        service_model: ServiceModel = db.session.query(ServiceModel).filter(
+            ServiceModel.application_id == application_id).first_or_404()
+        rekcurd_dashboard_client = RekcurdDashboardClient(
+            host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
+            service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
+        evaluation_model = eval_with_result.EvaluationModel
+        evaluation_result_model = eval_with_result.EvaluationResultModel
+
+        response_body = list(rekcurd_dashboard_client.run_evaluation_data(
+            evaluation_model.data_path, evaluation_result_model.data_path))
         if len(response_body) == 0:
             return {"status": False, "message": "Result Not Found."}, 404
 
@@ -177,19 +188,18 @@ class ApiEvaluationResult(Resource):
             'details': list(chain.from_iterable(r['detail'] for r in response_body))
         }
 
-    @eval_info_namespace.marshal_with(success_or_not)
-    def delete(self, application_id:int, eval_result_id:int):
+    @evaluation_api_namespace.marshal_with(success_or_not)
+    def delete(self, project_id: int, application_id: str, eval_result_id: int):
         """get detailed evaluation result"""
-        eval_with_result = db.session.query(Evaluation, EvaluationResult)\
-            .filter(Evaluation.application_id == application_id,
-                    EvaluationResult.evaluation_id == Evaluation.evaluation_id,
-                    EvaluationResult.evaluation_result_id == eval_result_id).one_or_none()
+        eval_with_result = db.session.query(EvaluationModel, EvaluationResultModel)\
+            .filter(EvaluationModel.application_id == application_id,
+                    EvaluationResultModel.evaluation_id == EvaluationModel.evaluation_id,
+                    EvaluationResultModel.evaluation_result_id == eval_result_id).one_or_none()
         if eval_with_result is None:
             return {"status": False, "message": "Not Found."}, 404
 
-        db.session.query(EvaluationResult)\
-            .filter(EvaluationResult.evaluation_result_id == eval_result_id).delete()
+        db.session.query(EvaluationResultModel).filter(
+            EvaluationResultModel.evaluation_result_id == eval_result_id).delete()
         db.session.commit()
         db.session.close()
-
         return {"status": True, "message": "Success."}

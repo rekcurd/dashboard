@@ -2,17 +2,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: rekcurd-test-app
-    sel: rekcurd-test-app-development-20180628151929
-  name: rekcurd-test-app-development-20180628151929-deployment
+    rekcurd-worker: "true"
+    id: id-test20190307093000
+    name: app-test20190307093000
+    sel: test20190307093000
+  name: deploy-test20190307093000
   namespace: development
 spec:
   minReadySeconds: 300
+  progressDeadlineSeconds: 3000
   replicas: 1
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      sel: rekcurd-test-app-development-20180628151929
+      sel: test20190307093000
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -21,8 +24,10 @@ spec:
   template:
     metadata:
       labels:
-        app: rekcurd-test-app
-        sel: rekcurd-test-app-development-20180628151929
+        rekcurd-worker: "true"
+        id: id-test20190307093000
+        name: app-test20190307093000
+        sel: test20190307093000
     spec:
       affinity:
         podAntiAffinity:
@@ -30,51 +35,55 @@ spec:
           - podAffinityTerm:
               labelSelector:
                 matchExpressions:
-                - key: app
+                - key: id
                   operator: In
                   values:
-                  - rekcurd-test-app-development-20180628151929
+                  - test20190307093000
               topologyKey: kubernetes.io/hostname
             weight: 100
       containers:
-      - command:
-        - sh
-        - /usr/local/src/entrypoint.sh
-        env:
+      - env:
         - name: REKCURD_SERVICE_UPDATE_FLAG
           value: Edit here to run rolling update
-        - name: REKCURD_SERVICE_ENV
+        - name: REKCURD_KUBERNETES_MODE
+          value: "true"
+        - name: REKCURD_DEBUG_MODE
+          value: "true"
+        - name: REKCURD_APPLICATION_NAME
+          value: app-test20190307093000
+        - name: REKCURD_SERVICE_INSECURE_HOST
+          value: "[::]"
+        - name: REKCURD_SERVICE_INSECURE_PORT
+          value: "5000"
+        - name: REKCURD_SERVICE_ID
+          value: test20190307093000
+        - name: REKCURD_SERVICE_LEVEL
           value: development
+        - name: REKCURD_GRPC_PROTO_VERSION
+          value: v2
+        - name: REKCURD_MODEL_MODE
+          value: local
+        - name: REKCURD_MODEL_FILE_PATH
+          value: positive.pkl
         - name: REKCURD_SERVICE_GIT_URL
           value: https://github.com/rekcurd/rekcurd-example.git
         - name: REKCURD_SERVICE_GIT_BRANCH
-          value: v0.5.0a0
+          value: master
         - name: REKCURD_SERVICE_BOOT_SHELL
           value: start.sh
-        - name: REKCURD_SERVICE_MODEL_DIR
-          value: /mnt/rekcurd-model
-        - name: REKCURD_SERVICE_NAME
-          value: rekcurd-test-app-development-20180628151929
         image: rekcurd/rekcurd:python-latest
         imagePullPolicy: Always
-        name: rekcurd-test-app-development-20180628151929
+        name: test20190307093000
         ports:
         - containerPort: 5000
         resources:
           limits:
             cpu: 1
-            memory: 256Mi
+            memory: 512Mi
           requests:
             cpu: 0.5
-            memory: 128Mi
+            memory: 512Mi
         securityContext:
           privileged: true
-        volumeMounts:
-        - mountPath: /mnt/rekcurd-model
-          name: host-volume
       nodeSelector:
         host: development
-      volumes:
-      - hostPath:
-          path: /mnt/rekcurd-model
-        name: host-volume

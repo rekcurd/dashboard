@@ -1,0 +1,28 @@
+## Debug mode.
+debug: True
+
+## Service parameters.
+port: 18080                   # Service port.
+kube_config_dir: kube-config  # Kubernetes configuration file directory.
+
+## DB parameters
+db:
+  mode: sqlite                # DB option. One of [sqlite/mysql]. Default "sqlite"
+  mysql:                      # MySQL configurations.
+    host: localhost           #  DB Host.
+    port: 3306                #  DB Port.
+    dbname: management        #  DB name.
+    username: user            #  DB Username.
+    password: pass            #  DB Password.
+
+## LDAP. Comment out if you DO NOT use.
+# auth:
+#   secret: 'super-secret'
+#   ldap:
+#     host: 'ldap.example.com'
+#     port: 389
+#     bind_dn: 'CN=manager, DC=example, DC=com'
+#     bind_password: 'foobarbaz'
+#     search_filter: '(CN=%s)'
+#     search_base_dns:
+#       - 'OU=user, DC=example, DC=com'

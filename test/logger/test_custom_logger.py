@@ -7,7 +7,8 @@ class CustomLoggerTest(BaseTestCase):
     """
 
     def create_app(self):
-        return create_app("test/test-auth-settings.yml", "test/dummy_logger.py")
+        app, _ = create_app("test/test-auth-settings.yml", "test/dummy_logger.py")
+        return app
 
     def test_logger(self):
         from rekcurd_dashboard.apis import api
@@ -20,7 +21,9 @@ class CustomLoggerTest2(BaseTestCase):
     """
 
     def create_app(self):
-        return create_app("test/test-auth-settings.yml", "rekcurd_dashboard/test/dummy_invalid_logger.py")
+        app, _ = create_app("test/test-auth-settings.yml",
+                            "rekcurd_dashboard/test/dummy_invalid_logger.py")
+        return app
 
     def test_logger(self):
         from rekcurd_dashboard.apis import api

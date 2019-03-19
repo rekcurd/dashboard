@@ -2,16 +2,17 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: rekcurd-test-app
-    sel: rekcurd-test-app-development-20180628151929
-  name: rekcurd-test-app-development-20180628151929-service
+    rekcurd-worker: "true"
+    id: id-test20190307093000
+    name: app-test20190307093000
+    sel: test20190307093000
+  name: svc-test20190307093000
   namespace: development
 spec:
   ports:
-  - name: http2
+  - name: grpc-backend
     port: 5000
     protocol: TCP
     targetPort: 5000
   selector:
-    sel: rekcurd-test-app-development-20180628151929
-  type: NodePort
+    sel: test20190307093000

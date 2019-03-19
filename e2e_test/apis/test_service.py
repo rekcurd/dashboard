@@ -10,137 +10,108 @@ from werkzeug.datastructures import FileStorage
 
 from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_client import RekcurdWorkerClient
-from rekcurd_dashboard.models import db, Service
 from rekcurd_dashboard.logger import JsonSystemLogger
-from rekcurd_dashboard.apis.api_kubernetes import get_full_config_path
+from rekcurd_dashboard.apis.kubernetes_handler import get_full_config_path
 
-from e2e_test.base import BaseTestCase
-from e2e_test.base import WorkerConfiguration
-from e2e_test.base import kube_setting1
-from e2e_test.base import create_kube_obj, create_app_obj, create_service_obj, create_model_obj
-from e2e_test.base import NEGATIVE_MODEL_PATH, POSITIVE_MODEL_PATH
-
-
-class TestApiApplicationIdServices(BaseTestCase):
-
-    def test_get(self):
-        kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
-        response = self.client.get(f'/api/applications/{aobj.application_id}/services')
-        self.assertEqual(200, response.status_code)
-        self.assertIsNotNone(response)
+from e2e_test.base import (
+    BaseTestCase, WorkerConfiguration, create_kubernetes_model,
+    create_application_model, create_service_model, create_model_model,
+    NEGATIVE_MODEL_PATH, POSITIVE_MODEL_PATH, TEST_MODEL_ID1, TEST_MODEL_ID2,
+    TEST_PROJECT_ID, TEST_APPLICATION_ID, TEST_SERVICE_ID
+)
 
 
-class TestApiApplicationIdServiceId(BaseTestCase):
-
-    def test_get(self):
-        kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
-        response = self.client.get(f'/api/applications/{aobj.application_id}/services/{sobj.service_id}')
-        self.assertEqual(response.json['service_id'], sobj.service_id)
-        self.assertEqual(response.json['display_name'], sobj.display_name)
+class TestApiServiceId(BaseTestCase):
+    __URL = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/services/{TEST_SERVICE_ID}'
 
     def test_put(self):
-        kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        application_id = aobj.application_id
-        sobj = create_service_obj(application_id)
-        service_id = sobj.service_id
-
-        positive_model = create_model_obj(application_id)
-        negative_model = create_model_obj(application_id, positive_model=False)
-        positive_model_id = positive_model.model_id
-        negative_model_id = negative_model.model_id
+        application_model = create_application_model()
+        service_model = create_service_model()
+        insecure_host = service_model.insecure_host
+        insecure_port = service_model.insecure_port
+        application_name = application_model.application_name
+        service_level = service_model.service_level
+        rekcurd_grpc_version = service_model.version
+        positive_model = create_model_model(model_id=TEST_MODEL_ID1, positive_model=True)
+        negative_model = create_model_model(model_id=TEST_MODEL_ID2, positive_model=False)
         core_v1 = k8s_client.CoreV1Api()
-        k8s_service = core_v1.read_namespaced_service(
+        core_v1.read_namespaced_service(
             name=WorkerConfiguration.service['metadata']['name'],
-            namespace=sobj.service_level)
-        # FIXME A workaround here
-        # Minikube + nghttpx ingress controller is not available to connect in my environment
-        # The NodePort is used here.
-        host = f'{kube_setting1.ip}:{k8s_service.spec.ports[0].node_port}'
-        sobj.host = host
-        self.wait_worker_ready(host)
-        logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
+            namespace=service_level)
+        self.wait_worker_ready(
+            insecure_host=insecure_host, insecure_port=insecure_port, application_name=application_name,
+            service_level=service_level, rekcurd_grpc_version=rekcurd_grpc_version)
+
         # Upload models
-        dashboard_client = RekcurdDashboardClient(logger=logger, host=host)
-        dashboard_client.run_upload_model(model_path=positive_model.model_path,
+        logger = JsonSystemLogger('Rekcurd dashboard test', log_level=logging.CRITICAL)
+        dashboard_client = RekcurdDashboardClient(
+            host=insecure_host, port=insecure_port, application_name=application_name,
+            service_level=service_level, rekcurd_grpc_version=rekcurd_grpc_version)
+        dashboard_client.logger = logger
+        dashboard_client.run_upload_model(model_path=positive_model.filepath,
                                           f=FileStorage(open(POSITIVE_MODEL_PATH, 'rb')))
-        dashboard_client.run_upload_model(model_path=negative_model.model_path,
+        dashboard_client.run_upload_model(model_path=negative_model.filepath,
                                           f=FileStorage(open(NEGATIVE_MODEL_PATH, 'rb')))
+
+        worker_client = RekcurdWorkerClient(
+            host=insecure_host, port=insecure_port, application_name=application_name,
+            service_level=service_level, rekcurd_grpc_version=rekcurd_grpc_version)
         # Switch to the negative model
-        self.client.put(f'/api/applications/{application_id}/services/{service_id}',
-                        data={'model_id': negative_model_id})
-        # Evaluate model works!
-        worker_client = RekcurdWorkerClient(logger=logger, host=host)
+        self.client.put(self.__URL, data={'model_id': TEST_MODEL_ID2})
         for _ in range(100):
-            y_negative = \
-                worker_client.run_predict_arrfloat_arrint(np.random.rand(np.random.randint(1, 100)).tolist()).output[0]
-            self.assertEqual(y_negative, 0.0, 'Negative model should always 0.')
-        # This time switch to the positive model
-        self.client.put(f'/api/applications/{application_id}/services/{service_id}',
-                        data={'model_id': positive_model_id})
+            y_negative = worker_client.run_predict_arrfloat_string(
+                np.random.rand(np.random.randint(1, 100)).tolist()).output
+            self.assertEqual(y_negative, '0', 'Negative model should always 0.')
+
+        # Switch to the positive model
+        self.client.put(self.__URL, data={'model_id': TEST_MODEL_ID1})
         for _ in range(100):
-            y_positive = \
-                worker_client.run_predict_arrfloat_arrint(np.random.rand(np.random.randint(1, 100)).tolist()).output[0]
-            self.assertEqual(y_positive, 1.0, 'Positive model should always 1.')
-
-    def test_patch(self):
-        kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
-        service_id = sobj.service_id
-
-        updated_display_name = f'updated_{sobj.display_name}'
-        updated_description = f'UPDATED {sobj.description}'
-        self.client.patch(f'/api/applications/{aobj.application_id}/services/{sobj.service_id}',
-                          data={'display_name': updated_display_name, 'description': updated_description})
-        sobj_ = db.session.query(Service).filter(Service.service_id == service_id).one_or_none()
-        self.assertEqual(sobj_.display_name, updated_display_name)
-        self.assertEqual(sobj_.description, updated_description)
+            y_positive = worker_client.run_predict_arrfloat_string(
+                np.random.rand(np.random.randint(1, 100)).tolist()).output
+            self.assertEqual(y_positive, '1', 'Positive model should always 1.')
 
     def test_delete(self):
-        kobj = create_kube_obj()
-        aobj = create_app_obj(kobj.kubernetes_id)
-        sobj = create_service_obj(aobj.application_id)
-        namespace = sobj.service_level
+        kubernetes_model = create_kubernetes_model()
+        application_model = create_application_model()
+        service_model = create_service_model()
+        namespace = service_model.service_level
 
         # Confirm each components exist -> no exception raises
-        k8s_config.load_kube_config(get_full_config_path(kobj.config_path))
-        apps_v1 = k8s_client.AppsV1Api()
+        k8s_config.load_kube_config(get_full_config_path(kubernetes_model.config_path))
+        apps_v1_api = k8s_client.AppsV1Api()
         core_v1 = k8s_client.CoreV1Api()
-        extensions_v1beta1 = k8s_client.ExtensionsV1beta1Api()
-        autoscaling_v1 = k8s_client.AutoscalingV1Api()
-        k8s_service = core_v1.read_namespaced_service(
+        autoscaling_v1_api = k8s_client.AutoscalingV1Api()
+        custom_object_api = k8s_client.CustomObjectsApi()
+        core_v1.read_namespaced_service(
             name=WorkerConfiguration.service['metadata']['name'],
-            namespace=sobj.service_level)
-        host = f'{kube_setting1.ip}:{k8s_service.spec.ports[0].node_port}'
-        sobj.host = host
-        self.wait_worker_ready(host)
+            namespace=namespace)
+        self.wait_worker_ready(insecure_host=service_model.insecure_host,
+                               insecure_port=service_model.insecure_port,
+                               application_name=application_model.application_name,
+                               service_level=service_model.service_level,
+                               rekcurd_grpc_version=service_model.version)
 
         try:
-            apps_v1.read_namespaced_deployment(
+            apps_v1_api.read_namespaced_deployment(
                 name=WorkerConfiguration.deployment['metadata']['name'],
                 namespace=namespace)
             core_v1.read_namespaced_service(
                 name=WorkerConfiguration.service['metadata']['name'],
                 namespace=namespace)
-            extensions_v1beta1.read_namespaced_ingress(
-                name=WorkerConfiguration.ingress['metadata']['name'],
-                namespace=namespace)
-            autoscaling_v1.read_namespaced_horizontal_pod_autoscaler(
+            autoscaling_v1_api.read_namespaced_horizontal_pod_autoscaler(
                 name=WorkerConfiguration.autoscaling['metadata']['name'],
                 namespace=namespace)
+            custom_object_api.get_namespaced_custom_object(
+                group="networking.istio.io", version="v1alpha3", namespace=namespace,
+                plural="virtualservices", name=WorkerConfiguration.virtualservice['metadata']['name'])
         except ApiException:
             self.fail('Some components of worker are not running.')
 
-        self.client.delete(f'/api/applications/{aobj.application_id}/services/{sobj.service_id}')
+        self.client.delete(self.__URL)
         # Make sure every thing deleted
         # Reading deleted deployment will raise ApiException
         self.assertRaises(ApiException,
-                          apps_v1.read_namespaced_deployment,
+                          apps_v1_api.read_namespaced_deployment,
                           name=WorkerConfiguration.deployment['metadata']['name'],
                           namespace=namespace)
         self.assertRaises(ApiException,
@@ -148,10 +119,10 @@ class TestApiApplicationIdServiceId(BaseTestCase):
                           name=WorkerConfiguration.service['metadata']['name'],
                           namespace=namespace)
         self.assertRaises(ApiException,
-                          extensions_v1beta1.read_namespaced_ingress,
-                          name=WorkerConfiguration.ingress['metadata']['name'],
-                          namespace=namespace)
-        self.assertRaises(ApiException,
-                          autoscaling_v1.read_namespaced_horizontal_pod_autoscaler,
+                          autoscaling_v1_api.read_namespaced_horizontal_pod_autoscaler,
                           name=WorkerConfiguration.autoscaling['metadata']['name'],
                           namespace=namespace)
+        self.assertRaises(ApiException,
+                          custom_object_api.get_namespaced_custom_object,
+                          group="networking.istio.io", version="v1alpha3", namespace=namespace,
+                          plural="virtualservices", name=WorkerConfiguration.virtualservice['metadata']['name'])

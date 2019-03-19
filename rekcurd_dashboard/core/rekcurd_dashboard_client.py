@@ -8,8 +8,8 @@ import grpc
 
 from rekcurd_dashboard.protobuf import rekcurd_pb2, rekcurd_pb2_grpc
 
-from rekcurd_dashboard.logger.logger_interface import SystemLoggerInterface
-from rekcurd_dashboard.utils.protobuf_util import ProtobufUtil
+from rekcurd_dashboard.logger import SystemLoggerInterface, JsonSystemLogger
+from rekcurd_dashboard.utils import ProtobufUtil
 from werkzeug.datastructures import FileStorage
 from protobuf_to_dict import protobuf_to_dict
 
@@ -43,21 +43,40 @@ def error_handling(error_response):
 
 
 class RekcurdDashboardClient:
-    def __init__(self, logger:SystemLoggerInterface, host:str=None, domain:str=None, app:str=None, env:str=None, version:int=None):
-        self.logger = logger
-        self.stub = None
-        if host is None and (domain is None or app is None or env is None):
-            raise RuntimeError("You must specify host or domain+app+env.")
+    _logger: SystemLoggerInterface = None
 
-        if version is None:
-            v_str = rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version]
-        else:
-            v_str = rekcurd_pb2.EnumVersionInfo.Name(version)
+    def __init__(self, host: str = None, port: int = None,
+                 application_name: str = None, service_level: str = None,
+                 rekcurd_grpc_version: str = None):
+        self.logger = JsonSystemLogger()
 
-        if host is None:
-            self.__change_domain_app_env(domain, app, env, v_str)
+        _host = "127.0.0.1"
+        _port = 5000
+        host = host or _host
+        port = int(port or _port)
+
+        if rekcurd_grpc_version is None:
+            rekcurd_grpc_version = rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version]
         else:
-            self.__change_host(host)
+            rekcurd_pb2.EnumVersionInfo.Value(rekcurd_grpc_version)
+
+        self.__metadata = [('x-rekcurd-application-name', application_name),
+                           ('x-rekcurd-sevice-level', service_level),
+                           ('x-rekcurd-grpc-version', rekcurd_grpc_version)]
+
+        channel = grpc.insecure_channel("{}:{}".format(host, port))
+        self.stub = rekcurd_pb2_grpc.RekcurdDashboardStub(channel)
+
+    @property
+    def logger(self):
+        return self._logger
+
+    @logger.setter
+    def logger(self, logger: SystemLoggerInterface):
+        if isinstance(logger, SystemLoggerInterface):
+            self._logger = logger
+        else:
+            raise TypeError("Invalid logger type.")
 
     def on_error(self, error: Exception):
         """ Postprocessing on error
@@ -72,18 +91,10 @@ class RekcurdDashboardClient:
         self.logger.error(str(error))
         self.logger.error(traceback.format_exc())
 
-    def __change_domain_app_env(self, domain:str, app:str, env:str, version:str):
-        host = "{0}-{1}-{2}.{3}".format(app,version,env,domain)
-        self.__change_host(host)
-
-    def __change_host(self, host:str):
-        channel = grpc.insecure_channel(host)
-        self.stub = rekcurd_pb2_grpc.RekcurdDashboardStub(channel)
-
     @error_handling({"status": False})
     def run_service_info(self):
         request = rekcurd_pb2.ServiceInfoRequest()
-        response_protobuf = self.stub.ServiceInfo(request)
+        response_protobuf = self.stub.ServiceInfo(request, metadata=self.__metadata)
         response = protobuf_to_dict(response_protobuf,
                                     including_default_value_fields=True)
         return response
@@ -99,7 +110,7 @@ class RekcurdDashboardClient:
     @error_handling({"status": False})
     def run_upload_model(self, model_path:str, f:FileStorage):
         request_iterator = self.__upload_model_request(model_path, f)
-        response = self.stub.UploadModel(request_iterator)
+        response = self.stub.UploadModel(request_iterator, metadata=self.__metadata)
         response = protobuf_to_dict(response,
                                     including_default_value_fields=True)
         if not response["status"]:
@@ -111,7 +122,7 @@ class RekcurdDashboardClient:
         request = rekcurd_pb2.SwitchModelRequest(
             path=model_path,
         )
-        response_protobuf = self.stub.SwitchModel(request)
+        response_protobuf = self.stub.SwitchModel(request, metadata=self.__metadata)
         response = protobuf_to_dict(response_protobuf,
                                     including_default_value_fields=True)
         if not response["status"]:
@@ -121,7 +132,7 @@ class RekcurdDashboardClient:
     @error_handling({"status": False})
     def run_evaluate_model(self, data_path:str, result_path:str):
         request_iterator = iter([rekcurd_pb2.EvaluateModelRequest(data_path=data_path, result_path=result_path)])
-        metrics = self.stub.EvaluateModel(request_iterator).metrics
+        metrics = self.stub.EvaluateModel(request_iterator, metadata=self.__metadata).metrics
         response = dict(protobuf_to_dict(metrics, including_default_value_fields=True),
                         label=[self.__get_value_from_io(l) for l in metrics.label])
         response['status'] = True
@@ -135,7 +146,7 @@ class RekcurdDashboardClient:
     @error_handling({"status": False})
     def run_upload_evaluation_data(self, f:FileStorage, data_path:str):
         request_iterator = self.__upload_eval_data_request(f, data_path)
-        response = protobuf_to_dict(self.stub.UploadEvaluationData(request_iterator),
+        response = protobuf_to_dict(self.stub.UploadEvaluationData(request_iterator, metadata=self.__metadata),
                                     including_default_value_fields=True)
         return response
 
@@ -153,7 +164,7 @@ class RekcurdDashboardClient:
     @error_handling({"status": False})
     def run_evaluation_data(self, data_path:str, result_path:str):
         request = rekcurd_pb2.EvaluationResultRequest(data_path=data_path, result_path=result_path)
-        for raw_response in self.stub.EvaluationResult(request):
+        for raw_response in self.stub.EvaluationResult(request, metadata=self.__metadata):
             details = []
             for detail in raw_response.detail:
                 details.append(dict(

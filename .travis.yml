@@ -17,6 +17,8 @@ matrix:
     env: TOXENV=py37-functional
 install:
 - pip install tox
+before_install:
+- export BOTO_CONFIG=/dev/null
 script:
 - tox
 notifications:

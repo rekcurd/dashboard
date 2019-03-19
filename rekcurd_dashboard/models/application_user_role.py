@@ -2,7 +2,7 @@ import enum
 from .dao import db
 from sqlalchemy import (
     Column, Integer,
-    Enum,
+    Enum, String,
     ForeignKey,
     UniqueConstraint
 )
@@ -10,13 +10,13 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import backref
 
 
-class Role(enum.Enum):
-    viewer = 1
+class ApplicationRole(enum.Enum):
+    admin = 1
     editor = 2
-    owner = 3
+    viewer = 3
 
 
-class ApplicationUserRole(db.Model):
+class ApplicationUserRoleModel(db.Model):
     """
     Application-User Role
     """
@@ -26,13 +26,14 @@ class ApplicationUserRole(db.Model):
         {'mysql_engine': 'InnoDB'}
     )
 
-    application_id = Column(Integer, ForeignKey('applications.application_id', ondelete="CASCADE"), primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.user_id', ondelete="CASCADE"), primary_key=True)
-    role = Column(Enum(Role), nullable=False, default=Role.viewer)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.user_id', ondelete="CASCADE"), nullable=False)
+    application_id = Column(String, ForeignKey('applications.application_id', ondelete="CASCADE"), nullable=True)
+    application_role = Column(Enum(ApplicationRole), nullable=False, default=ApplicationRole.viewer)
 
-    application = relationship('Application', lazy='joined', innerjoin=True,
-                               backref=backref("application_user_roles",
-                                               cascade="all, delete-orphan", passive_deletes=True))
-    user = relationship('User',
-                        backref=backref("application_user_roles",
-                                        cascade="all, delete-orphan", passive_deletes=True))
+    application = relationship(
+        'ApplicationModel', lazy='joined', innerjoin=True,
+        backref=backref("application_user_roles", cascade="all, delete-orphan", passive_deletes=True))
+    user = relationship(
+        'UserModel',
+        backref=backref("application_user_roles", cascade="all, delete-orphan", passive_deletes=True))

@@ -1,2 +1,10 @@
-use.db: sqlite
-kube.datadir: test-kube-config
+## Debug mode.
+debug: True
+
+## Service parameters.
+port: 18080
+kube_config_dir: test-kube-config
+
+## DB parameters
+db:
+  mode: sqlite

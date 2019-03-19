@@ -47,9 +47,26 @@ sudo chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
 
 echo "Download minikube from minikube project"
-wget -O minikube "https://storage.googleapis.com/minikube/releases/v0.25.2/minikube-linux-amd64"
+wget -O minikube "https://storage.googleapis.com/minikube/releases/v0.30.0/minikube-linux-amd64"
 sudo chmod +x minikube
 sudo mv minikube /usr/local/bin/
+
+echo "Download crictl"
+CRICTL_VERSION="v1.13.0"
+wget -O crictl.tar.gz "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-amd64.tar.gz"
+sudo tar zxvf crictl.tar.gz -C /usr/local/bin
+sudo chmod +x /usr/local/bin/crictl
+
+echo "Download helm"
+wget "https://storage.googleapis.com/kubernetes-helm/helm-v2.13.0-linux-amd64.tar.gz"
+sudo tar -zxvf helm-v2.13.0-linux-amd64.tar.gz
+sudo chmod +x linux-amd64/helm
+sudo mv linux-amd64/helm /usr/local/bin/
+
+echo "Download Istio"
+wget "https://github.com/istio/istio/releases/download/1.0.6/istio-1.0.6-linux.tar.gz"
+sudo tar -zxvf istio-1.0.6-linux.tar.gz
+export ISTIO_HOME=$PWD/istio-1.0.6
 
 # L68-100: Set up minikube within Travis CI
 # See https://github.com/kubernetes/minikube/blob/master/README.md#linux-continuous-integration-without-vm-support
@@ -63,13 +80,12 @@ sudo touch $HOME/.kube/config
 export KUBECONFIG=$HOME/.kube/config
 export MINIKUBE_HOME=$HOME
 export MINIKUBE_DRIVER=${MINIKUBE_DRIVER:-none}
-export MINIKUBE_BOOTSTRAPPER=${MINIKUBE_BOOTSTRAPPER:-localkube}
+export MINIKUBE_BOOTSTRAPPER=${MINIKUBE_BOOTSTRAPPER:-kubeadm}
 
 echo "Starting minikube"
 TEST_FILE_DIRECTORY=$(dirname "$0")
 cd $TEST_FILE_DIRECTORY
 sudo ../e2e_test/startup.sh
-
 
 echo "Running tests..."
 cd $CDIR

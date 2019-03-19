@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  labels:
+    rekcurd-worker: "true"
+    id: id-test20190307093000
+    name: app-test20190307093000
+    sel: test20190307093000
+  name: ing-vs-id-test20190307093000
+  namespace: development
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - rekcurd-ingress-gateway
+  http:
+  - match:
+    - headers:
+        x-rekcurd-application-name:
+          exact: app-test20190307093000
+        x-rekcurd-sevice-level:
+          exact: development
+        x-rekcurd-grpc-version:
+          exact: v2
+    route:
+    - destination:
+        port:
+          number: 5000
+        host: svc-test20190307093000
+      weight: 100
+    retries:
+      attempts: 25
+      perTryTimeout: 1s

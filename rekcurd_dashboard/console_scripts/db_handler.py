@@ -4,7 +4,7 @@
 from rekcurd_dashboard.core import create_app
 
 
-def db_handler(args):
+def db_handler(args: dict):
     import sys
     from flask_script import Manager
     from flask_migrate import Migrate, MigrateCommand
@@ -17,7 +17,7 @@ def db_handler(args):
             sys.argv.append(t)
             sys.argv.append(tmp[i+1])
             break
-    app = create_app(args.settings, args.logger)
+    app, _ = create_app(config_file=args["settings"], logger_file=args["logger"], **args)
     migrate = Migrate(app, db)
     manager = Manager(app)
     manager.add_command('db', MigrateCommand)

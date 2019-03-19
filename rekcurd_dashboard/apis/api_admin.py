@@ -2,136 +2,208 @@ from functools import wraps
 from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Resource, Namespace, fields, reqparse
 
-from rekcurd_dashboard.auth import fetch_role, ApplicationUserRoleException
-from rekcurd_dashboard.models import db, ApplicationUserRole, Role, User
+from rekcurd_dashboard.auth import fetch_project_role, fetch_application_role, ProjectUserRoleException, ApplicationUserRoleException
+from rekcurd_dashboard.models import db, UserModel, ProjectRole, ApplicationRole, ProjectUserRoleModel, ApplicationUserRoleModel
+from rekcurd_dashboard.utils import RekcurdDashboardException
+from . import status_model
 
 
-admin_info_namespace = Namespace('admin', description='Admin Endpoint.')
-success_or_not = admin_info_namespace.model('Success', {
-    'status': fields.Boolean(
-        required=True
-    ),
-    'message': fields.String(
-        required=True
-    )
-})
-user_info = admin_info_namespace.model('User', {
+admin_api_namespace = Namespace('admin', description='Admin API Endpoint.')
+success_or_not = admin_api_namespace.model('Status', status_model)
+user_info = admin_api_namespace.model('User', {
     'auth_id': fields.String(required=True),
     'user_name': fields.String(required=True)
 })
-role_info = admin_info_namespace.model('Role', {
+role_info = admin_api_namespace.model('Role', {
     'role': fields.String(required=True),
     'user': fields.Nested(user_info, required=True)
 })
-
-
-@admin_info_namespace.route('/users')
-class ApiApplicationUsers(Resource):
-    @admin_info_namespace.marshal_list_with(user_info)
-    def get(self):
-        return User.query.all()
 
 
 def check_owner_role(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
+        project_id = kwargs.get('project_id')
         application_id = kwargs.get('application_id')
-        role = fetch_role(application_id, user_id)
-        if role == Role.owner:
+        project_user_role = fetch_project_role(user_id, project_id)
+        if application_id is None:
+            if project_user_role == ProjectRole.admin:
+                return fn(*args, **kwargs)
+            else:
+                raise ProjectUserRoleException("ProjectUserRoleException")
+        application_user_role = fetch_application_role(user_id, application_id)
+        if project_user_role is not None and application_user_role == ApplicationRole.admin:
             return fn(*args, **kwargs)
         else:
-            raise ApplicationUserRoleException
+            raise ApplicationUserRoleException("ApplicationUserRoleException")
     return wrapper
 
 
-@admin_info_namespace.route('/<int:application_id>/acl')
+@admin_api_namespace.route('/users')
+class ApiUsers(Resource):
+    @admin_api_namespace.marshal_list_with(user_info)
+    def get(self):
+        return UserModel.query.all()
+
+
+@admin_api_namespace.route('/projects/<int:project_id>/acl')
+class ApiProjectIdACL(Resource):
+    method_decorators = [check_owner_role]
+
+    save_acl_parser = reqparse.RequestParser()
+    save_acl_parser.add_argument('uid', type=str, required=True, location='form')
+    save_acl_parser.add_argument('role', type=str, required=True, location='form',
+                                 choices=('admin', 'member'))
+
+    @admin_api_namespace.marshal_list_with(role_info)
+    def get(self, project_id):
+        roles = ProjectUserRoleModel.query.filter_by(project_id=project_id).all()
+        return roles
+
+    @admin_api_namespace.marshal_with(success_or_not)
+    @admin_api_namespace.expect(save_acl_parser)
+    def post(self, project_id):
+        args = self.save_acl_parser.parse_args()
+        uid = args['uid']
+        user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
+        if user_model is None:
+            raise RekcurdDashboardException("No user found.")
+
+        role = args['role']
+        project_user_role_model = db.session.query(ProjectUserRoleModel).filter(
+            ProjectUserRoleModel.project_id == project_id,
+            ProjectUserRoleModel.user_id == user_model.user_id).one_or_none()
+        if project_user_role_model is None:
+            project_user_role_model = ProjectUserRoleModel(
+                project_id=project_id,
+                user_id=user_model.user_id,
+                project_role=role)
+            db.session.add(project_user_role_model)
+            db.session.commit()
+            db.session.close()
+            return {"status": True, "message": "Success."}, 200
+        else:
+            raise RekcurdDashboardException("Already assigned.")
+
+    @admin_api_namespace.marshal_with(success_or_not)
+    @admin_api_namespace.expect(save_acl_parser)
+    def patch(self, project_id):
+        args = self.save_acl_parser.parse_args()
+        uid = args['uid']
+        user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
+        if user_model is None:
+            raise RekcurdDashboardException("No user found.")
+        project_user_role_model = db.session.query(ProjectUserRoleModel).filter(
+            ProjectUserRoleModel.project_id == project_id,
+            ProjectUserRoleModel.user_id == user_model.user_id).first_or_404()
+        project_user_role_model.project_role = args['role']
+        db.session.commit()
+        db.session.close()
+        return {"status": True, "message": "Success."}, 200
+
+
+@admin_api_namespace.route('/projects/<int:project_id>/acl/users/<uid>')
+class ApiProjectIdUserIdACL(Resource):
+    method_decorators = [check_owner_role]
+
+    @admin_api_namespace.marshal_with(success_or_not)
+    def delete(self, project_id, uid):
+        user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
+        if user_model is None:
+            raise RekcurdDashboardException("No user found.")
+
+        ProjectUserRoleModel.query.filter(
+            ProjectUserRoleModel.project_id == project_id,
+            ProjectUserRoleModel.user_id == user_model.user_id).delete()
+        db.session.commit()
+        db.session.close()
+        return {"status": True, "message": "Success."}, 200
+
+
+@admin_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/acl')
 class ApiApplicationIdACL(Resource):
     method_decorators = [check_owner_role]
 
     save_acl_parser = reqparse.RequestParser()
     save_acl_parser.add_argument('uid', type=str, required=True, location='form')
-    save_acl_parser.add_argument('role', type=str, required=True, location='form')
+    save_acl_parser.add_argument('role', type=str, required=True, location='form',
+                                 choices=('admin', 'editor', 'viewer'))
 
-    delete_acl_parser = reqparse.RequestParser()
-    delete_acl_parser.add_argument('uid', type=str, required=True, location='form')
-
-    @admin_info_namespace.marshal_list_with(role_info)
-    def get(self, application_id):
-        roles = ApplicationUserRole.query.filter_by(application_id=application_id).all()
+    @admin_api_namespace.marshal_list_with(role_info)
+    def get(self, project_id, application_id):
+        roles = ApplicationUserRoleModel.query.filter_by(application_id=application_id).all()
         return roles
 
-    @admin_info_namespace.marshal_with(success_or_not)
-    @admin_info_namespace.expect(save_acl_parser)
-    def post(self, application_id):
+    @admin_api_namespace.marshal_with(success_or_not)
+    @admin_api_namespace.expect(save_acl_parser)
+    def post(self, project_id, application_id):
         args = self.save_acl_parser.parse_args()
         uid = args['uid']
-        uobj = db.session.query(User).filter(User.auth_id == uid).one_or_none()
-        if uobj is None:
-            return {"status": False}, 400
+        user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
+        if user_model is None:
+            raise RekcurdDashboardException("No user found.")
 
         role = args['role']
         # if role is added by first user, they will be owner
-        roles = db.session.query(ApplicationUserRole).filter(
-            ApplicationUserRole.application_id == application_id).count()
+        roles = db.session.query(ApplicationUserRoleModel).filter(
+            ApplicationUserRoleModel.application_id == application_id).count()
         if roles == 0:
             sender_id = get_jwt_identity()
-            if uobj.user_id != sender_id:
-                ownerObj = ApplicationUserRole(
+            if user_model.user_id != sender_id:
+                ownerObj = ApplicationUserRoleModel(
                     application_id=application_id,
                     user_id=sender_id,
-                    role=Role.owner.name)
+                    application_role=ApplicationRole.admin.name)
                 db.session.add(ownerObj)
                 db.session.flush()
             else:
-                role = Role.owner.name
-        try:
-            roleObj = db.session.query(ApplicationUserRole).filter(
-                ApplicationUserRole.application_id == application_id,
-                ApplicationUserRole.user_id == uobj.user_id).one_or_none()
-            if roleObj is None:
-                roleObj = ApplicationUserRole(
-                    application_id=application_id,
-                    user_id=uobj.user_id,
-                    role=role)
-                db.session.add(roleObj)
-                db.session.flush()
-                db.session.commit()
-                db.session.close()
-                return {"status": True, "message": "Success."}, 200
-            else:
-                return {"status": False, "message": "Already exist."}, 400
-        except Exception:
-            return {"status": False}, 400
+                role = ApplicationRole.admin.name
+        application_user_role_model = db.session.query(ApplicationUserRoleModel).filter(
+            ApplicationUserRoleModel.application_id == application_id,
+            ApplicationUserRoleModel.user_id == user_model.user_id).one_or_none()
+        if application_user_role_model is None:
+            application_user_role_model = ApplicationUserRoleModel(
+                application_id=application_id,
+                user_id=user_model.user_id,
+                application_role=role)
+            db.session.add(application_user_role_model)
+            db.session.commit()
+            db.session.close()
+            return {"status": True, "message": "Success."}, 200
+        else:
+            raise RekcurdDashboardException("Already assigned.")
 
-    @admin_info_namespace.marshal_with(success_or_not)
-    @admin_info_namespace.expect(save_acl_parser)
-    def patch(self, application_id):
+    @admin_api_namespace.marshal_with(success_or_not)
+    @admin_api_namespace.expect(save_acl_parser)
+    def patch(self, project_id, application_id):
         args = self.save_acl_parser.parse_args()
         uid = args['uid']
-        uobj = db.session.query(User).filter(User.auth_id == uid).one_or_none()
-        if uobj is None:
-            return {"status": False}, 400
-        roleObj = db.session.query(ApplicationUserRole).filter(
-            ApplicationUserRole.application_id == application_id,
-            ApplicationUserRole.user_id == uobj.user_id).one()
-        roleObj.role = args['role']
+        user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
+        if user_model is None:
+            raise RekcurdDashboardException("No user found.")
+        application_user_role_model: ApplicationUserRoleModel = db.session.query(ApplicationUserRoleModel).filter(
+            ApplicationUserRoleModel.application_id == application_id,
+            ApplicationUserRoleModel.user_id == user_model.user_id).first_or_404()
+        application_user_role_model.application_role = args['role']
         db.session.commit()
         db.session.close()
         return {"status": True, "message": "Success."}, 200
 
-    @admin_info_namespace.marshal_with(success_or_not)
-    @admin_info_namespace.expect(delete_acl_parser)
-    def delete(self, application_id):
-        args = self.delete_acl_parser.parse_args()
-        uid = args['uid']
-        uobj = db.session.query(User).filter(User.auth_id == uid).one_or_none()
-        if uobj is None:
-            return {"status": False}, 400
 
-        ApplicationUserRole.query.filter(
-            ApplicationUserRole.application_id == application_id,
-            ApplicationUserRole.user_id == uobj.user_id).delete()
+@admin_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/acl/users/<uid>')
+class ApiApplicationIdUserIdACL(Resource):
+    method_decorators = [check_owner_role]
+
+    @admin_api_namespace.marshal_with(success_or_not)
+    def delete(self, project_id, application_id, uid):
+        user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
+        if user_model is None:
+            raise RekcurdDashboardException("No user found.")
+
+        ApplicationUserRoleModel.query.filter(
+            ApplicationUserRoleModel.application_id == application_id,
+            ApplicationUserRoleModel.user_id == user_model.user_id).delete()
         db.session.commit()
         db.session.close()
         return {"status": True, "message": "Success."}, 200

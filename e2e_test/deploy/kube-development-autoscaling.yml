@@ -2,9 +2,11 @@ apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   labels:
-    app: rekcurd-test-app
-    sel: rekcurd-test-app-development-20180628151929
-  name: rekcurd-test-app-development-20180628151929-autoscaling
+    rekcurd-worker: "true"
+    id: id-test20190307093000
+    name: app-test20190307093000
+    sel: test20190307093000
+  name: hpa-test20190307093000
   namespace: development
 spec:
   maxReplicas: 10
@@ -15,6 +17,6 @@ spec:
     type: Resource
   minReplicas: 1
   scaleTargetRef:
-    apiVersion: apps/v1beta2
+    apiVersion: apps/v1
     kind: Deployment
-    name: rekcurd-test-app-development-20180628151929-deployment
+    name: deploy-test20190307093000
