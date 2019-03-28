@@ -54,6 +54,8 @@ def create_parser():
     parser_db.add_argument(
         '--settings', required=False, help='settings YAML. See https://github.com/rekcurd/dashboard/blob/master/rekcurd_dashboard/template/settings.yml-tpl')
     parser_db.add_argument(
+        '--logger', required=False, help='Python file of your custom logger. Need to inherit "logger_interface.py". See https://github.com/rekcurd/dashboard/blob/master/rekcurd_dashboard/logger/logger_interface.py')
+    parser_db.add_argument(
         '--db_mode', required=False, help='Dashboard DB mode. One of [sqlite/mysql]. Default "sqlite".')
     parser_db.add_argument(
         '--db_host', required=False, help='Dashboard MySQL host. Necessary if "--db_mode mysql".')
