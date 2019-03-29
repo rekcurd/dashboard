@@ -1,5 +1,4 @@
 import datetime
-import json
 from itertools import chain
 
 from flask import abort
@@ -127,7 +126,7 @@ class ApiEvaluate(Resource):
         if evaluation_result_model is not None and args.get('overwrite', False):
             return evaluation_result_model.result
 
-        eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
+        eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.pkl".format(datetime.datetime.utcnow())
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
         rekcurd_dashboard_client = RekcurdDashboardClient(
@@ -136,17 +135,16 @@ class ApiEvaluate(Resource):
         response_body = rekcurd_dashboard_client.run_evaluate_model(evaluation_model.data_path, eval_result_path)
 
         if response_body['status']:
-            result = json.dumps(response_body)
             if evaluation_result_model is None:
                 evaluation_result_model = EvaluationResultModel(
                     model_id=service_model.model_id,
                     data_path=eval_result_path,
                     evaluation_id=evaluation_model.evaluation_id,
-                    result=result)
+                    result=response_body)
                 db.session.add(evaluation_result_model)
             else:
                 evaluation_result_model.data_path = eval_result_path
-                evaluation_result_model.result = result
+                evaluation_result_model.result = response_body
             db.session.flush()
             response_body = evaluation_result_model.result
             db.session.commit()
@@ -184,7 +182,7 @@ class ApiEvaluationResults(Resource):
 
         return {
             'status': all(r['status'] for r in response_body),
-            'metrics': response_body[0]['metrics'],
+            'metrics': evaluation_result_model.result,
             'details': list(chain.from_iterable(r['detail'] for r in response_body))
         }
 

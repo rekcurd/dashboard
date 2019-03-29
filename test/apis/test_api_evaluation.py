@@ -93,13 +93,14 @@ class ApiEvaluationResultTest(BaseTestCase):
     def test_get(self):
         evaluation_model = create_eval_model(TEST_APPLICATION_ID, save=True)
         eval_result_model = create_eval_result_model(
-            model_id=TEST_MODEL_ID, evaluation_id=evaluation_model.evaluation_id, save=True)
+            model_id=TEST_MODEL_ID, evaluation_id=evaluation_model.evaluation_id,
+            result=json.dumps(default_metrics), save=True)
         response = self.client.get(
             f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/'
             f'evaluation_results/{eval_result_model.evaluation_result_id}')
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json['status'], True)
-        self.assertEqual(response.json['metrics'], default_metrics)
+        self.assertEqual(response.json['metrics'], dict(default_metrics, result_id=1))
         details = response.json['details']
         self.assertEqual(len(details), 4)
         self.assertEqual(
