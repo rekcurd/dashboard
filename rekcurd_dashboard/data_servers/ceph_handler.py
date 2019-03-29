@@ -33,3 +33,8 @@ class CephHandler(DataHandler):
         bucket = conn.get_bucket(bucket_name)
         key = bucket.new_key(remote_filepath)
         key.set_contents_from_filename(local_filepath, replace=False)
+
+    def delete(self, data_server_model: DataServerModel, filepath: str) -> None:
+        conn, bucket_name = self._initialize(data_server_model)
+        bucket = conn.get_bucket(bucket_name)
+        bucket.delete_key(filepath)

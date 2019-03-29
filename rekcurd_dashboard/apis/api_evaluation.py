@@ -1,4 +1,5 @@
 import datetime
+import tempfile
 from itertools import chain
 
 from flask import abort
@@ -6,7 +7,9 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
 from . import status_model
-from rekcurd_dashboard.models import db, ApplicationModel, ServiceModel, EvaluationModel, EvaluationResultModel
+from rekcurd_dashboard.data_servers import DataServer
+from rekcurd_dashboard.models import (db, ApplicationModel, ServiceModel, EvaluationModel,
+                                      EvaluationResultModel, DataServerModel, DataServerModeEnum)
 from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_dashboard.utils import HashUtil, RekcurdDashboardException
 
@@ -49,19 +52,30 @@ class ApiEvaluations(Resource):
         if evaluation_model is not None:
             return {"status": True, "evaluation_id": evaluation_model.evaluation_id}
 
-        eval_data_path = "eval-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
-
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
-        service_model: ServiceModel = db.session.query(ServiceModel).filter(
-            ServiceModel.application_id == application_id).first_or_404()
-        rekcurd_dashboard_client = RekcurdDashboardClient(
-            host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
-            service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
-        response_body = rekcurd_dashboard_client.run_upload_evaluation_data(file, eval_data_path)
+        data_server_model: DataServerModel = db.session.query(
+            DataServerModel).filter(DataServerModel.project_id == project_id).first_or_404()
 
-        if not response_body['status']:
-            raise RekcurdDashboardException('Failed to upload')
+        if data_server_model.data_server_mode == DataServerModeEnum.LOCAL:
+            """Only if DataServerModeEnum.LOCAL, send file to the server."""
+            service_model: ServiceModel = db.session.query(ServiceModel).filter(
+                ServiceModel.application_id == application_id).first_or_404()
+            rekcurd_dashboard_client = RekcurdDashboardClient(
+                host=service_model.insecure_host, port=service_model.insecure_port,
+                application_name=application_model.application_name,
+                service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
+            eval_data_path = "eval-{0:%Y%m%d%H%M%S}.txt".format(datetime.datetime.utcnow())
+            response_body = rekcurd_dashboard_client.run_upload_evaluation_data(file, eval_data_path)
+            if not response_body['status']:
+                raise RekcurdDashboardException('Failed to upload')
+        else:
+            """Otherwise, upload file."""
+            with tempfile.NamedTemporaryFile() as fp:
+                fp.write(file.read())
+                data_server = DataServer()
+                eval_data_path = data_server.upload_evaluation_data(data_server_model, application_model, fp.name)
+
         evaluation_model = EvaluationModel(
             checksum=checksum, application_id=application_id, data_path=eval_data_path)
         db.session.add(evaluation_model)
@@ -80,8 +94,14 @@ class ApiEvaluationId(Resource):
         eval_query = db.session.query(EvaluationModel).filter(
             EvaluationModel.application_id == application_id,
             EvaluationModel.evaluation_id == evaluation_id)
-        if eval_query.one_or_none() is None:
+        evaluation_model = eval_query.one_or_none()
+        if evaluation_model is None:
             return {"status": False, "message": "Not Found."}, 404
+
+        data_server_model: DataServerModel = db.session.query(
+            DataServerModel).filter(DataServerModel.project_id == project_id).first_or_404()
+        data_server = DataServer()
+        data_server.delete_file(data_server_model, evaluation_model.data_path)
 
         eval_query.delete()
         db.session.commit()
@@ -195,6 +215,11 @@ class ApiEvaluationResults(Resource):
                     EvaluationResultModel.evaluation_result_id == eval_result_id).one_or_none()
         if eval_with_result is None:
             return {"status": False, "message": "Not Found."}, 404
+        data_server_model: DataServerModel = db.session.query(
+            DataServerModel).filter(DataServerModel.project_id == project_id).first_or_404()
+        data_server = DataServer()
+        evaluation_result_model = eval_with_result.EvaluationResultModel
+        data_server.delete_file(data_server_model, evaluation_result_model.data_path)
 
         db.session.query(EvaluationResultModel).filter(
             EvaluationResultModel.evaluation_result_id == eval_result_id).delete()

@@ -26,3 +26,7 @@ class AwsS3Handler(DataHandler):
     def upload(self, data_server_model: DataServerModel, remote_filepath: str, local_filepath: str) -> None:
         resource, bucket_name = self._initialize(data_server_model)
         resource.Bucket(bucket_name).upload_file(local_filepath, remote_filepath)
+
+    def delete(self, data_server_model: DataServerModel, filepath: str) -> None:
+        resource, bucket_name = self._initialize(data_server_model)
+        resource.Object(bucket_name, filepath).delete()
