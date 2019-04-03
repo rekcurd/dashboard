@@ -15,10 +15,6 @@ class DataServer(object):
     Upload/Download files.
     """
 
-    # Suffix for evaluation results
-    __EVALUATE_RESULT = '_eval_res.pkl'
-    __EVALUATE_DETAIL = '_eval_detail.pkl'
-
     def upload_model(
             self, data_server_model: DataServerModel, application_model: ApplicationModel, local_filepath: str) -> str:
         filepath = "{0}/ml-{1:%Y%m%d%H%M%S}.model".format(application_model.application_name, datetime.datetime.utcnow())
