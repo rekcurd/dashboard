@@ -3,14 +3,15 @@ import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Model, Application, } from '@src/apis'
+import { Model, FetchModelByIdParam, UpdateModelParam } from '@src/apis'
 import {
-  saveModelDispatcher,
   addNotification,
+  updateModelDispatcher,
   fetchModelByIdDispatcher
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import { ModelDescriptionForm } from './ModelDescriptionForm'
+
 
 /**
  * Page for adding model
@@ -29,52 +30,45 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
     }
   }
 
-  componentWillReceiveProps(nextProps: ModelDescriptionProps) {
-    const { saveModelStatus } = nextProps
+  componentDidMount(): void {
+    const { method } = this.props
+    const { modelId, applicationId } = this.props.match.params
+
+    if (method === 'patch') {
+      this.props.fetchModelById(this.props.match.params)
+    }
+  }
+
+  static getDerivedStateFromProps(nextProps: ModelDescriptionProps, prevState: ModelDescriptionState){
+    const { updateModelStatus } = nextProps
     const { push } = nextProps.history
-    const { applicationId } = this.props.match.params
-    const { submitting, notified } = this.state
+    const { projectId, applicationId } = nextProps.match.params
+    const { submitting, notified } = prevState
 
     // Close modal when API successfully finished
     if (submitting && !notified) {
-      const succeeded: boolean = isAPISucceeded<boolean>(saveModelStatus) && saveModelStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(saveModelStatus) && !saveModelStatus.result) ||
-        isAPIFailed<boolean>(saveModelStatus)
+      const succeeded: boolean = isAPISucceeded<boolean>(updateModelStatus) && updateModelStatus.result
+      const failed: boolean = (isAPISucceeded<boolean>(updateModelStatus) && !updateModelStatus.result) ||
+        isAPIFailed<boolean>(updateModelStatus)
       if (succeeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully saved model description' })
-        this.setState({ notified: true })
-        push(`/applications/${applicationId}`)
+        push(`/projects/${projectId}/applications/${applicationId}`)
+        return { notified: true }
       } else if (failed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
-        this.setState({ notified: true })
+        return { notified: true }
       }
-    }
-
-  }
-
-  componentWillMount() {
-    const { mode } = this.props
-    const { modelId, applicationId } = this.props.match.params
-
-    if (mode === 'edit') {
-      this.props.fetchModelById(
-        {
-          id: modelId,
-          applicationId
-        }
-      )
     }
   }
 
   render() {
-    const { fetchModelByIdStatus, mode } = this.props
-    const targetStatus = { model: fetchModelByIdStatus }
+    const { fetchModelByIdStatus, method } = this.props
 
-    if (mode === 'edit') {
+    if (method === 'patch') {
       return(
         <APIRequestResultsRenderer
           render={this.renderForm}
-          APIStatus={targetStatus}
+          APIStatus={{model: fetchModelByIdStatus}}
         />
       )
     }
@@ -82,13 +76,11 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
   }
 
   renderForm(params) {
-    const { onSubmit, onCancel } = this
-
     return (
       <ModelDescriptionForm
-        onSubmit={onSubmit}
-        onCancel={onCancel}
-        model={params.model}
+        onSubmit={this.onSubmit}
+        onCancel={this.onCancel}
+        initialValues={...params.model}
       />
     )
   }
@@ -100,31 +92,32 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
    */
   onCancel() {
     const { push } = this.props.history
-    const { applicationId } = this.props.match.params
-    push(`applications/${applicationId}`)
+    const { projectId, applicationId } = this.props.match.params
+    push(`/projects/${projectId}/applications/${applicationId}`)
   }
 
   onSubmit(parameters): Promise<void> {
-    const { saveModelDescription, mode } = this.props
-    const { applicationId, modelId } = this.props.match.params
+    const { updateModel, method } = this.props
+    const { projectId, applicationId, modelId } = this.props.match.params
 
     const request = {
-      ...parameters[mode].model,
-      mode,
-      id: modelId,
+      ...parameters,
+      method,
+      projectId,
       applicationId,
+      modelId,
       saveDescription: true
     }
 
     this.setState({ submitting: true, notified: false })
-    return saveModelDescription(request)
+    return updateModel(request)
   }
 
 }
 
 type ModelDescriptionProps =
   StateProps & DispatchProps
-  & RouteComponentProps<{applicationId: string, modelId?: string}>
+  & RouteComponentProps<{projectId: number, applicationId: string, modelId: number}>
   & CustomProps
 
 interface ModelDescriptionState {
@@ -132,42 +125,40 @@ interface ModelDescriptionState {
   notified: boolean
 }
 
-interface StateProps {
-  application: APIRequest<Application>
-  saveModelStatus: APIRequest<boolean>
-  fetchModelByIdStatus: APIRequest<Model>
+interface CustomProps {
+  method: string
 }
 
-interface CustomProps {
-  mode: string
+interface StateProps {
+  fetchModelByIdStatus: APIRequest<Model>
+  updateModelStatus: APIRequest<boolean>
 }
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
-    application: state.fetchApplicationByIdReducer.applicationById,
-    saveModelStatus: state.saveModelReducer.saveModel,
-    fetchModelByIdStatus: state.fetchModelByIdReducer.modelById,
+    fetchModelByIdStatus: state.fetchModelByIdReducer.fetchModelById,
+    updateModelStatus: state.updateModelReducer.updateModel,
     ...state.form,
     ...extraProps
   }
 )
 
 export interface DispatchProps {
-  saveModelDescription: (params) => Promise<void>
-  fetchModelById: (params) => Promise<void>
+  fetchModelById: (params: FetchModelByIdParam) => Promise<void>
+  updateModel: (params: UpdateModelParam) => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    fetchModelById: (params) => fetchModelByIdDispatcher(dispatch, params),
-    saveModelDescription: (params) => saveModelDispatcher(dispatch, params),
+    fetchModelById: (params: FetchModelByIdParam) => fetchModelByIdDispatcher(dispatch, params),
+    updateModel: (params: UpdateModelParam) => updateModelDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }
 
 export default withRouter(
-  connect<StateProps, DispatchProps, RouteComponentProps<{applicationId: string, modelId?: string}> & CustomProps>(
+  connect<StateProps, DispatchProps, RouteComponentProps<{projectId: number, applicationId: string, modelId: number}> & CustomProps>(
     mapStateToProps, mapDispatchToProps
   )(ModelDescription)
 )

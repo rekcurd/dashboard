@@ -1,47 +1,42 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { reduxForm, InjectedFormProps, Field } from 'redux-form'
-import { Card, CardBody, Form, Button } from 'reactstrap'
+import { Card, CardBody, Button } from 'reactstrap'
+import { Formik, Form, ErrorMessage, Field } from 'formik'
+import * as Yup from 'yup';
 
-import { Model } from '@src/apis'
-import { SingleFormField } from '@common/Field/SingleFormField'
 
-class ModelDescriptionFormImpl extends React.Component<ModelDescriptionFormProps> {
+const ModelSchema = Yup.object().shape({
+  description: Yup.string()
+    .required('Required')
+});
+
+class ModelDescriptionFormImpl extends React.Component<ModelDescriptionFormProps, ModelDescriptionFormState> {
   render() {
-    const { handleSubmit, onSubmit } = this.props
-    const modelSpeicificForm = this.renderModelSpecificForm()
-
     return (
       <React.Fragment>
         <Card className='mb-3'>
-          <Form onSubmit={handleSubmit(onSubmit)}>
-            {modelSpeicificForm}
-            {this.renderButtons()}
-          </Form>
+          <Formik
+            initialValues={{
+              description: this.props.initialValues.model.description,
+            }}
+            validationSchema={ModelSchema}
+            onSubmit={this.props.onSubmit}>
+            {({ errors, touched, isSubmitting }) => (
+              <Form>
+                <CardBody>
+                  <Field name="description" component="textarea" placeholder="Description"/>
+                </CardBody>
+                {errors.description && touched.description ? (
+                  <div>{errors.description}</div>
+                ) : null}
+                <ErrorMessage name="description" />
+
+                {this.renderButtons(isSubmitting)}
+              </Form>
+            )}
+          </Formik>
         </Card>
       </React.Fragment>
-    )
-  }
-
-  /**
-   *
-   *
-   * @param applicationType Type of application to set up
-   * @returns {JSX.Element} Config fields
-   */
-  renderModelSpecificForm(): JSX.Element {
-
-    return (
-      <CardBody>
-        <Field
-          name='edit.model.description'
-          label='Description'
-          component={SingleFormField} type='textarea'
-          className='form-control' id='description'
-          formText='Description shown in the table'
-          required
-        />
-      </CardBody>
     )
   }
 
@@ -50,10 +45,8 @@ class ModelDescriptionFormImpl extends React.Component<ModelDescriptionFormProps
    *
    * Put on footer of this modal
    */
-  renderButtons(): JSX.Element {
-    const { submitting, reset } = this.props
-
-    if (submitting) {
+  renderButtons(isSubmitting): JSX.Element {
+    if (isSubmitting) {
       return (
         <CardBody>
           <div className='loader loader-primary loader-xs mr-2' />
@@ -63,59 +56,50 @@ class ModelDescriptionFormImpl extends React.Component<ModelDescriptionFormProps
     }
 
     return (
-        <CardBody className='text-right'>
-          <Button color='success' type='submit'>
-            <i className='fas fa-check fa-fw mr-2'></i>
-            Update Model Description
-          </Button>
-          {' '}
-          <Button outline color='info' onClick={reset}>
-            <i className='fas fa-ban fa-fw mr-2'></i>
-            Reset
-          </Button>
-        </CardBody>
+      <CardBody className='text-right'>
+        <Button color='success' type='submit'>
+          <i className='fas fa-check fa-fw mr-2'></i>
+          Update Model Description
+        </Button>
+        {' '}
+        <Button outline color='info' onClick={this.props.onCancel}>
+          <i className='fas fa-ban fa-fw mr-2'></i>
+          Reset
+        </Button>
+      </CardBody>
     )
   }
+}
+
+const defaultInitialValues = {
+  description: ''
 }
 
 interface CustomProps {
   onCancel
   onSubmit
-  model?: Model
+  initialValues: {
+    description: string
+  }
 }
 
 interface StateProps {
   initialValues
 }
 
-type ModelDescriptionFormProps =
-  CustomProps
-  & StateProps
-  & InjectedFormProps<{}, CustomProps>
+interface DispatchProps {}
 
-const generateInitialValues = (props: CustomProps) => (
-  {
-    edit: {
-      model: {
-        ...props.model,
-      }
-    }
-  }
-)
+type ModelDescriptionFormProps = CustomProps & StateProps & DispatchProps
 
-/**
- * Description form
- * Shown only when description
- */
-export const ModelDescriptionForm =
-  connect(
-    (state: any, extraProps: CustomProps) => ({
-      initialValues: generateInitialValues(extraProps),
-      ...extraProps,
-      ...state.form
-    })
-  )(reduxForm<{}, CustomProps>({
-    form: 'modelDescriptionForm',
-    touchOnChange: true,
-    enableReinitialize: true
-  })(ModelDescriptionFormImpl))
+interface ModelDescriptionFormState {}
+
+export const ModelDescriptionForm = connect(
+  (state: any, extraProps: CustomProps) => ({
+    ...state.form,
+    ...extraProps,
+    initialValues: {
+      ...defaultInitialValues,
+      ...extraProps.initialValues
+    },
+  })
+)(ModelDescriptionFormImpl)
