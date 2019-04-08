@@ -36,6 +36,8 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
   }
   render() {
     const { userInfoStatus, auth } = this.props
+    const { projectId } = this.props.match.params
+
     let user: React.ReactNode
     if (auth) {
       user = (
@@ -46,23 +48,41 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
         />
       )
     }
+
+    let projectAdmin: React.ReactNode
+    if (projectId) {
+      const adminlink = `/projects/${projectId}/admin`
+      const kubelink = `/projects/${projectId}/kubernetes/admin`
+      projectAdmin = (
+        <React.Fragment>
+          <NavItem>
+            <NavLink className='text-info nav-link' to={adminlink}>
+              <i className='fas fa-users-cog fa-fw mr-1'></i>
+              Admin
+            </NavLink>
+          </NavItem>
+          <NavItem>
+            <NavLink className='text-info nav-link' to={kubelink}>
+              <i className='fas fa-ship fa-fw mr-1'></i>
+              Kubernetes
+            </NavLink>
+          </NavItem>
+        </React.Fragment>
+      )
+    }
+
     return (
       <Navbar className='flex-md-nowrap sticky-top' id='top-navigation-bar' tag='header'>
         <NavbarBrand className='px-3 text-info' href='/' id='navbrand'>Rekcurd Dashboard</NavbarBrand>
         <Collapse isOpen={true} className='ml-5' navbar>
           <Nav>
             <NavItem>
-              <NavLink className='text-info nav-link' to='/applications/'>
+              <NavLink className='text-info nav-link' to='/projects'>
                 <i className='fas fa-anchor fa-fw mr-1'></i>
-                Applications
+                Projects
               </NavLink>
             </NavItem>
-            <NavItem>
-              <NavLink className='text-info nav-link' to='/settings/kubernetes'>
-                <i className='fas fa-cog fa-fw mr-1'></i>
-                Kubernetes
-              </NavLink>
-            </NavItem>
+            {projectAdmin}
           </Nav>
         </Collapse>
         {user}
@@ -124,10 +144,11 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   }
 }
 
-type NavigationBarProps = RouteComponentProps<{}> & StateProps & DispatchProps & Props
+type NavigationBarProps =
+  RouteComponentProps<{ projectId?: number }> & StateProps & DispatchProps & Props
 
 export default withRouter(
-  connect<StateProps, DispatchProps, RouteComponentProps<{}>>(
+  connect<StateProps, DispatchProps, RouteComponentProps<{ projectId?: number }>>(
     mapStateToProps, mapDispatchToProps
   )(NavigationBar)
 )

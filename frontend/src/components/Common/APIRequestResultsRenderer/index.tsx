@@ -2,7 +2,7 @@ import * as React from 'react'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
 import { isAPISucceeded, APIRequestStatusList } from '@src/apis/Core'
 import { UserProjectRole, UserApplicationRole } from "@src/apis";
-import { projectRole, applicationRole } from "@components/App/Admin/constants";
+import { projectRole, applicationRole } from "@components/Common/Enum";
 
 /**
  * Render component with API requests
