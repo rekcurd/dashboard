@@ -2,18 +2,24 @@ import * as React from 'react'
 import { NavLink, withRouter, RouteComponentProps } from 'react-router-dom'
 import { connect } from 'react-redux'
 
-import { UserInfo, UserRole } from '@src/apis'
+import { UserInfo, UserApplicationRole } from '@src/apis'
 import { APIRequest, APIRequestStatusList } from '@src/apis/Core'
-import { role } from '@components/App/Admin/constants'
+import {applicationRole, serviceLevel} from '@components/Common/Enum'
 
 interface Props {
+  projectId: number
   applicationId: string
 }
 
 class SideMenu extends React.Component<SideMenuProps> {
   render() {
-    const { userInfoStatus　} = this.props
-    const { applicationId } = this.props.match.params
+    const { userInfoStatus, projectId, applicationId　} = this.props
+    const serviceLevels = Object.values(serviceLevel).map((serviceName: string) => {
+      return {
+        text: serviceName,
+        path: `routing/${serviceName}`
+      }
+    })
     const menuContents = [
       {
         title: 'Orchestration',
@@ -33,12 +39,18 @@ class SideMenu extends React.Component<SideMenuProps> {
             path: 'models',
             icon: 'database'
           },
+          {
+            text: 'Routing',
+            path: 'routing',
+            icon: 'route',
+            items: serviceLevels
+          },
         ]
       }
     ]
     if (userInfoStatus.status === APIRequestStatusList.success) {
-      userInfoStatus.result.roles.forEach((e: UserRole) => {
-        if (String(e.applicationId) === applicationId && e.role === role.owner) {
+      userInfoStatus.result.applicationRoles.forEach((e: UserApplicationRole) => {
+        if (String(e.applicationId) === applicationId && e.role === applicationRole.admin) {
           menuContents.push({
             title: '',
             items: [
@@ -53,16 +65,38 @@ class SideMenu extends React.Component<SideMenuProps> {
       })
     }
 
-    const fullPath = (menuPath) => `/applications/${applicationId}/${menuPath}`
+    const fullPath = (menuPath) => `/projects/${projectId}/applications/${applicationId}/${menuPath}`
 
     const renderSubmenuItem = (subMenuItem) => {
+      let children = null
+      if (subMenuItem.items) {
+        const child = subMenuItem.items.map((subsubMenuItem) => {
+          return (
+            <li className='navbar-item mb-1' key={subsubMenuItem.path}>
+              <NavLink exact className='nav-link text-info' to={fullPath(subsubMenuItem.path)}>
+                {subsubMenuItem.text}
+              </NavLink>
+            </li>
+          )
+        })
+        children = (
+          <li>
+            <ul>
+              {child}
+            </ul>
+          </li>
+        )
+      }
       return (
-        <li className='navbar-item mb-1' key={subMenuItem.path}>
-          <NavLink exact className='nav-link text-info' to={fullPath(subMenuItem.path)}>
-            <i className={`fas fa-${subMenuItem.icon} fa-fw mr-2`}></i>
-            {subMenuItem.text}
-          </NavLink>
-        </li>
+        <React.Fragment>
+          <li className='navbar-item mb-1' key={subMenuItem.path}>
+            <NavLink exact className='nav-link text-info' to={fullPath(subMenuItem.path)}>
+              <i className={`fas fa-${subMenuItem.icon} fa-fw mr-2`}></i>
+              {subMenuItem.text}
+            </NavLink>
+          </li>
+          {children}
+        </React.Fragment>
       )
     }
 
