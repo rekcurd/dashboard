@@ -2,19 +2,18 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { RouterProps } from 'react-router'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
-import { InjectedFormProps } from 'redux-form'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { KubernetesHost, SaveKubernetesHostParam } from '@src/apis'
-import { saveKubernetesHostDispatcher, fetchKubernetesHostByIdDispatcher, addNotification } from '@src/actions'
-import { HostForm, CustomProps as FormCustomProps } from './HostForm'
+import { Kubernetes, KubernetesParam, FetchKubernetesByIdParam } from '@src/apis'
+import { saveKubernetesDispatcher, fetchKubernetesByIdDispatcher, addNotification } from '@src/actions'
+import { HostForm } from './HostForm'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 
 /**
  * Page for adding/editing Kubernetes host
  *
  */
-class Host extends React.Component<HostProps, {submitting: boolean, notified: boolean}> {
+class Host extends React.Component<HostProps, HostState> {
   constructor(props, context) {
     super(props, context)
 
@@ -33,15 +32,18 @@ class Host extends React.Component<HostProps, {submitting: boolean, notified: bo
    * @param params
    */
   onSubmit(params) {
-    const { saveKubernetesHost, mode } = this.props
-    const formParams: KubernetesHost = params[mode].kubernetes
+    const { saveKubernetes, method } = this.props
+    const formParams: Kubernetes = params
     const extraParams =
-      mode === 'edit'
-      ? {id: Number(this.props.match.params.kubernetesId)}
+      method === 'patch'
+      ? {kubernetesId: Number(this.props.match.params.kubernetesId)}
       : {}
 
     this.setState({submitting: true, notified: false})
-    return saveKubernetesHost({...formParams, ...extraParams, method: mode})
+    return saveKubernetes({
+      projectId: this.props.match.params.projectId,
+      ...formParams, ...extraParams, method: method
+    })
   }
 
   /**
@@ -51,43 +53,45 @@ class Host extends React.Component<HostProps, {submitting: boolean, notified: bo
    */
   onCancel() {
     const { push } = this.props.history
-    push('/settings/kubernetes/hosts')
+    push(`/projects/${this.props.match.params.projectId}/kubernetes`)
   }
 
-  componentWillMount() {
-    if (this.props.mode === 'edit') {
-      const { kubernetesId } = this.props.match.params
-      this.props.fetchKubernetesHostById({ id: kubernetesId })
+  componentDidMount() {
+    if (this.props.method === 'patch') {
+      this.props.fetchKubernetesById({
+        projectId: this.props.match.params.projectId,
+        kubernetesId: this.props.match.params.kubernetesId
+      })
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    const { saveKubernetesHostStatus } = nextProps
-    const { push } = this.props.history
-    const { submitting, notified } = this.state
+  static getDerivedStateFromProps(nextProps: HostProps, prevState: HostState){
+    const { saveKubernetesStatus } = nextProps
+    const { push } = nextProps.history
+    const { submitting, notified } = prevState
 
     // Handling submitted API results
     if (submitting && !notified) {
-      const succeeded: boolean = isAPISucceeded<boolean>(saveKubernetesHostStatus) && saveKubernetesHostStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(saveKubernetesHostStatus) && !saveKubernetesHostStatus.result) ||
-        isAPIFailed<boolean>(saveKubernetesHostStatus)
+      const succeeded: boolean = isAPISucceeded<boolean>(saveKubernetesStatus) && saveKubernetesStatus.result
+      const failed: boolean = (isAPISucceeded<boolean>(saveKubernetesStatus) && !saveKubernetesStatus.result) ||
+        isAPIFailed<boolean>(saveKubernetesStatus)
       if (succeeded) {
-        this.setState({notified: true})
-        push('/settings/kubernetes/hosts')
+        push(`/projects/${nextProps.match.params.projectId}/kubernetes`)
         nextProps.addNotification({ color: 'success', message: 'Successfully saved host' })
+        return {notified: true}
       } else if (failed) {
-        this.setState({notified: true})
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+        return {notified: true}
       }
     }
   }
 
   render() {
-    const { mode } = this.props
-    if (mode === 'edit') {
+    const { method } = this.props
+    if (method === 'patch') {
       return (
         <APIRequestResultsRenderer
-          APIStatus={{ host: this.props.fetchKubernetesHostByIdStatus }}
+          APIStatus={{ host: this.props.fetchKubernetesByIdStatus }}
           render={this.renderEditForm}
         />
       )
@@ -96,7 +100,7 @@ class Host extends React.Component<HostProps, {submitting: boolean, notified: bo
       <HostForm
         onCancel={this.onCancel}
         onSubmit={this.onSubmit}
-        mode={this.props.mode}
+        method={this.props.method}
       />
     )
   }
@@ -107,8 +111,8 @@ class Host extends React.Component<HostProps, {submitting: boolean, notified: bo
       <HostForm
         onCancel={this.onCancel}
         onSubmit={this.onSubmit}
-        mode={this.props.mode}
-        initialValues={{ edit: { kubernetes: { ...properties } } }}
+        method={this.props.method}
+        initialValues={...properties}
       />
     )
   }
@@ -117,43 +121,47 @@ class Host extends React.Component<HostProps, {submitting: boolean, notified: bo
 type HostProps =
   StateProps & DispatchProps
   & CustomProps
-  & InjectedFormProps<{}, FormCustomProps>
-  & RouterProps & RouteComponentProps<{ kubernetesId?: string }>
+  & RouterProps & RouteComponentProps<{ projectId: number, kubernetesId?: number }>
+
+interface HostState {
+  submitting: boolean,
+  notified: boolean
+}
 
 interface StateProps {
-  saveKubernetesHostStatus: APIRequest<boolean>
-  fetchKubernetesHostByIdStatus: APIRequest<any>
+  saveKubernetesStatus: APIRequest<boolean>
+  fetchKubernetesByIdStatus: APIRequest<any>
 }
 
 interface CustomProps {
-  mode: string
+  method: string
 }
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
-    saveKubernetesHostStatus: state.saveKubernetesHostReducer.saveKubernetesHost,
-    fetchKubernetesHostByIdStatus: state.fetchKubernetesHostByIdReducer.kubernetesHostById,
+    saveKubernetesStatus: state.saveKubernetesReducer.saveKubernetes,
+    fetchKubernetesByIdStatus: state.fetchKubernetesByIdReducer.fetchKubernetesById,
     ...state.form,
     ...extraProps
   }
 )
 
 export interface DispatchProps {
-  saveKubernetesHost: (params: SaveKubernetesHostParam) => Promise<void>
-  fetchKubernetesHostById: (params) => Promise<void>
+  saveKubernetes: (params: KubernetesParam) => Promise<void>
+  fetchKubernetesById: (params: FetchKubernetesByIdParam) => Promise<void>
   addNotification: (params) => any
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    saveKubernetesHost: (params: SaveKubernetesHostParam) => saveKubernetesHostDispatcher(dispatch, params),
-    fetchKubernetesHostById: (params) => fetchKubernetesHostByIdDispatcher(dispatch, params),
+    saveKubernetes: (params: KubernetesParam) => saveKubernetesDispatcher(dispatch, params),
+    fetchKubernetesById: (params: FetchKubernetesByIdParam) => fetchKubernetesByIdDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }
 
 export default withRouter(
-  connect<StateProps, DispatchProps, RouteComponentProps<{ kubernetesId?: string }> & CustomProps>(
+  connect<StateProps, DispatchProps, RouteComponentProps<{ projectId: number, kubernetesId?: number }> & CustomProps>(
     mapStateToProps, mapDispatchToProps
   )(Host)
 )
