@@ -4,21 +4,21 @@ import { Formik, Form, ErrorMessage, Field } from 'formik'
 import * as Yup from "yup";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
-import { ApplicationAccessControlList } from '@src/apis'
+import { ProjectAccessControlList } from '@src/apis'
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
-import { applicationRole } from "@components/App/Admin/constants";
+import { projectRole } from "@components/Common/Enum";
 
-interface EditUserApplicationRoleModalState {
+interface EditUserProjectRoleModalState {
   submitting: boolean
 }
 
 const UserRoleSchema = Yup.object().shape({
   role: Yup.string()
-    .oneof([applicationRole.admin.toString(), applicationRole.editor.toString(), applicationRole.viewer.toString()])
+    .oneof([projectRole.admin.toString(), projectRole.member.toString()])
     .required('Required'),
 });
 
-class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, EditUserApplicationRoleModalState> {
+class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, EditUserProjectRoleModalState> {
   constructor(props: EditUserRoleModalProps) {
     super(props)
     this.onCancel = this.onCancel.bind(this)
@@ -26,12 +26,12 @@ class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, Edit
   }
   componentDidUpdate(prevProps, prevState) {
     const { isModalOpen } = prevProps
-    const { saveApplicationAccessControlStatus, toggle, reload } = this.props
+    const { saveProjectAccessControlStatus, toggle, reload } = this.props
     const { submitting } = this.state
 
     if (isModalOpen && submitting) {
-      const succeeded: boolean = isAPISucceeded<boolean>(saveApplicationAccessControlStatus)
-      const failed: any = isAPIFailed<boolean>(saveApplicationAccessControlStatus) && saveApplicationAccessControlStatus.error
+      const succeeded: boolean = isAPISucceeded<boolean>(saveProjectAccessControlStatus)
+      const failed: any = isAPIFailed<boolean>(saveProjectAccessControlStatus) && saveProjectAccessControlStatus.error
       if (succeeded) {
         this.props.addNotification({ color: 'success', message: 'Successfully updated user' })
         toggle()
@@ -89,7 +89,7 @@ class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, Edit
     if (!target) {
       return null
     }
-    const roles = Object.values(applicationRole).map((roleName: string) => {
+    const roles = Object.values(projectRole).map((roleName: string) => {
       return (
         <option value={roleName} label={roleName}>
           {roleName}
@@ -107,11 +107,10 @@ class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, Edit
     toggle()
   }
   private onSubmit(params) {
-    const { saveApplicationAccessControl, projectId, applicationId, target } = this.props
+    const { saveProjectAccessControl, projectId, target } = this.props
     this.setState({ submitting: true })
-    return saveApplicationAccessControl({
+    return saveProjectAccessControl({
       projectId,
-      applicationId,
       uid: target.userUid,
       role: params.role,
       method: 'patch'
@@ -121,19 +120,18 @@ class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, Edit
 
 interface CustomProps {
   projectId: number
-  applicationId: string
   isModalOpen: boolean
   toggle: () => void
   reload: () => void
-  target?: ApplicationAccessControlList
-  saveApplicationAccessControl: (params) => void
-  saveApplicationAccessControlStatus: APIRequest<boolean>
+  target?: ProjectAccessControlList
+  saveProjectAccessControl: (params) => void
+  saveProjectAccessControlStatus: APIRequest<boolean>
   addNotification: (params) => void
 }
 
 type EditUserRoleModalProps = CustomProps
 
-export const EditUserApplicationRoleModal =
+export const EditUserProjectRoleModal =
   connect(
     (state: any, extraProps: CustomProps) => ({
       ...extraProps,

@@ -5,7 +5,7 @@ import { Formik, Form, ErrorMessage, Field } from 'formik'
 import * as Yup from "yup";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
-import {UserInfo, ProjectAccessControlList, AccessControlParam} from '@src/apis'
+import { UserInfo, ProjectAccessControlList, AccessControlParam } from '@src/apis'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   addNotification,
@@ -14,9 +14,10 @@ import {
   fetchAllUsersDispatcher,
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
-import { projectRole } from './constants'
+import { projectRole } from '@components/Common/Enum'
 
-interface Props extends RouteComponentProps<{projectId: number, applicationId?: string}> {
+
+interface CustomProps {
   isModalOpen: boolean
   acl: ProjectAccessControlList[]
   toggle: () => void
@@ -34,7 +35,7 @@ interface DispatchProps {
   saveProjectAccessControl: (params: AccessControlParam) => Promise<void>
 }
 
-type AddUserProjectRoleModalProps = Props & StateProps & DispatchProps
+type AddUserProjectRoleModalProps = CustomProps & StateProps & DispatchProps & RouteComponentProps<{projectId: number}>
 
 interface AddUserProjectRoleModalState {
   submitting: boolean
@@ -63,12 +64,16 @@ class AddUserProjectRoleModal extends React.Component<AddUserProjectRoleModalPro
       this.alreadyAdded.add(e.userUid)
     })
   }
+
+  componentDidMount() {
+    this.props.fetchAllUsers()
+  }
+
   componentDidUpdate(prevProps, prevState) {
     const { isModalOpen } = prevProps
-    const { fetchAllUsers, saveProjectAccessControlStatus, toggle, reload } = this.props
+    const { saveProjectAccessControlStatus, toggle, reload } = this.props
     const { submitting } = this.state
 
-    fetchAllUsers()
     if (isModalOpen && submitting) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveProjectAccessControlStatus)
       const failed: any = isAPIFailed<boolean>(saveProjectAccessControlStatus) && saveProjectAccessControlStatus.error
@@ -83,6 +88,7 @@ class AddUserProjectRoleModal extends React.Component<AddUserProjectRoleModalPro
       }
     }
   }
+
   render() {
     const { fetchAllUsersStatus, isModalOpen } = this.props
     return (
@@ -194,12 +200,12 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
     fetchAllUsers: () => fetchAllUsersDispatcher(dispatch),
-    saveProjectAccessControl: (params) => saveProjectAccessControlDispatcher(dispatch, params)
+    saveProjectAccessControl: (params: AccessControlParam) => saveProjectAccessControlDispatcher(dispatch, params)
   }
 }
 
 export default withRouter(
-  connect<StateProps, DispatchProps, RouteComponentProps<{projectId: number,  applicationId?: string}>>(
+  connect<StateProps, DispatchProps, RouteComponentProps<{projectId: number}> & CustomProps>(
     mapStateToProps, mapDispatchToProps
   )(AddUserProjectRoleModal)
 )

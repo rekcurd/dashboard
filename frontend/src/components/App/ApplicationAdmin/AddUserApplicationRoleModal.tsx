@@ -14,7 +14,7 @@ import {
   fetchAllUsersDispatcher,
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
-import { applicationRole } from './constants'
+import { applicationRole } from '@components/Common/Enum'
 
 interface CustomProps {
   isModalOpen: boolean
@@ -63,12 +63,16 @@ class AddUserApplicationRoleModal extends React.Component<AddUserApplicationRole
       this.alreadyAdded.add(e.userUid)
     })
   }
+
+  componentDidMount() {
+    this.props.fetchAllUsers()
+  }
+
   componentDidUpdate(prevProps, prevState) {
     const { isModalOpen } = prevProps
-    const { fetchAllUsers, saveApplicationAccessControlStatus, toggle, reload } = this.props
+    const { saveApplicationAccessControlStatus, toggle, reload } = this.props
     const { submitting } = this.state
 
-    fetchAllUsers()
     if (isModalOpen && submitting) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveApplicationAccessControlStatus)
       const failed: any = isAPIFailed<boolean>(saveApplicationAccessControlStatus) && saveApplicationAccessControlStatus.error
@@ -83,6 +87,7 @@ class AddUserApplicationRoleModal extends React.Component<AddUserApplicationRole
       }
     }
   }
+
   render() {
     const { fetchAllUsersStatus, isModalOpen } = this.props
     return (
@@ -194,7 +199,7 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
     fetchAllUsers: () => fetchAllUsersDispatcher(dispatch),
-    saveApplicationAccessControl: (params) => saveApplicationAccessControlDispatcher(dispatch, params)
+    saveApplicationAccessControl: (params: AccessControlParam) => saveApplicationAccessControlDispatcher(dispatch, params)
   }
 }
 
