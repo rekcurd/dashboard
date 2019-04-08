@@ -2,14 +2,12 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouterProps } from 'react-router'
 import { Row, Col } from 'reactstrap'
-import { InjectedFormProps } from 'redux-form'
 
 import { loginDispatcher, userInfoDispatcher, addNotification } from '@src/actions'
-import { FormCustomProps } from '@components/App/SaveApplication/ApplicationDeploymentForm'
 
 import { LoginForm } from './form'
-import { isAPISucceeded, APIRequest, APIStatusSuccess, APIRequestStatusList, JWT_TOKEN_KEY, isAPIFailed, isAPIUnauthorized } from '@src/apis/Core'
-import { AuthToken } from '@src/apis'
+import { isAPISucceeded, APIRequest, APIStatusSuccess, JWT_TOKEN_KEY, isAPIFailed, isAPIUnauthorized } from '@src/apis/Core'
+import { AuthToken, LoginParam } from '@src/apis'
 
 class Login extends React.Component<LoginProps, LoginState> {
   constructor(props, context) {
@@ -68,7 +66,7 @@ interface StateProps {
   loginStatus: APIRequest<AuthToken>
 }
 
-type LoginProps = StateProps & DispatchProps & RouterProps & InjectedFormProps<{}, FormCustomProps>
+type LoginProps = StateProps & DispatchProps & RouterProps
 
 interface LoginState {
   submitting: boolean
@@ -82,14 +80,14 @@ const mapStateToProps = (state) => {
 
 interface DispatchProps {
   fetchUserInfo: () => Promise<void>
-  submitLogin: (params) => Promise<void>
+  submitLogin: (params: LoginParam) => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     fetchUserInfo: () => userInfoDispatcher(dispatch),
-    submitLogin: (params) => loginDispatcher(dispatch, params),
+    submitLogin: (params: LoginParam) => loginDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }
