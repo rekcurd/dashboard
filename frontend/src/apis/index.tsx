@@ -1,5 +1,5 @@
 import * as APICore from './Core'
-import { apiConvertDataServerMode, apiConvertProjectRole, apiConvertApplicationRole } from '@components/App/Admin/constants'
+import { apiConvertDataServerMode, apiConvertProjectRole, apiConvertApplicationRole } from '@components/Common/Enum'
 
 const snakelize = (value: string): string => (value.split(/(?=[A-Z])/).join('_').toLowerCase());
 const camelize = (value: string): string => {
@@ -20,7 +20,7 @@ export interface ProjectParam {
   projectId?: number,
   displayName: string
   description: string
-  registeredDate?: Date
+  registerDate?: Date
   method: string
 }
 export async function saveProject(params: ProjectParam) {
@@ -52,7 +52,7 @@ export interface DataServerParam {
   awsAccessKey: string
   awsSecretKey: string
   awsBucketName: string
-  registeredDate?: Date
+  registerDate?: Date
   method: string
 }
 export async function saveDataServer(params: DataServerParam) {
@@ -73,16 +73,16 @@ export interface KubernetesParam {
   displayName: string
   exposedHost: string
   exposedPort: number
-  registeredDate?: Date
-  configFile: File | string
+  registerDate?: Date
+  configPath?: File | string
   method: string
 }
 export async function saveKubernetes(params: KubernetesParam) {
   const requestBody = {
     ...convertKeys(params, snakelize),
-    file: params.configFile,
+    file: params.configPath,
     method: {} = {},
-    configFile: {} = {}
+    configPath: {} = {}
   };
 
   const convert = (response) => response.status;
@@ -101,7 +101,7 @@ export interface ApplicationParam {
   projectId: number
   description: string
   applicationName: string
-  registeredDate?: Date
+  registerDate?: Date
   method: string
 }
 export async function saveApplication(params: ApplicationParam) {
@@ -151,7 +151,7 @@ export interface SingleServiceParam {
   serviceModelAssignment: number
   serviceInsecureHost: string
   serviceInsecurePort: number
-  registeredDate?: Date
+  registerDate?: Date
   method: string
 }
 export interface DeploymentParam {
@@ -217,7 +217,7 @@ export interface UploadModelParam {
   projectId: number
   applicationId: string
   description: string
-  file: File
+  filepath: File
 }
 export async function uploadModel(params: UploadModelParam) {
   const requestBody = {
@@ -251,7 +251,7 @@ export class Project {
     public name: string,
     public projectId: string,
     public description: string = '',
-    public date: Date = null
+    public registerDate: Date = null
   ) { }
 }
 export function fetchAllProjects(): Promise<Project[]> {
@@ -263,7 +263,7 @@ export function fetchAllProjects(): Promise<Project[]> {
             ...result,
             projectId: result.project_id,
             name: result.display_name,
-            date: new Date(result.register_date * 1000)
+            registerDate: new Date(result.register_date * 1000)
           }
         }
       );
@@ -279,7 +279,7 @@ export async function fetchProjectById(params: FetchProjectByIdParam): Promise<P
         ...result,
         name: result.display_name,
         projectId: result.project_id,
-        date: new Date(result.register_date * 1000)
+        registerDate: new Date(result.register_date * 1000)
       }
     );
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}`, convert)
@@ -288,7 +288,7 @@ export async function fetchProjectById(params: FetchProjectByIdParam): Promise<P
 export class DataServer {
   constructor(
     public projectId: number,
-    public mode: string | boolean,
+    public dataServerMode: string,
     public cephAccessKey: string = null,
     public cephSecretKey: string = null,
     public cephHost: string = null,
@@ -298,7 +298,7 @@ export class DataServer {
     public awsAccessKey: string = null,
     public awsSecretKey: string = null,
     public awsBucketName: string = null,
-    public date: Date = null
+    public registerDate: Date = null
   ) { }
 }
 export interface FetchDataServerByIdParam {
@@ -309,8 +309,8 @@ export async function fetchDataServer(params: FetchDataServerByIdParam): Promise
     (result) => (
       {
         ...convertKeys(result, camelize),
-        mode: apiConvertDataServerMode(result.data_server_mode),
-        date: new Date(result.register_date * 1000)
+        dataServerMode: apiConvertDataServerMode(result.data_server_mode),
+        registerDate: new Date(result.register_date * 1000)
       }
     );
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/data_servers`, convert)
@@ -318,48 +318,48 @@ export async function fetchDataServer(params: FetchDataServerByIdParam): Promise
 
 export class Kubernetes {
   constructor(
-    public name: string,
+    public displayName: string,
     public kubernetesId: number,
     public projectId: number,
     public description: string = '',
     public configPath: string,
     public exposedHost: string,
     public exposedPort: number,
-    public date: Date = null
+    public registerDate: Date = null
   ) { }
 }
-export interface FetchKubernetesById {
+export interface FetchKubernetesByIdParam {
   kubernetesId?: number
   projectId: number
 
 }
-export async function fetchAllKubernetes(params: FetchKubernetesById): Promise<Kubernetes[]> {
+export async function fetchAllKubernetes(params: FetchKubernetesByIdParam): Promise<Kubernetes[]> {
   const convert =
     (results) =>
       results.map(
         (result): Kubernetes => {
           return {
             kubernetesId: result.kubernetes_id,
-            name: result.display_name,
+            displayName: result.display_name,
             projectId: result.project_id,
             description: result.description,
             configPath: result.config_path,
             exposedHost: result.exposed_host,
             exposedPort: result.exposed_port,
-            date: new Date(result.register_date * 1000)
+            registerDate: new Date(result.register_date * 1000)
           }
         }
       );
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/kubernetes`, convert)
 }
-export async function fetchKubernetesById(params: FetchKubernetesById): Promise<Kubernetes> {
+export async function fetchKubernetesById(params: FetchKubernetesByIdParam): Promise<Kubernetes> {
   const convert =
     (result) => (
       {
         ...convertKeys(result, camelize),
         kubernetesId: result.kubernetes_id,
         name: result.display_name,
-        date: new Date(result.register_date * 1000)
+        registerDate: new Date(result.register_date * 1000)
       }
     );
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/kubernetes/${params.kubernetesId}`, convert)
@@ -370,7 +370,7 @@ export class Application {
     public name: string,
     public applicationId: string,
     public description: string = '',
-    public date: Date = null,
+    public registerDate: Date = null,
     public projectId: number
   ) { }
 }
@@ -387,7 +387,7 @@ export function fetchAllApplications(params: FetchApplicationByIdParam): Promise
             applicationId: result.application_id,
             name: result.application_name,
             description: result.description,
-            date: new Date(result.register_date * 1000),
+            registerDate: new Date(result.register_date * 1000),
             projectId: result.project_id
           }
         }
@@ -401,7 +401,7 @@ export async function fetchApplicationById(params: FetchApplicationByIdParam): P
         ...convertKeys(result, camelize),
         name: result.application_name,
         applicationId: result.application_id,
-        date: new Date(result.register_date * 1000)
+        registerDate: new Date(result.register_date * 1000)
       }
     );
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}`, convert)
@@ -411,11 +411,11 @@ export class Model {
   constructor(
     public modelId: number,
     public description: string = '',
-    public date: Date = null
+    public registerDate: Date = null
   ) { }
 }
 export interface FetchModelByIdParam {
-  modelId?: string
+  modelId?: number
   projectId: number
   applicationId: string
 }
@@ -425,7 +425,7 @@ export async function fetchAllModels(params: FetchModelByIdParam): Promise<Model
       return {
         description: result.description,
         modelId: result.model_id,
-        date: new Date(result.register_date * 1000)
+        registerDate: new Date(result.register_date * 1000)
       }
     });
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/models`, convert)
@@ -436,7 +436,7 @@ export async function fetchModelById(params: FetchModelByIdParam): Promise<Model
       {
         modelId: result.model_id,
         description: result.description,
-        date: new Date(result.register_date * 1000),
+        registerDate: new Date(result.register_date * 1000),
         ...convertKeys(result, camelize)
       }
     );
@@ -456,7 +456,7 @@ export class Service {
     public modelId: number,
     public insecureHost: string,
     public insecurePort: number,
-    public date: Date = null,
+    public registerDate: Date = null,
     public applicationId: string,
     public replicasDefault?: number,
     public replicasMinimum?: number,
@@ -492,7 +492,7 @@ export async function fetchAllServices(params: FetchServiceParam): Promise<Servi
         insecureHost: result.insecure_host,
         insecurePort: result.insecure_port,
         description: result.description,
-        date: new Date(result.register_date * 1000),
+        registerDate: new Date(result.register_date * 1000),
         applicationId: result.application_id
       }
     });
@@ -511,7 +511,7 @@ export async function fetchServiceById(params: FetchServiceByIdParam): Promise<S
       {
         serviceId: result.service_id,
         name: result.display_name,
-        date: new Date(result.register_date * 1000),
+        registerDate: new Date(result.register_date * 1000),
         ...convertKeys(result, camelize)
       }
     );
@@ -571,7 +571,7 @@ export interface SwitchModelParam {
   projectId: number
   applicationId: string
   serviceId: string
-  modelId: string
+  modelId: number
 }
 export async function switchModels(params: SwitchModelParam[]) {
   const requestOptions = params.map(
@@ -594,12 +594,12 @@ export async function switchModels(params: SwitchModelParam[]) {
   return APICore.rawMultiRequest(entryPoints, convert, requestOptions)
 }
 
-export interface SynKubernetesStatusParam {
+export interface SyncKubernetesParam {
   projectId: number
   applicationId?: string
   serviceId?: string
 }
-export async function syncKubernetesStatus(params: SynKubernetesStatusParam): Promise<boolean> {
+export async function syncKubernetes(params: SyncKubernetesParam): Promise<boolean> {
   const options = {
     method: 'PUT',
     body: new FormData()

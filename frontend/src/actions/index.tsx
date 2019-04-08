@@ -159,15 +159,15 @@ export const fetchDataServerDispatcher = asyncAPIRequestDispatcherCreator<Apis.F
 )
 
 export const fetchAllKubernetesActionCreators =
-  new APIRequestActionCreators<Apis.FetchKubernetesById, Apis.Kubernetes[]>('FETCH_ALL_KUBERNETES')
-export const fetchAllKubernetesDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchKubernetesById, Apis.Kubernetes[]>(
+  new APIRequestActionCreators<Apis.FetchKubernetesByIdParam, Apis.Kubernetes[]>('FETCH_ALL_KUBERNETES')
+export const fetchAllKubernetesDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes[]>(
   fetchAllKubernetesActionCreators,
   Apis.fetchAllKubernetes
 )
 
 export const fetchKubernetesByIdActionCreators =
-  new APIRequestActionCreators<Apis.FetchKubernetesById, Apis.Kubernetes>('FETCH_KUBERNETES_BY_ID')
-export const fetchKubernetesByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchKubernetesById, Apis.Kubernetes>(
+  new APIRequestActionCreators<Apis.FetchKubernetesByIdParam, Apis.Kubernetes>('FETCH_KUBERNETES_BY_ID')
+export const fetchKubernetesByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes>(
   fetchKubernetesByIdActionCreators,
   Apis.fetchKubernetesById
 )
@@ -228,11 +228,11 @@ export const switchModelsDispatcher = asyncAPIRequestDispatcherCreator<Apis.Swit
   Apis.switchModels
 )
 
-export const syncKubernetesStatusActionCreators =
-  new APIRequestActionCreators<Apis.SynKubernetesStatusParam, boolean>('SYNC_KUBERNETES_STATUS')
-export const syncKubernetesStatusDispatcher = asyncAPIRequestDispatcherCreator<Apis.SynKubernetesStatusParam, boolean>(
-  syncKubernetesStatusActionCreators,
-  Apis.syncKubernetesStatus
+export const syncKubernetesActionCreators =
+  new APIRequestActionCreators<Apis.SyncKubernetesParam, boolean>('SYNC_KUBERNETES_STATUS')
+export const syncKubernetesDispatcher = asyncAPIRequestDispatcherCreator<Apis.SyncKubernetesParam, boolean>(
+  syncKubernetesActionCreators,
+  Apis.syncKubernetes
 )
 
 export const deleteKubernetesActionCreators =

@@ -27,7 +27,7 @@ export class AppState {
     public fetchServiceById: APIRequest<Apis.Service> = { status: APIRequestStatusList.notStarted},
     public fetchServiceRoute: APIRequest<Apis.ServiceRoute> = { status: APIRequestStatusList.notStarted},
     public switchModels: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted},
-    public syncKubernetesStatus: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public syncKubernetes: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     public deleteKubernetes: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     public deleteDataServer: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     public deleteApplication: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
@@ -109,9 +109,9 @@ export const fetchProjectByIdReducer = APIRequestReducerCreator<Apis.FetchProjec
   Actions.fetchProjectByIdActionCreators, 'fetchProjectById')
 export const fetchDataServerReducer = APIRequestReducerCreator<Apis.FetchDataServerByIdParam, Apis.DataServer>(
   Actions.fetchDataServerActionCreators, 'fetchDataServer')
-export const fetchAllKubernetesReducer = APIRequestReducerCreator<Apis.FetchKubernetesById, Apis.Kubernetes[]>(
+export const fetchAllKubernetesReducer = APIRequestReducerCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes[]>(
   Actions.fetchAllKubernetesActionCreators, 'fetchAllKubernetes')
-export const fetchKubernetesByIdReducer = APIRequestReducerCreator<Apis.FetchKubernetesById, Apis.Kubernetes>(
+export const fetchKubernetesByIdReducer = APIRequestReducerCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes>(
   Actions.fetchKubernetesByIdActionCreators, 'fetchKubernetesById')
 export const fetchAllApplicationsReducer = APIRequestReducerCreator<Apis.FetchApplicationByIdParam, Apis.Application[]>(
   Actions.fetchAllApplicationsActionCreators, 'fetchAllApplications')
@@ -129,8 +129,8 @@ export const fetchServiceRouteReducer = APIRequestReducerCreator<Apis.FetchServi
   Actions.fetchServiceRouteActionCreators, 'fetchServiceRoute')
 export const switchModelsReducer = APIRequestReducerCreator<Apis.SwitchModelParam[], boolean[]>(
   Actions.switchModelsActionCreators, 'switchModels')
-export const syncKubernetesStatusReducer = APIRequestReducerCreator<Apis.SynKubernetesStatusParam, boolean[]>(
-  Actions.syncKubernetesStatusActionCreators, 'syncKubernetesStatus')
+export const syncKubernetesReducer = APIRequestReducerCreator<Apis.SyncKubernetesParam, boolean[]>(
+  Actions.syncKubernetesActionCreators, 'syncKubernetes')
 export const deleteKubernetesReducer = APIRequestReducerCreator<Apis.IdParam, boolean>(
   Actions.deleteKubernetesActionCreators, 'deleteKubernetes')
 export const deleteDataServerReducer = APIRequestReducerCreator<Apis.IdParam, boolean>(
