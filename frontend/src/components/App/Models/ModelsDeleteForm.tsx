@@ -1,46 +1,104 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { Button } from 'reactstrap'
-import { reduxForm, InjectedFormProps } from 'redux-form'
+import { Button, Table, Row } from 'reactstrap'
+import { Link } from 'react-router-dom'
+import { Formik, Form } from 'formik'
 
 import { Model } from '@src/apis'
-import ModelsStatusTable from './ModelsStatusTable'
 import { ControlMode } from './index'
+import { Checkbox } from '@common/Field'
 
-class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, {}> {
+
+class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, ModelDeleteFormCustomState> {
   constructor(props, context) {
     super(props, context)
 
     this.handleDiscardChanges = this.handleDiscardChanges.bind(this)
-  }
-
-  componentWillReceiveProps(nextProps: ModelsDeleteFormProps) {
-    const { mode, pristine, changeMode } = nextProps
-
-    if (mode === ControlMode.VIEW_MODELS_STATUS && !pristine) {
-      changeMode(ControlMode.SELECT_TARGETS)
-    } else if (mode === ControlMode.SELECT_TARGETS && pristine) {
-      changeMode(ControlMode.VIEW_MODELS_STATUS)
-    }
+    this.handleModeChanges = this.handleModeChanges.bind(this)
   }
 
   render() {
     const {
-      onSubmit,
-      handleSubmit,
+      onSubmit
     } = this.props
 
     return (
-      <form onSubmit={handleSubmit(onSubmit)} >
-        <div className='mb-2'>
-          {this.renderDiscardButton()}
-        </div>
-        <ModelsStatusTable
-          {...this.props}
-        />
-        <hr />
-        {this.renderSubmitButtons()}
-      </form>
+      <Formik
+        initialValues={{
+          delete_models: this.props.initialValues.delete.models
+        }}
+        onSubmit={onSubmit}>
+        {({ isInitialValid, isSubmitting }) => (
+          <Form>
+            {this.handleModeChanges(isInitialValid)}
+            <div className='mb-2'>
+              {this.renderDiscardButton()}
+            </div>
+            <Table hover className='mb-3'>
+              {this.renderTableHead()}
+              {this.renderTableBody()}
+            </Table>
+            <hr />
+            {this.renderSubmitButtons(isInitialValid, isSubmitting)}
+          </Form>
+        )}
+      </Formik>
+    )
+  }
+
+  /**
+   * Render head row of the table
+   */
+  renderTableHead = () => {
+    return (
+      <thead>
+      <tr className='bg-light text-primary'>
+        <th>Description</th>
+        <th>Registered Date</th>
+      </tr>
+      </thead>
+    )
+  }
+
+  /**
+   * Render body of the table
+   *
+   * Render Model names
+   * Each Model is rendered with a deploy check box on viewing/deleting mode
+   * @param models Models to be shown (Currently show all, but should be filtered)
+   */
+  renderTableBody = () => {
+    const { projectId, applicationId, canEdit, models } = this.props
+
+    // Button to delete Model (for deleting k8s models)
+    const deleteCheckButton = (modelName: string, modelId: number) => {
+      return (
+        <Row>
+          { canEdit ?
+            <Checkbox name='delete_models' value={modelId.toString()} label='' />
+            : null }
+          <Link className='text-info' to={`/projects/${projectId}/applications/${applicationId}/models/${modelId}/edit`}>
+            {modelName}
+          </Link>
+        </Row>
+      )
+    }
+
+    return (
+      <tbody>
+      {models.map(
+        (model: Model, index: number) => (
+          <tr key={index}>
+            <td key={model.description} scope='col'>
+              {deleteCheckButton(model.description, model.modelId)}
+            </td>
+            <td>
+              {model.registerDate.toUTCString()}
+            </td>
+          </tr>
+        )
+      )}
+      </tbody>
     )
   }
 
@@ -66,14 +124,10 @@ class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, {}> {
    * Show delete button if selected targets exist
    * Show save button if editing deploy status
    */
-  renderSubmitButtons(): JSX.Element {
-    const {
-      mode,
-      submitting,
-      pristine
-    } = this.props
+  renderSubmitButtons(isInitialValid, isSubmitting): JSX.Element {
+    const { mode } = this.props
 
-    const showSubmitButton: boolean = mode !== ControlMode.VIEW_MODELS_STATUS
+    const showSubmitButton: boolean = mode !== ControlMode.VIEW_SERVICES_STATUS
 
     if (!showSubmitButton) {
       return null
@@ -89,7 +143,7 @@ class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, {}> {
         <Button
           color={params.color}
           className='mr-2'
-          disabled={pristine || submitting}
+          disabled={isInitialValid || isSubmitting}
           type='submit'
         >
           <i className={`fas fa-${params.icon} fa-fw mr-2`}></i>
@@ -105,51 +159,37 @@ class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, {}> {
       </div>
     )
 
-    return submitting ? submittingLoader : buttons(paramsMap[mode])
-  }
-
-  renderSubmitButtonElements() {
-    const {
-      submitting,
-      pristine
-    } = this.props
-
-    const paramsMap = {
-      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Models' },
-    }
-
-    return (
-      <div className='mb-2'>
-        <Button
-          color='danger'
-          className='mr-2'
-          disabled={pristine || submitting}
-        >
-          <i className='fas fa-trash fa-fw mr-2'></i>
-          Delete Models
-      </Button>
-      </div>
-    )
+    return isSubmitting ? submittingLoader : buttons(paramsMap[mode])
   }
 
   // Handle event methods
 
   handleDiscardChanges(event): void {
-    const { changeMode, reset } = this.props
-    reset()
-    changeMode(ControlMode.VIEW_MODELS_STATUS)
+    const { changeMode } = this.props
+    changeMode(ControlMode.VIEW_SERVICES_STATUS)
+  }
+
+  handleModeChanges(isInitialValid): void {
+    const { mode, changeMode } = this.props
+    if (mode === ControlMode.VIEW_SERVICES_STATUS && !isInitialValid) {
+      changeMode(ControlMode.SELECT_TARGETS)
+    } else if (mode === ControlMode.SELECT_TARGETS && isInitialValid) {
+      changeMode(ControlMode.VIEW_SERVICES_STATUS)
+    }
   }
 }
 
 interface ModelsDeleteFormCustomProps {
-  applicationType: string
+  projectId
   applicationId
   mode: ControlMode
   models: Model[]
   canEdit: boolean
-  onSubmit: (e) => Promise<void>
+  onSubmit: (e) => void
   changeMode: (mode: ControlMode) => void
 }
+
+interface ModelDeleteFormCustomState {}
 
 interface StateProps {
   initialValues: {
@@ -162,8 +202,8 @@ const mapStateToProps = (state: any, extraProps: ModelsDeleteFormCustomProps) =>
   // Map of model ID to delete flag
   const initialDeleteStatus: { [x: string]: boolean } =
     extraProps.models
-    .map((model) => ({[model.id]: false}))
-    .reduce((l, r) => Object.assign(l, r), {})
+      .map((model) => ({[model.modelId]: false}))
+      .reduce((l, r) => Object.assign(l, r), {})
 
   return {
     ...state.form,
@@ -179,13 +219,6 @@ const mapDispatchToProps = (dispatch): {} => {
   return { }
 }
 
-type ModelsDeleteFormProps
-  = StateProps & ModelsDeleteFormCustomProps & InjectedFormProps<{}, ModelsDeleteFormCustomProps>
+type ModelsDeleteFormProps = StateProps & ModelsDeleteFormCustomProps
 
-export default connect(mapStateToProps, mapDispatchToProps)(
-  reduxForm<{}, ModelsDeleteFormCustomProps>(
-    {
-      form: 'deployStatusForm'
-    }
-  )(ModelsDeleteForm)
-)
+export default connect(mapStateToProps, mapDispatchToProps)(ModelsDeleteForm)
