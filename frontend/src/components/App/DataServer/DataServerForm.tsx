@@ -9,7 +9,7 @@ import { ErrorMessage, Field, Form, Formik } from "formik";
 
 const DataServerSchema = Yup.object().shape({
   dataServerMode: Yup.string()
-    .oneof([dataServerMode.local.toString(), dataServerMode.ceph_s3.toString(), dataServerMode.aws_s3.toString()])
+    .oneOf([dataServerMode.local.toString(), dataServerMode.ceph_s3.toString(), dataServerMode.aws_s3.toString()])
     .required('Required'),
   cephAccessKey: Yup.string()
     .max(128),

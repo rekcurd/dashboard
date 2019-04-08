@@ -14,7 +14,7 @@ interface EditUserProjectRoleModalState {
 
 const UserRoleSchema = Yup.object().shape({
   role: Yup.string()
-    .oneof([projectRole.admin.toString(), projectRole.member.toString()])
+    .oneOf([projectRole.admin.toString(), projectRole.member.toString()])
     .required('Required'),
 });
 

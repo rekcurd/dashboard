@@ -16,12 +16,12 @@ export const SingleServiceSchema = {
   description: Yup.string(),
   serviceLevel: Yup.string()
     .required('Required')
-    .oneof([serviceLevel.development.toString(), serviceLevel.staging.toString(),
+    .oneOf([serviceLevel.development.toString(), serviceLevel.staging.toString(),
             serviceLevel.production.toString(), serviceLevel.beta.toString(),
             serviceLevel.sandbox.toString()]),
   version: Yup.string()
     .required('Required')
-    .oneof(['v3']),
+    .oneOf(['v3']),
   serviceInsecureHost: Yup.string()
     .required('Required')
     .max(512),

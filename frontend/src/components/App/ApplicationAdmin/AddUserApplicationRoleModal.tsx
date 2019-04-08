@@ -44,7 +44,7 @@ const UserRoleSchema = Yup.object().shape({
   uid: Yup.string()
     .required('Required'),
   role: Yup.string()
-    .oneof([applicationRole.admin.toString(), applicationRole.editor.toString(), applicationRole.viewer.toString()])
+    .oneOf([applicationRole.admin.toString(), applicationRole.editor.toString(), applicationRole.viewer.toString()])
     .required('Required'),
 });
 

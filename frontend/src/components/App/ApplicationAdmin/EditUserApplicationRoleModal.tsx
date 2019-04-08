@@ -14,7 +14,7 @@ interface EditUserApplicationRoleModalState {
 
 const UserRoleSchema = Yup.object().shape({
   role: Yup.string()
-    .oneof([applicationRole.admin.toString(), applicationRole.editor.toString(), applicationRole.viewer.toString()])
+    .oneOf([applicationRole.admin.toString(), applicationRole.editor.toString(), applicationRole.viewer.toString()])
     .required('Required'),
 });
 
