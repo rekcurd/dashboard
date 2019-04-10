@@ -58,6 +58,15 @@ class ApiKubernetesTest(BaseTestCase):
         self.assertIsNotNone(response)
 
 
+class ApiIsKubernetesModeTest(BaseTestCase):
+    __URL = f'/api/projects/{TEST_PROJECT_ID}/is_kubernetes_mode'
+
+    def test_get(self):
+        response = self.client.get(self.__URL)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(False, response.json['is_target'])
+
+
 class ApiKubernetesBackupTest(BaseTestCase):
     __URL = f'/api/projects/{TEST_PROJECT_ID}/backup'
 

@@ -18,6 +18,12 @@ from rekcurd_dashboard.utils import ProjectUserRoleException
 
 kubernetes_api_namespace = Namespace('kubernetes', description='Kubernetes API Endpoint.')
 success_or_not = kubernetes_api_namespace.model('Success', status_model)
+true_or_false = kubernetes_api_namespace.model('True or False', {
+    'is_target': fields.Boolean(
+        readOnly=True,
+        description='True or False'
+    )
+})
 kubernetes_model_params = kubernetes_api_namespace.model('Kubernetes', {
     'kubernetes_id': fields.Integer(
         readOnly=True,
@@ -124,6 +130,18 @@ class ApiKubernetes(Resource):
             remove_kubernetes_access_file(config_path)
             raise error
         return {"status": True, "message": "Success."}
+
+
+@kubernetes_api_namespace.route('/projects/<int:project_id>/is_kubernetes_mode')
+class ApiIsKubernetesMode(Resource):
+    @kubernetes_api_namespace.marshal_with(true_or_false)
+    def get(self, project_id: int):
+        """is Kubernetes mode?"""
+        kubernetes_models = KubernetesModel.query.filter_by(project_id=project_id).all()
+        if kubernetes_models:
+            return {'is_target': True}
+        else:
+            return {'is_target': False}
 
 
 @kubernetes_api_namespace.route('/projects/<int:project_id>/backup')

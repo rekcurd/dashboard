@@ -17,6 +17,7 @@ export class AppState {
     public fetchAllProjects: APIRequest<Apis.Project[]> = { status: APIRequestStatusList.notStarted},
     public fetchProjectById: APIRequest<Apis.Project> = { status: APIRequestStatusList.notStarted},
     public fetchDataServer: APIRequest<Apis.DataServer> = { status: APIRequestStatusList.notStarted},
+    public fetchIsKubernetesMode: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public fetchAllKubernetes: APIRequest<Apis.Kubernetes[]> = { status: APIRequestStatusList.notStarted},
     public fetchKubernetesById: APIRequest<Apis.Kubernetes> = { status: APIRequestStatusList.notStarted},
     public fetchAllApplications: APIRequest<Apis.Application[]> = { status: APIRequestStatusList.notStarted},
@@ -109,6 +110,8 @@ export const fetchProjectByIdReducer = APIRequestReducerCreator<Apis.FetchProjec
   Actions.fetchProjectByIdActionCreators, 'fetchProjectById')
 export const fetchDataServerReducer = APIRequestReducerCreator<Apis.FetchDataServerByIdParam, Apis.DataServer>(
   Actions.fetchDataServerActionCreators, 'fetchDataServer')
+export const fetchIsKubernetesModeReducer = APIRequestReducerCreator<Apis.FetchKubernetesByIdParam, boolean>(
+  Actions.fetchIsKubernetesModeActionCreators, 'fetchIsKubernetesMode')
 export const fetchAllKubernetesReducer = APIRequestReducerCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes[]>(
   Actions.fetchAllKubernetesActionCreators, 'fetchAllKubernetes')
 export const fetchKubernetesByIdReducer = APIRequestReducerCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes>(
