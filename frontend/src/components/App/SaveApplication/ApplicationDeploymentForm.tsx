@@ -1,8 +1,10 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { Card, CardBody, Button } from 'reactstrap'
-import { Formik, Form, ErrorMessage, Field } from 'formik'
+import { Formik, Form, Field } from 'formik'
 import * as Yup from "yup";
+
+import { FormikInput } from '@common/Field'
 
 
 const ApplicationSchema = Yup.object().shape({
@@ -18,7 +20,7 @@ class ApplicationDeploymentFormImpl extends React.Component<AddApplicationFormPr
    *
    */
   render() {
-    const { onSubmit } = this.props
+    const { onSubmit, onCancel } = this.props
 
     return (
       <React.Fragment>
@@ -33,24 +35,29 @@ class ApplicationDeploymentFormImpl extends React.Component<AddApplicationFormPr
             description: '',
           }}
           validationSchema={ApplicationSchema}
-          onSubmit={onSubmit}>
-          {({ errors, touched }) => (
+          onSubmit={onSubmit}
+          onReset={onCancel}>
+          {({ errors, touched, isSubmitting }) => (
             <Form>
               <Card className='mb-3'>
                 <CardBody>
-                  <Field name="application_name" placeholder="Display name"/>
-                  {errors.application_name && touched.application_name ? (
-                    <div>{errors.application_name}</div>
-                  ) : null}
-                  <ErrorMessage name="application_name" />
-                  <Field name="description" component="textarea" placeholder="Description"/>
-                  {errors.description && touched.description ? (
-                    <div>{errors.description}</div>
-                  ) : null}
-                  <ErrorMessage name="description" />
+                  <Field
+                    name="application_name"
+                    label="Application Name"
+                    component={FormikInput}
+                    className='form-control'
+                    placeholder="Application name"
+                    required />
+                  <Field
+                    name="description"
+                    label="Description"
+                    className='form-control'
+                    component={FormikInput}
+                    type="textarea"
+                    placeholder="Description" />
                 </CardBody>
               </Card>
-              {this.renderButtons()}
+              {this.renderButtons(isSubmitting)}
             </Form>
           )}
         </Formik>
@@ -63,9 +70,8 @@ class ApplicationDeploymentFormImpl extends React.Component<AddApplicationFormPr
    *
    * Put on footer of this modal
    */
-  renderButtons() {
-    const { onSubmit, onCancel, submitting } = this.props
-    if (submitting) {
+  renderButtons(isSubmitting) {
+    if (isSubmitting) {
       return (
         <Card className='mb-3'>
           <CardBody>
@@ -79,12 +85,12 @@ class ApplicationDeploymentFormImpl extends React.Component<AddApplicationFormPr
     return (
       <Card className='mb-3'>
         <CardBody className='text-right'>
-          <Button color='success' onClick={onSubmit}>
+          <Button color='success' type='submit'>
             <i className='fas fa-check fa-fw mr-2'></i>
             Create Application
           </Button>
           {' '}
-          <Button outline color='info' onClick={onCancel}>
+          <Button outline color='info' type='reset'>
             <i className='fas fa-ban fa-fw mr-2'></i>
             Reset
           </Button>
@@ -95,7 +101,6 @@ class ApplicationDeploymentFormImpl extends React.Component<AddApplicationFormPr
 }
 
 export interface FormCustomProps {
-  submitting
   onCancel
   onSubmit
 }

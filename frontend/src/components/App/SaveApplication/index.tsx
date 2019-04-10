@@ -28,21 +28,22 @@ class AddApplication extends React.Component<AddApplicationProps, AddApplication
     const { saveApplicationStatus } = nextProps
     const { submitting, notified } = prevState
     const { push } = nextProps.history
+    const { projectId } = nextProps.match.params
 
     // Close modal when API successfully finished
     if (submitting && !notified) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveApplicationStatus) && saveApplicationStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(saveApplicationStatus) && !saveApplicationStatus.result) ||
-        isAPIFailed<boolean>(saveApplicationStatus)
+      const failed: boolean = (isAPISucceeded<boolean>(saveApplicationStatus) && !saveApplicationStatus.result) || isAPIFailed<boolean>(saveApplicationStatus)
       if (succeeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully added application' })
-        push('/applications/')
+        push(`/projects/${projectId}/applications`)
         return { notified: true }
       } else if (failed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
         return { notified: true }
       }
     }
+    return null
   }
 
   /**
@@ -52,7 +53,8 @@ class AddApplication extends React.Component<AddApplicationProps, AddApplication
    */
   onCancel() {
     const { push } = this.props.history
-    push('/applications')
+    const { projectId } = this.props.match.params
+    push(`/projects/${projectId}/applications`)
   }
 
   onSubmit(parameters) {
@@ -61,6 +63,7 @@ class AddApplication extends React.Component<AddApplicationProps, AddApplication
 
     return saveApplication(
       {
+        method: 'post',
         projectId: this.props.match.params.projectId,
         ...parameters,
       }
@@ -72,7 +75,6 @@ class AddApplication extends React.Component<AddApplicationProps, AddApplication
       <Row className='justify-content-center'>
         <Col md='10' className='pt-5'>
           <ApplicationDeloymentForm
-            submitting={this.state.submitting}
             onSubmit={this.onSubmit}
             onCancel={this.onCancel}
           />

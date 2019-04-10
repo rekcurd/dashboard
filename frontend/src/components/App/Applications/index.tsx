@@ -5,9 +5,12 @@ import { withRouter, Link } from 'react-router-dom'
 import { Button } from 'reactstrap'
 
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
-import { Application, FetchApplicationByIdParam, SyncKubernetesParam } from '@src/apis'
+import {
+  Application, FetchApplicationByIdParam, FetchKubernetesByIdParam, SyncKubernetesParam
+} from '@src/apis'
 import {
   fetchAllApplicationsDispatcher,
+  fetchIsKubernetesModeDispatcher,
   syncKubernetesDispatcher,
   addNotification
  } from '@src/actions'
@@ -37,7 +40,8 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
   }
 
   componentDidMount() {
-    this.props.fetchApplications({projectId: this.props.match.params.projectId})
+    this.props.fetchIsKubernetesMode(this.props.match.params)
+    this.props.fetchApplications(this.props.match.params)
   }
 
   static getDerivedStateFromProps(nextProps: ApplicationProps, prevState: ApplicationState){
@@ -57,14 +61,16 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
         return {syncSubmitted: false, syncNotified: true}
       }
     }
+    return null
   }
 
   render() {
-    const status = this.props.applications
+    const { kubernetesMode, applications } = this.props
+    const targetStatus = { kubernetesMode, applications }
 
     return (
       <APIRequestResultsRenderer
-        APIStatus={{ applications: status }}
+        APIStatus={targetStatus}
         render={this.renderApplications}
       />
     )
@@ -73,11 +79,22 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
 
   renderApplications(result) {
     const applications: Application[] = result.applications
+    const kubernetesMode: boolean = result.kubernetesMode
     const { push } = this.props.history
     const submitSync = () => {
       this.props.syncKubernetes({projectId: this.props.match.params.projectId})
       this.setState({syncSubmitted: true, syncNotified: false})
     }
+
+    const syncKubernetes = kubernetesMode ? (
+      <React.Fragment>
+        {` `}
+        <Button color='success' size='sm' onClick={submitSync}>
+          <i className='fas fa-sync-alt fa-fw mr-2'></i>
+          Sync All
+        </Button>
+      </React.Fragment>
+    ) : null
 
     const title = (
       <div className='d-flex justify-content-between align-items-center mb-4'>
@@ -86,15 +103,11 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
           Applications
         </h1>
         <div>
-          <Button color='primary' size='sm' onClick={(event) => push('/applications/add')}>
+          <Button color='primary' size='sm' onClick={(event) => push(`/projects/${this.props.match.params.projectId}/applications/add`)}>
             <i className='fas fa-plus fa-fw mr-2'></i>
             Add Application
           </Button>
-          {` `}
-          <Button color='success' size='sm' onClick={submitSync}>
-            <i className='fas fa-sync-alt fa-fw mr-2'></i>
-            Sync All
-          </Button>
+          {syncKubernetes}
         </div>
       </div>
     )
@@ -157,18 +170,21 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
 
 export interface StateProps {
   applications: APIRequest<Application[]>
+  kubernetesMode: APIRequest<boolean>
   syncKubernetes: APIRequest<boolean>
 }
 
 const mapStateToProps = (state) => {
   return {
-    ...state.fetchAllApplicationsReducer,
+    applications: state.fetchAllApplicationsReducer.fetchAllApplications,
+    kubernetesMode: state.fetchIsKubernetesModeReducer.fetchIsKubernetesMode,
     syncKubernetes: state.syncKubernetesReducer.syncKubernetes
   }
 }
 
 export interface DispatchProps {
   fetchApplications: (params: FetchApplicationByIdParam) => Promise<void>,
+  fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => Promise<void>,
   syncKubernetes: (params: SyncKubernetesParam) => Promise<void>,
   addNotification
 }
@@ -176,6 +192,7 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     fetchApplications: (params: FetchApplicationByIdParam) => fetchAllApplicationsDispatcher(dispatch, params),
+    fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => fetchIsKubernetesModeDispatcher(dispatch, params),
     syncKubernetes: (params: SyncKubernetesParam) => syncKubernetesDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }

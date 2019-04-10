@@ -91,6 +91,7 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
       }
       return { submitted: false }
     }
+    return null
   }
 
   render() {
