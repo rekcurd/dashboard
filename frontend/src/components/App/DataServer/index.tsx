@@ -4,7 +4,7 @@ import { RouterProps } from 'react-router'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { DataServer, DataServerParam, FetchDataServerByIdParam } from '@src/apis'
+import { DataServerParam, FetchDataServerByIdParam } from '@src/apis'
 import { saveDataServerDispatcher, fetchDataServerDispatcher, addNotification } from '@src/actions'
 import { DataServerForm } from './DataServerForm'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
@@ -21,7 +21,7 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
     this.onCancel = this.onCancel.bind(this)
     this.renderEditForm = this.renderEditForm.bind(this)
     this.state = {
-      method: null,
+      method: 'post',
       submitting: false,
       notified: false
     }
@@ -34,12 +34,12 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
    */
   onSubmit(params) {
     const { saveDataServer } = this.props
-    const formParams: DataServer = params
 
     this.setState({submitting: true, notified: false})
     return saveDataServer({
       projectId: this.props.match.params.projectId,
-      ...formParams, method: this.state.method
+      ...params,
+      method: this.state.method
     })
   }
 
@@ -50,7 +50,7 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
    */
   onCancel() {
     const { push } = this.props.history
-    push(`/projects/${this.props.match.params.projectId}/data_servers`)
+    push(`/projects/${this.props.match.params.projectId}`)
   }
 
   componentDidMount() {
@@ -66,8 +66,7 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
     // Handling submitted API results
     if (submitting && !notified) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveDataServerStatus) && saveDataServerStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(saveDataServerStatus) && !saveDataServerStatus.result) ||
-        isAPIFailed<boolean>(saveDataServerStatus)
+      const failed: boolean = (isAPISucceeded<boolean>(saveDataServerStatus) && !saveDataServerStatus.result) || isAPIFailed<boolean>(saveDataServerStatus)
       if (succeeded) {
         nextProps.fetchDataServer({
           projectId: nextProps.match.params.projectId
@@ -86,6 +85,7 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
         return {method: 'patch'}
       }
     }
+    return null
   }
 
   render() {
@@ -93,7 +93,7 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
     if (method === 'patch') {
       return (
         <APIRequestResultsRenderer
-          APIStatus={{ data_servers: this.props.fetchDataServer }}
+          APIStatus={{ data_servers: this.props.fetchDataServerStatus }}
           render={this.renderEditForm}
         />
       )
@@ -108,13 +108,12 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
   }
 
   renderEditForm(result) {
-    const properties = { ...result.data_servers }
     return (
       <DataServerForm
         onCancel={this.onCancel}
         onSubmit={this.onSubmit}
         method={this.state.method}
-        initialValues={...properties}
+        initialValues={...result.data_servers}
       />
     )
   }

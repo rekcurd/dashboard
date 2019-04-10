@@ -52,7 +52,8 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
     let projectAdmin: React.ReactNode
     if (projectId) {
       const adminlink = `/projects/${projectId}/admin`
-      const kubelink = `/projects/${projectId}/kubernetes/admin`
+      const kubelink = `/projects/${projectId}/kubernetes`
+      const dataserverlink = `/projects/${projectId}/data_servers`
       projectAdmin = (
         <React.Fragment>
           <NavItem>
@@ -65,6 +66,12 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
             <NavLink className='text-info nav-link' to={kubelink}>
               <i className='fas fa-ship fa-fw mr-1'></i>
               Kubernetes
+            </NavLink>
+          </NavItem>
+          <NavItem>
+            <NavLink className='text-info nav-link' to={dataserverlink}>
+              <i className='fas fa-archive fa-fw mr-1'></i>
+              Data Servers
             </NavLink>
           </NavItem>
         </React.Fragment>

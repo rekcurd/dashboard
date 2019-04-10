@@ -4,7 +4,9 @@ import { Card, CardBody, Button, CardTitle, UncontrolledTooltip } from 'reactstr
 import { dataServerMode } from '@components/Common/Enum'
 
 import * as Yup from "yup";
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
+
+import { FormikInput } from '@common/Field'
 
 
 const DataServerSchema = Yup.object().shape({
@@ -42,23 +44,28 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
   }
 
   onChange(event) {
-    if (this.state.dataServerMode !== event.target) {
-      this.setState({dataServerMode: event.target})
+    if (this.state.dataServerMode !== event.target.value) {
+      this.setState({dataServerMode: event.target.value})
     }
   }
 
   private renderModes() {
     const modes = Object.values(dataServerMode).map((modeName: string) => {
-      return (
-        <option value={modeName} label={modeName}>
-          {modeName}
-        </option>
-      )
+      return {
+        value: modeName,
+        label: modeName
+      }
     })
     return (
-      <Field name="dataServerMode" component="select" className='form-control' id='dataServerMode' onChange={this.onChange}>
-        {modes}
-      </Field>
+      <Field
+        name="dataServerMode"
+        label="Data Server Mode"
+        component={FormikInput}
+        type="select"
+        className='form-control'
+        options={modes}
+        onChange={this.onChange}
+        required />
     )
   }
 
@@ -69,15 +76,54 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
     }
     let fields = null
     if (this.state.dataServerMode === dataServerMode.ceph_s3.toString()) {
+      const yesno = [{value: true, label: "Yes"}, {value: false, label: "No"}]
       fields = (
         <Card className='mb-3'>
           <CardBody>
-            <Field name="cephAccessKey" placeholder="Access Key"/>
-            <Field name="cephSecretKey" placeholder="Secret Key"/>
-            <Field name="cephHost" placeholder="Host"/>
-            <Field name="cephPort" placeholder="Port"/>
-            <Field name="cephIsSecure" placeholder="Use SSL?"/>
-            <Field name="cephBucketName" placeholder="Bucket Name"/>
+            <Field
+              name="cephAccessKey"
+              label="Ceph Access Key"
+              component={FormikInput}
+              className="form-control"
+              placeholder="xxxxx"
+              required />
+            <Field
+              name="cephSecretKey"
+              label="Ceph Secret Key"
+              component={FormikInput}
+              className="form-control"
+              placeholder="xxxxx"
+              required />
+            <Field
+              name="cephHost"
+              label="Ceph Host URL"
+              component={FormikInput}
+              className="form-control"
+              placeholder="127.0.0.1"
+              required />
+            <Field
+              name="cephPort"
+              label="Ceph Port"
+              component={FormikInput}
+              className="form-control"
+              placeholder="80"
+              required />
+            <Field
+              name="cephIsSecure"
+              label="Does Ceph use SSL?"
+              component={FormikInput}
+              type="select"
+              className="form-control"
+              options={yesno}
+              onChange={()=>{}}
+              required />
+            <Field
+              name="cephBucketName"
+              label="Ceph Bucket Name"
+              component={FormikInput}
+              className="form-control"
+              placeholder="xxxxx"
+              required />
           </CardBody>
         </Card>
       )
@@ -85,9 +131,27 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
       fields = (
         <Card className='mb-3'>
           <CardBody>
-            <Field name="awsAccessKey" placeholder="Access Key"/>
-            <Field name="awsSecretKey" placeholder="Secret Key"/>
-            <Field name="awsBucketName" placeholder="Bucket Name"/>
+            <Field
+              name="awsAccessKey"
+              label="AWS Access Key"
+              component={FormikInput}
+              className="form-control"
+              placeholder="xxxxx"
+              required />
+            <Field
+              name="awsSecretKey"
+              label="AWS Secret Key"
+              component={FormikInput}
+              className="form-control"
+              placeholder="xxxxx"
+              required />
+            <Field
+              name="awsBucketName"
+              label="AWS Bucket Name"
+              component={FormikInput}
+              className="form-control"
+              placeholder="xxxxx"
+              required />
           </CardBody>
         </Card>
       )
@@ -104,57 +168,16 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
         <Formik
           initialValues={initialValues}
           validationSchema={DataServerSchema}
-          onSubmit={onSubmit}>
+          onSubmit={onSubmit}
+          onReset={onCancel}>
           {({ errors, touched, isSubmitting }) => (
             <Form>
               <Card className='mb-3'>
                 <CardBody>
                   {this.renderModes()}
-                  {errors.dataServerMode && touched.dataServerMode ? (
-                    <div>{errors.dataServerMode}</div>
-                  ) : null}
-                  <ErrorMessage name="dataServerMode" />
                 </CardBody>
               </Card>
-
               {fields}
-              {errors.cephAccessKey && touched.cephAccessKey ? (
-                <div>{errors.cephAccessKey}</div>
-              ) : null}
-              <ErrorMessage name="cephAccessKey" />
-              {errors.cephSecretKey && touched.cephSecretKey ? (
-                <div>{errors.cephSecretKey}</div>
-              ) : null}
-              <ErrorMessage name="cephSecretKey" />
-              {errors.cephHost && touched.cephHost ? (
-                <div>{errors.cephHost}</div>
-              ) : null}
-              <ErrorMessage name="cephHost" />
-              {errors.cephPort && touched.cephPort ? (
-                <div>{errors.cephPort}</div>
-              ) : null}
-              <ErrorMessage name="cephPort" />
-              {errors.cephIsSecure && touched.cephIsSecure ? (
-                <div>{errors.cephIsSecure}</div>
-              ) : null}
-              <ErrorMessage name="cephIsSecure" />
-              {errors.cephBucketName && touched.cephBucketName ? (
-                <div>{errors.cephBucketName}</div>
-              ) : null}
-              <ErrorMessage name="cephBucketName" />
-              {errors.awsAccessKey && touched.awsAccessKey ? (
-                <div>{errors.awsAccessKey}</div>
-              ) : null}
-              <ErrorMessage name="awsAccessKey" />
-              {errors.awsSecretKey && touched.awsSecretKey ? (
-                <div>{errors.awsSecretKey}</div>
-              ) : null}
-              <ErrorMessage name="awsSecretKey" />
-              {errors.awsBucketName && touched.awsBucketName ? (
-                <div>{errors.awsBucketName}</div>
-              ) : null}
-              <ErrorMessage name="awsBucketName" />
-
               <Card>
                 <CardBody className='text-right'>
                   <Button color='success' type='submit' disabled={isSubmitting} >
@@ -162,7 +185,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
                     {method === 'post' ? 'Submit' : 'Update'}
                   </Button>
                   {' '}
-                  <Button outline color='info' onClick={onCancel}>
+                  <Button outline color='info' type='reset'>
                     <i className='fas fa-ban fa-fw mr-2'></i>
                     Cancel
                   </Button>
@@ -184,15 +207,15 @@ interface DataServerState {
 
 const defaultInitialValues = {
   dataServerMode: dataServerMode.local.toString(),
-  cephAccessKey: null,
-  cephSecretKey: null,
-  cephHost: null,
-  cephPort: null,
-  cephIsSecure: null,
-  cephBucketName: null,
-  awsAccessKey: null,
-  awsSecretKey: null,
-  awsBucketName: null,
+  cephAccessKey: '',
+  cephSecretKey: '',
+  cephHost: '',
+  cephPort: 7300,
+  cephIsSecure: false,
+  cephBucketName: '',
+  awsAccessKey: '',
+  awsSecretKey: '',
+  awsBucketName: '',
 }
 
 export interface CustomProps {
