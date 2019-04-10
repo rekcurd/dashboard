@@ -5,7 +5,7 @@ from flask_restplus import Resource, Namespace, fields, reqparse
 from rekcurd_dashboard.auth import fetch_project_role, fetch_application_role, ProjectUserRoleException, ApplicationUserRoleException
 from rekcurd_dashboard.models import db, UserModel, ProjectRole, ApplicationRole, ProjectUserRoleModel, ApplicationUserRoleModel
 from rekcurd_dashboard.utils import RekcurdDashboardException
-from . import status_model
+from . import api, status_model
 
 
 admin_api_namespace = Namespace('admin', description='Admin API Endpoint.')
@@ -27,6 +27,8 @@ def check_owner_role(fn):
         project_id = kwargs.get('project_id')
         application_id = kwargs.get('application_id')
         project_user_role = fetch_project_role(user_id, project_id)
+        if not api.dashboard_config.IS_ACTIVATE_AUTH:
+            return fn(*args, **kwargs)
         if application_id is None:
             if project_user_role == ProjectRole.admin:
                 return fn(*args, **kwargs)
