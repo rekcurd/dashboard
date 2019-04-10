@@ -88,7 +88,7 @@ def rekcurd_exception_handler(error):
     return {"status": False, 'message': str(error)}, 400
 
 
-@api.errorhandler(Exception)
+@api.errorhandler
 def default_error_handler(error):
     api.logger.error(str(error))
     api.logger.error(traceback.format_exc())
