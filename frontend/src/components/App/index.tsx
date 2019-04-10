@@ -59,17 +59,12 @@ class AppComponent extends React.Component<AppProps> {
   }
   renderApp(results) {
     const settings: any = results.settings
-    const login = settings.auth ? <Route path='/login' component={Login} /> : null
 
     return (
       <Switch>
         <Redirect exact from='/' to='/projects' />
-        <Route path='/projects/:projectId' render={() => <ProjectRoute settings={settings} />} />
-        <Layout auth={settings.auth}>
-          <Route exact path='/projects' component={Projects} />
-          <Route exact path='/projects/add' component={SaveProject} />
-          {login}
-        </Layout>
+        <Route exact path='/(login|projects|projects/add)' render={() => <ProjectsRoute settings={settings} />} />
+        <Route path='/projects/:projectId' render={() => <ProjectIdRoute settings={settings} />} />
       </Switch>
     )
   }
@@ -84,11 +79,32 @@ export const App = connect<AppStateProps, AppDispatchProps>(
 )(AppComponent)
 
 
-interface ProjectRouteProps {
+interface ProjectsRouteProps {
   settings: any
 }
 
-class ProjectRoute extends React.Component<ProjectRouteProps> {
+class ProjectsRoute extends React.Component<ProjectsRouteProps> {
+  render() {
+    let login
+    if (this.props.settings.auth) {
+      login = <Route path='/login' component={Login} />
+    } else {
+      login = null
+    }
+
+    return (
+      <Layout auth={this.props.settings.auth}>
+        <Switch>
+          <Route exact path='/projects' component={Projects} />
+          <Route exact path='/projects/add' component={SaveProject} />
+          {login}
+        </Switch>
+      </Layout>
+    )
+  }
+}
+
+class ProjectIdRoute extends React.Component<ProjectsRouteProps> {
   render() {
     const dataServerComponent = <Route exact path='/projects/:projectId/data_servers' component={DataServer} />
     const kubenetesComponent = <Route path='/projects/:projectId/kubernetes' component={KubernetesRoute} />
@@ -108,7 +124,7 @@ class ProjectRoute extends React.Component<ProjectRouteProps> {
           <Redirect exact from='/projects/:projectId' to='/projects/:projectId/applications' />
           <Route exact path='/projects/:projectId/applications' component={Applications} />
           <Route exact path='/projects/:projectId/applications/add' component={SaveApplication} />
-          <Route path='/projects/:projectId/applications/:applicationId' render={() => <ApplicationRoute settings={this.props.settings} />} />
+          <Route path='/projects/:projectId/applications/:applicationId' render={() => <ApplicationsRoute settings={this.props.settings} />} />
           {projectAdmin}
           {dataServerComponent}
           {kubenetesComponent}
@@ -119,11 +135,11 @@ class ProjectRoute extends React.Component<ProjectRouteProps> {
   }
 }
 
-interface ApplicationRouteProps {
+interface ApplicationsRouteProps {
   settings: any
 }
 
-class ApplicationRoute extends React.Component<ApplicationRouteProps> {
+class ApplicationsRoute extends React.Component<ApplicationsRouteProps> {
   render() {
     return (
       <Application>
