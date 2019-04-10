@@ -28,3 +28,7 @@ class DataHandler(metaclass=ABCMeta):
     @abstractmethod
     def upload(self, data_server_model: DataServerModel, remote_filepath: str, local_filepath: str) -> None:
         raise NotImplemented()
+
+    @abstractmethod
+    def delete(self, data_server_model: DataServerModel, filepath: str) -> None:
+        raise NotImplemented()

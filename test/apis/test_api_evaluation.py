@@ -5,7 +5,7 @@ from copy import deepcopy
 from rekcurd_dashboard.protobuf import rekcurd_pb2
 from test.base import (
     BaseTestCase, create_service_model, create_eval_model, create_eval_result_model,
-    TEST_PROJECT_ID, TEST_APPLICATION_ID, TEST_MODEL_ID
+    create_data_server_model, TEST_PROJECT_ID, TEST_APPLICATION_ID, TEST_MODEL_ID,
 )
 from io import BytesIO
 from rekcurd_dashboard.models import EvaluationResultModel, EvaluationModel, db
@@ -44,7 +44,14 @@ def patch_stub(func):
             ])
         mock_stub_obj.EvaluationResult.return_value = iter(res for _ in range(2))
         with patch('rekcurd_dashboard.core.rekcurd_dashboard_client.rekcurd_pb2_grpc.RekcurdDashboardStub',
-                   new=Mock(return_value=mock_stub_obj)):
+                   new=Mock(return_value=mock_stub_obj)), \
+                patch('rekcurd_dashboard.apis.api_evaluation.DataServer',
+                      new=Mock(return_value=Mock())) as data_server:
+            data_server.return_value.upload_model = Mock()
+            data_server.return_value.upload_model.return_value = "filepath"
+            data_server.return_value.upload_evaluation_data = Mock()
+            data_server.return_value.upload_evaluation_data.return_value = "filepath"
+
             return func(*args, **kwargs)
     return inner_method
 
@@ -55,6 +62,7 @@ class ApiEvaluationTest(BaseTestCase):
 
     @patch_stub
     def test_post(self):
+        create_data_server_model(save=True)
         url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluations'
         content_type = 'multipart/form-data'
         file_content = b'my file contents'
@@ -69,7 +77,9 @@ class ApiEvaluationTest(BaseTestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, {'status': True, 'evaluation_id': 1})
 
+    @patch_stub
     def test_delete(self):
+        create_data_server_model(save=True)
         evaluation_model = create_eval_model(TEST_APPLICATION_ID, save=True)
         create_eval_result_model(model_id=TEST_MODEL_ID, evaluation_id=evaluation_model.evaluation_id, save=True)
         response = self.client.delete(
@@ -125,7 +135,9 @@ class ApiEvaluationResultTest(BaseTestCase):
         self.assertEqual(404, response.status_code)
         self.assertEqual(response.json, {'status': False, 'message': 'Not Found.'})
 
+    @patch_stub
     def test_delete(self):
+        create_data_server_model(save=True)
         evaluation_model = create_eval_model(TEST_APPLICATION_ID, save=True)
         eval_result_model = create_eval_result_model(
             model_id=TEST_MODEL_ID, evaluation_id=evaluation_model.evaluation_id, save=True)

@@ -8,13 +8,19 @@ def patch_predictor():
         def inner_method(*args, **kwargs):
             with patch('rekcurd_dashboard.data_servers.LocalHandler.upload',
                           new=Mock(return_value=None)) as _, \
+                    patch('rekcurd_dashboard.data_servers.LocalHandler.delete',
+                          new=Mock(return_value=None)) as _, \
                     patch('rekcurd_dashboard.data_servers.CephHandler.download',
                           new=Mock(return_value=None)) as _, \
                     patch('rekcurd_dashboard.data_servers.CephHandler.upload',
                           new=Mock(return_value=None)) as _, \
+                    patch('rekcurd_dashboard.data_servers.CephHandler.delete',
+                          new=Mock(return_value=None)) as _, \
                     patch('rekcurd_dashboard.data_servers.AwsS3Handler.download',
                           new=Mock(return_value=None)) as _, \
                     patch('rekcurd_dashboard.data_servers.AwsS3Handler.upload',
+                          new=Mock(return_value=None)) as _, \
+                    patch('rekcurd_dashboard.data_servers.AwsS3Handler.delete',
                           new=Mock(return_value=None)) as _, \
                     patch('builtins.open', new_callable=mock_open) as _:
                 return func(*args, **kwargs)

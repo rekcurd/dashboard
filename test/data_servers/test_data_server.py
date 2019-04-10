@@ -1,7 +1,7 @@
 import unittest
 
 from rekcurd_dashboard.models import DataServerModel, DataServerModeEnum, ApplicationModel
-from rekcurd_dashboard.data_servers import DataServer
+from rekcurd_dashboard.data_servers import DataServer, LocalHandler, CephHandler, AwsS3Handler
 
 from . import patch_predictor
 
@@ -26,16 +26,38 @@ class DataServerTest(unittest.TestCase):
         self.data_server = DataServer()
 
     @patch_predictor()
-    def test_upload_model_local(self):
+    def test_get_handler_local(self):
+        handler = self.data_server._get_handler(self.data_server_model_local)
+        self.assertTrue(isinstance(handler, LocalHandler))
+
+    @patch_predictor()
+    def test_get_handler_ceph(self):
+        handler = self.data_server._get_handler(self.data_server_model_ceph)
+        self.assertTrue(isinstance(handler, CephHandler))
+
+    @patch_predictor()
+    def test_get_handler_aws(self):
+        handler = self.data_server._get_handler(self.data_server_model_aws)
+        self.assertTrue(isinstance(handler, AwsS3Handler))
+
+    @patch_predictor()
+    def test_get_handler_invalid(self):
+        data_server_model_invalid = DataServerModel(
+            project_id=1, data_server_mode=1000)
+        with self.assertRaises(ValueError):
+            self.data_server._get_handler(data_server_model_invalid)
+
+    @patch_predictor()
+    def test_upload_model(self):
         self.assertIsNotNone(self.data_server.upload_model(
             self.data_server_model_local, self.application_model, self.local_filepath))
 
     @patch_predictor()
-    def test_upload_model_ceph(self):
-        self.assertIsNotNone(self.data_server.upload_model(
-            self.data_server_model_ceph, self.application_model, self.local_filepath))
+    def test_upload_evaluation_data(self):
+        self.assertIsNotNone(self.data_server.upload_evaluation_data(
+            self.data_server_model_local, self.application_model, self.local_filepath))
 
     @patch_predictor()
-    def test_upload_model_aws(self):
-        self.assertIsNotNone(self.data_server.upload_model(
-            self.data_server_model_aws, self.application_model, self.local_filepath))
+    def test_delete_file(self):
+        self.assertIsNotNone(self.data_server.upload_evaluation_data(
+            self.data_server_model_local, self.application_model, self.local_filepath))
