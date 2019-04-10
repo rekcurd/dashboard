@@ -24,11 +24,11 @@ export enum applicationRole {
 }
 
 export const apiConvertDataServerMode = (param) => {
-    if (param === 'DataServerModeEnum.local') {
+    if (param === 'DataServerModeEnum.LOCAL') {
         return dataServerMode.local.toString()
-    } else if (param === 'DataServerModeEnum.ceph_s3') {
+    } else if (param === 'DataServerModeEnum.CEPH_S3') {
         return dataServerMode.ceph_s3.toString()
-    } else if (param === 'DataServerModeEnum.aws_s3') {
+    } else if (param === 'DataServerModeEnum.AWS_S3') {
         return dataServerMode.aws_s3.toString()
     } else {
         return false
