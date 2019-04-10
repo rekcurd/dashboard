@@ -56,6 +56,7 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
         return {deletionSubmitted: false, deletionNotified: true}
       }
     }
+    return null
   }
 
   toggleDeleteModal() {
@@ -103,7 +104,7 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
   }
 
   renderKubernetes(status) {
-    const kubernetesHosts: Kubernetes[] = status.fetchAllKubernetes
+    const kubernetesHosts: Kubernetes[] = status.hosts
     const { deletionSubmitted } = this.state
     const submitted = deletionSubmitted
     const { push } = this.props.history
@@ -183,7 +184,7 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
       <Table hover id='application-list'>
         <thead>
           <tr className='bg-light text-primary'>
-            <th>Name</th><th>Description</th><th>Exposed Host:Port</th><th>Registered Date</th><th></th>
+            <th>Name</th><th>Description</th><th>Exposed Host</th><th>Registered Date</th><th></th>
           </tr>
         </thead>
         <tbody>

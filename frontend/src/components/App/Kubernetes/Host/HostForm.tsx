@@ -3,7 +3,9 @@ import { connect } from 'react-redux'
 import { Card, CardBody, Button, CardTitle, UncontrolledTooltip } from 'reactstrap'
 
 import * as Yup from "yup";
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
+
+import { FormikInput, FileUpload } from '@common/Field'
 
 
 const AddKubernetesSchema = Yup.object().shape({
@@ -45,48 +47,59 @@ class HostFormImpl extends React.Component<HostFormProps> {
       ...this.props.initialValues,
       configPath: null,
     }
+    const isPost = (method === 'post')
 
     return (
       <div className='pt-3 pr-3 pl-3'>
         <h1>
           <i className='fas fa-plug fa-fw mr-2'></i>
-          {method === 'post' ? 'Add' : 'Edit'} Kubernetes Host
+          {isPost ? 'Add' : 'Edit'} Kubernetes Host
         </h1>
         <Formik
           initialValues={initialValues}
-          validationSchema={method === 'post' ? AddKubernetesSchema : EditKubernetesSchema}
+          validationSchema={isPost ? AddKubernetesSchema : EditKubernetesSchema}
           onSubmit={onSubmit}>
           {({ errors, touched, setFieldValue, isSubmitting }) => (
             <Form>
               <Card className='mb-3'>
                 <CardBody>
-                  <Field name="displayName" placeholder="Display Name"/>
-                  {errors.displayName && touched.displayName ? (
-                    <div>{errors.displayName}</div>
-                  ) : null}
-                  <ErrorMessage name="displayName" />
-                  <input name="configPath" type="file" onChange={(event) => {
-                    setFieldValue("configPath", event.currentTarget.files[0]);
-                  }} />
-                  {errors.configPath && touched.configPath ? (
-                    <div>{errors.configPath}</div>
-                  ) : null}
-                  <ErrorMessage name="configPath" />
-                  <Field name="description" component="textarea" placeholder="Description"/>
-                  {errors.description && touched.description ? (
-                    <div>{errors.description}</div>
-                  ) : null}
-                  <ErrorMessage name="description" />
-                  <Field name="exposedHost" placeholder="Exposed Host"/>
-                  {errors.exposedHost && touched.exposedHost ? (
-                    <div>{errors.exposedHost}</div>
-                  ) : null}
-                  <ErrorMessage name="exposedHost" />
-                  <Field name="exposedPort" placeholder="Exposed Port"/>
-                  {errors.exposedPort && touched.exposedPort ? (
-                    <div>{errors.exposedPort}</div>
-                  ) : null}
-                  <ErrorMessage name="exposedPort" />
+                  <Field
+                    name="displayName"
+                    label="Display Name"
+                    component={FormikInput}
+                    className="form-control"
+                    placeholder="Display Name"
+                    required={isPost} />
+                  <FileUpload
+                    errors={errors}
+                    touched={touched}
+                    setFieldValue={setFieldValue}
+                    name="configPath"
+                    label="kubeconfig Filepath"
+                    className="form-control"
+                    placeholder="Generate your 'kubeconfig' file. Sometimes you can be available it on '$HOME/.kube/config'"
+                    required={isPost} />
+                  <Field
+                    name="exposedHost"
+                    label="Exposed Host"
+                    component={FormikInput}
+                    className="form-control"
+                    placeholder="Exposed Host"
+                    required={isPost} />
+                  <Field
+                    name="exposedPort"
+                    label="Exposed Port"
+                    component={FormikInput}
+                    className="form-control"
+                    placeholder="Exposed Port"
+                    required={isPost} />
+                  <Field
+                    name="description"
+                    label="Description"
+                    component={FormikInput}
+                    className="form-control"
+                    type="textarea"
+                    placeholder="Description"/>
                 </CardBody>
               </Card>
 
@@ -94,7 +107,7 @@ class HostFormImpl extends React.Component<HostFormProps> {
                 <CardBody className='text-right'>
                   <Button color='success' type='submit' disabled={isSubmitting} >
                     <i className='fas fa-check fa-fw mr-2'></i>
-                    {method === 'post' ? 'Submit' : 'Update'}
+                    {isPost ? 'Submit' : 'Update'}
                   </Button>
                   {' '}
                   <Button outline color='info' onClick={onCancel}>

@@ -84,6 +84,7 @@ class Host extends React.Component<HostProps, HostState> {
         return {notified: true}
       }
     }
+    return null
   }
 
   render() {
