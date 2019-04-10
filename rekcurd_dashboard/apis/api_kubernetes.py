@@ -97,15 +97,6 @@ class ApiKubernetes(Resource):
         return KubernetesModel.query.filter_by(project_id=project_id).all()
 
     @kubernetes_api_namespace.marshal_with(success_or_not)
-    def put(self, project_id: int):
-        """update to the latest Kubernetes deployment info."""
-        kubernetes_model = KubernetesModel.query.filter_by(project_id=project_id).first()
-        update_kubernetes_deployment_info(kubernetes_model)
-        db.session.commit()
-        db.session.close()
-        return {"status": True, "message": "Success."}
-
-    @kubernetes_api_namespace.marshal_with(success_or_not)
     @kubernetes_api_namespace.expect(kubernetes_model_parser)
     def post(self, project_id: int):
         """add_kubernetes"""

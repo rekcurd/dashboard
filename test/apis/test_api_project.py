@@ -1,6 +1,23 @@
 from rekcurd_dashboard.models import db, ProjectModel
 
+from functools import wraps
+from unittest.mock import patch, Mock, mock_open
 from test.base import BaseTestCase, TEST_PROJECT_ID
+
+
+def mock_decorator():
+    """Decorator to mock for dashboard.
+    """
+
+    def test_method(func):
+        @wraps(func)
+        def inner_method(*args, **kwargs):
+            with patch('builtins.open', new_callable=mock_open) as _, \
+                    patch('rekcurd_dashboard.apis.api_project.update_kubernetes_deployment_info',
+                          new=Mock(return_value=True)) as _:
+                return func(*args, **kwargs)
+        return inner_method
+    return test_method
 
 
 class ApiProjectsTest(BaseTestCase):
@@ -42,3 +59,9 @@ class ApiProjectIdTest(BaseTestCase):
 
         response = self.client.patch(self.__INVALID_URL, data={'display_name': display_name})
         self.assertEqual(404, response.status_code)
+
+    @mock_decorator()
+    def test_put(self):
+        response = self.client.put(self.__URL)
+        self.assertEqual(200, response.status_code)
+        self.assertIsNotNone(response)

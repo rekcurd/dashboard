@@ -1,9 +1,9 @@
 from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse
 
-from . import api, status_model
+from . import api, status_model, update_kubernetes_deployment_info
 from rekcurd_dashboard.utils import RekcurdDashboardException
-from rekcurd_dashboard.models import db, ProjectModel, ProjectUserRoleModel, ProjectRole
+from rekcurd_dashboard.models import db, ProjectModel, ProjectUserRoleModel, ProjectRole, KubernetesModel
 from rekcurd_dashboard.apis import DatetimeToTimestamp
 
 
@@ -101,5 +101,14 @@ class ApiProjectId(Resource):
             is_update = True
         if is_update:
             db.session.commit()
+        db.session.close()
+        return {"status": True, "message": "Success."}
+
+    @project_api_namespace.marshal_with(success_or_not)
+    def put(self, project_id: int):
+        """update to the latest Kubernetes deployment info."""
+        kubernetes_model = KubernetesModel.query.filter_by(project_id=project_id).first()
+        update_kubernetes_deployment_info(kubernetes_model)
+        db.session.commit()
         db.session.close()
         return {"status": True, "message": "Success."}
