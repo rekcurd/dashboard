@@ -122,7 +122,7 @@ export interface StateProps {
 
 const mapStateToProps = (state) => {
   return {
-    ...state.fetchAllProjectsReducer
+    projects: state.fetchAllProjectsReducer.fetchAllProjects
   }
 }
 

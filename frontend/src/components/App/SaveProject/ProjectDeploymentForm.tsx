@@ -1,24 +1,26 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { Card, CardBody, Button } from 'reactstrap'
-import { Formik, Form, ErrorMessage, Field } from 'formik'
+import { Formik, Form, Field } from 'formik'
 import * as Yup from "yup";
+
+import { FormikInput } from '@common/Field'
 
 
 const ProjectSchema = Yup.object().shape({
-  display_name: Yup.string()
+  displayName: Yup.string()
     .required('Required')
     .max(128),
   description: Yup.string(),
 });
 
-class ProjectDeploymentFormImpl extends React.Component<AddProjectFormProps> {
+class ProjectDeploymentFormImpl extends React.Component<SaveProjectFormProps> {
   /**
    * Render form bodies to add project
    *
    */
   render() {
-    const { onSubmit } = this.props
+    const { onSubmit, onCancel } = this.props
 
     return (
       <React.Fragment>
@@ -29,28 +31,33 @@ class ProjectDeploymentFormImpl extends React.Component<AddProjectFormProps> {
 
         <Formik
           initialValues={{
-            display_name: '',
+            displayName: '',
             description: '',
           }}
           validationSchema={ProjectSchema}
-          onSubmit={onSubmit}>
-          {({ errors, touched }) => (
+          onSubmit={onSubmit}
+          onReset={onCancel}>
+          {({ errors, touched, isSubmitting }) => (
             <Form>
               <Card className='mb-3'>
                 <CardBody>
-                  <Field name="display_name" placeholder="Display name"/>
-                  {errors.display_name && touched.display_name ? (
-                    <div>{errors.display_name}</div>
-                  ) : null}
-                  <ErrorMessage name="display_name" />
-                  <Field name="description" component="textarea" placeholder="Description"/>
-                  {errors.description && touched.description ? (
-                    <div>{errors.description}</div>
-                  ) : null}
-                  <ErrorMessage name="description" />
+                  <Field
+                    name="displayName"
+                    label="Display Name"
+                    component={FormikInput}
+                    className='form-control'
+                    placeholder="Display name"
+                    required />
+                  <Field
+                    name="description"
+                    label="Description"
+                    className='form-control'
+                    component={FormikInput}
+                    type="textarea"
+                    placeholder="Description" />
                 </CardBody>
               </Card>
-              {this.renderButtons()}
+              {this.renderButtons(isSubmitting)}
             </Form>
           )}
         </Formik>
@@ -63,9 +70,8 @@ class ProjectDeploymentFormImpl extends React.Component<AddProjectFormProps> {
    *
    * Put on footer of this modal
    */
-  renderButtons() {
-    const { onSubmit, onCancel, submitting } = this.props
-    if (submitting) {
+  renderButtons(isSubmitting) {
+    if (isSubmitting) {
       return (
         <Card className='mb-3'>
           <CardBody>
@@ -79,12 +85,12 @@ class ProjectDeploymentFormImpl extends React.Component<AddProjectFormProps> {
     return (
       <Card className='mb-3'>
         <CardBody className='text-right'>
-          <Button color='success' onClick={onSubmit}>
+          <Button color='success' type='submit'>
             <i className='fas fa-check fa-fw mr-2'></i>
             Create Project
           </Button>
           {' '}
-          <Button outline color='info' onClick={onCancel}>
+          <Button outline color='info' type='reset'>
             <i className='fas fa-ban fa-fw mr-2'></i>
             Reset
           </Button>
@@ -95,12 +101,11 @@ class ProjectDeploymentFormImpl extends React.Component<AddProjectFormProps> {
 }
 
 export interface FormCustomProps {
-  submitting
   onCancel
   onSubmit
 }
 
-type AddProjectFormProps = FormCustomProps
+type SaveProjectFormProps = FormCustomProps
 
 export const ProjectDeloymentForm =
   connect(

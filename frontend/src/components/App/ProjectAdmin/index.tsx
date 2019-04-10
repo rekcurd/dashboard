@@ -89,6 +89,7 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
       }
       return { submitted: false }
     }
+    return null
   }
 
   render() {

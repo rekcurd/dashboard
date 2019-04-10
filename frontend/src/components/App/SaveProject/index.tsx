@@ -13,7 +13,7 @@ import { FormCustomProps, ProjectDeloymentForm } from './ProjectDeploymentForm'
  * Page for adding project
  *
  */
-class AddProject extends React.Component<AddProjectProps, AddProjectState> {
+class SaveProject extends React.Component<SaveProjectProps, SaveProjectState> {
   constructor(props, context) {
     super(props, context)
 
@@ -25,7 +25,7 @@ class AddProject extends React.Component<AddProjectProps, AddProjectState> {
     }
   }
 
-  static getDerivedStateFromProps(nextProps: AddProjectProps, prevState: AddProjectState){
+  static getDerivedStateFromProps(nextProps: SaveProjectProps, prevState: SaveProjectState){
     const { saveProjectStatus } = nextProps
     const { submitting, notified } = prevState
     const { push } = nextProps.history
@@ -33,8 +33,7 @@ class AddProject extends React.Component<AddProjectProps, AddProjectState> {
     // Close modal when API successfully finished
     if (submitting && !notified) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveProjectStatus) && saveProjectStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(saveProjectStatus) && !saveProjectStatus.result) ||
-        isAPIFailed<boolean>(saveProjectStatus)
+      const failed: boolean = (isAPISucceeded<boolean>(saveProjectStatus) && !saveProjectStatus.result) || isAPIFailed<boolean>(saveProjectStatus)
       if (succeeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully added project' })
         push('/projects/')
@@ -44,6 +43,7 @@ class AddProject extends React.Component<AddProjectProps, AddProjectState> {
         return { notified: true }
       }
     }
+    return null
   }
 
   /**
@@ -62,6 +62,7 @@ class AddProject extends React.Component<AddProjectProps, AddProjectState> {
 
     return saveProject(
       {
+        method: 'post',
         ...parameters,
       }
     )
@@ -72,7 +73,6 @@ class AddProject extends React.Component<AddProjectProps, AddProjectState> {
       <Row className='justify-content-center'>
         <Col md='10' className='pt-5'>
           <ProjectDeloymentForm
-            submitting={this.state.submitting}
             onSubmit={this.onSubmit}
             onCancel={this.onCancel}
           />
@@ -82,8 +82,8 @@ class AddProject extends React.Component<AddProjectProps, AddProjectState> {
   }
 }
 
-type AddProjectProps = StateProps & DispatchProps & RouterProps
-interface AddProjectState {
+type SaveProjectProps = StateProps & DispatchProps & RouterProps
+interface SaveProjectState {
   submitting: boolean
   notified: boolean
 }
@@ -114,5 +114,5 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
 export default withRouter(
   connect<StateProps, DispatchProps, RouteComponentProps<{}> & FormCustomProps>(
     mapStateToProps, mapDispatchToProps
-  )(AddProject)
+  )(SaveProject)
 )
