@@ -1,19 +1,19 @@
 import * as APICore from './Core'
 import { apiConvertDataServerMode, apiConvertProjectRole, apiConvertApplicationRole } from '@components/Common/Enum'
 
-const snakelize = (value: string): string => (value.split(/(?=[A-Z])/).join('_').toLowerCase());
+const snakelize = (value: string): string => (value.split(/(?=[A-Z])/).join('_').toLowerCase())
 const camelize = (value: string): string => {
-  const splitted = value.split('_');
+  const splitted = value.split('_')
   const tail =
     splitted.length > 1
     ? splitted.slice(1).map((v: string) => v[0].toUpperCase() + v.slice(1)).reduce((p, c) => (p + c))
-    : '';
+    : ''
 
   return splitted[0] + tail
-};
+}
 const convertKeys = (params, func) => Object.keys(params)
   .map((value) => ({ [func(value)]: params[value] }))
-  .reduce((l, r) => Object.assign(l, r), {});
+  .reduce((l, r) => Object.assign(l, r), {})
 
 // POST or PATCH
 export interface ProjectParam {
@@ -27,9 +27,9 @@ export async function saveProject(params: ProjectParam) {
   const requestBody = {
     ...convertKeys(params, snakelize),
     method: {} = {}
-  };
+  }
 
-  const convert = (response) => response.status;
+  const convert = (response) => response.status
 
   if (params.method === 'post') {
     return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects`, requestBody, convert, 'POST')
@@ -59,11 +59,11 @@ export async function saveDataServer(params: DataServerParam) {
   const requestBody = {
     ...convertKeys(params, snakelize),
     method: {} = {}
-  };
+  }
 
-  const convert = (response) => response.status;
+  const convert = (response) => response.status
 
-  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/data_servers`, requestBody, convert, params.method === 'post' ? 'POST' : 'PATCH');
+  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/data_servers`, requestBody, convert, params.method === 'post' ? 'POST' : 'PATCH')
 }
 
 export interface KubernetesParam {
@@ -83,9 +83,9 @@ export async function saveKubernetes(params: KubernetesParam) {
     file: params.configPath,
     method: {} = {},
     configPath: {} = {}
-  };
+  }
 
-  const convert = (response) => response.status;
+  const convert = (response) => response.status
 
   if (params.method === 'post') {
     return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/kubernetes`, requestBody, convert, 'POST')
@@ -108,9 +108,9 @@ export async function saveApplication(params: ApplicationParam) {
   const requestBody = {
     ...convertKeys(params, snakelize),
     method: {} = {},
-  };
+  }
 
-  const convert = (response) => response.status;
+  const convert = (response) => response.status
 
   if (params.method === 'post') {
     return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications`, requestBody, convert, 'POST')
@@ -133,9 +133,9 @@ export async function updateService(params: UpdateServiceParam): Promise<boolean
   const requestBody = {
     ...convertKeys(params, snakelize),
     method: {} = {},
-  };
+  }
 
-  const convert = (response) => response.status;
+  const convert = (response) => response.status
 
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/services/${params.serviceId}`, requestBody, convert, 'PATCH')
 }
@@ -178,9 +178,9 @@ export async function saveServiceDeployment(params: ServiceDeploymentParam): Pro
   const requestBody = {
     ...convertKeys(params, snakelize),
     method: {} = {},
-  };
+  }
 
-  const convert = (response) => response.status;
+  const convert = (response) => response.status
 
   if (params.isKubernetes) {
     if (params.method === 'post') {
@@ -206,9 +206,9 @@ export async function updateServiceRouting(params: ServiceRoutingParam): Promise
   const requestBody = {
     ...convertKeys(params, snakelize),
     method: {} = {},
-  };
+  }
 
-  const convert = (response) => response.status;
+  const convert = (response) => response.status
 
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/service_routing`, requestBody, convert, 'PATCH')
 }
@@ -222,9 +222,9 @@ export interface UploadModelParam {
 export async function uploadModel(params: UploadModelParam) {
   const requestBody = {
     ...params
-  };
+  }
 
-  const convert = (response) => response.status;
+  const convert = (response) => response.status
 
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/models`, requestBody, convert, 'POST')
 }
@@ -238,9 +238,9 @@ export interface UpdateModelParam {
 export async function updateModel(params: UpdateModelParam): Promise<boolean> {
   const requestBody = {
     ...params
-  };
+  }
 
-  const convert = (response) => response.status;
+  const convert = (response) => response.status
 
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/models/${params.modelId}`, requestBody, convert, 'PATCH')
 }
@@ -266,7 +266,7 @@ export function fetchAllProjects(): Promise<Project[]> {
             registerDate: new Date(result.register_date * 1000)
           }
         }
-      );
+      )
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects`, convert)
 }
 export interface FetchProjectByIdParam {
@@ -281,7 +281,7 @@ export async function fetchProjectById(params: FetchProjectByIdParam): Promise<P
         projectId: result.project_id,
         registerDate: new Date(result.register_date * 1000)
       }
-    );
+    )
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}`, convert)
 }
 
@@ -312,7 +312,7 @@ export async function fetchDataServer(params: FetchDataServerByIdParam): Promise
         dataServerMode: apiConvertDataServerMode(result.data_server_mode),
         registerDate: new Date(result.register_date * 1000)
       }
-    );
+    )
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/data_servers`, convert)
 }
 
@@ -333,7 +333,7 @@ export interface FetchKubernetesByIdParam {
   projectId: number
 }
 export async function fetchIsKubernetesMode(params: FetchKubernetesByIdParam): Promise<boolean> {
-  const convert = (result) => result.is_target;
+  const convert = (result) => result.is_target
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/is_kubernetes_mode`, convert)
 }
 export async function fetchAllKubernetes(params: FetchKubernetesByIdParam): Promise<Kubernetes[]> {
@@ -352,7 +352,7 @@ export async function fetchAllKubernetes(params: FetchKubernetesByIdParam): Prom
             registerDate: new Date(result.register_date * 1000)
           }
         }
-      );
+      )
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/kubernetes`, convert)
 }
 export async function fetchKubernetesById(params: FetchKubernetesByIdParam): Promise<Kubernetes> {
@@ -364,7 +364,7 @@ export async function fetchKubernetesById(params: FetchKubernetesByIdParam): Pro
         name: result.display_name,
         registerDate: new Date(result.register_date * 1000)
       }
-    );
+    )
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/kubernetes/${params.kubernetesId}`, convert)
 }
 
@@ -394,7 +394,7 @@ export function fetchAllApplications(params: FetchApplicationByIdParam): Promise
             projectId: result.project_id
           }
         }
-      );
+      )
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications`, convert)
 }
 export async function fetchApplicationById(params: FetchApplicationByIdParam): Promise<Application> {
@@ -406,7 +406,7 @@ export async function fetchApplicationById(params: FetchApplicationByIdParam): P
         applicationId: result.application_id,
         registerDate: new Date(result.register_date * 1000)
       }
-    );
+    )
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}`, convert)
 }
 
@@ -430,7 +430,7 @@ export async function fetchAllModels(params: FetchModelByIdParam): Promise<Model
         modelId: result.model_id,
         registerDate: new Date(result.register_date * 1000)
       }
-    });
+    })
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/models`, convert)
 }
 export async function fetchModelById(params: FetchModelByIdParam): Promise<Model> {
@@ -442,7 +442,7 @@ export async function fetchModelById(params: FetchModelByIdParam): Promise<Model
         registerDate: new Date(result.register_date * 1000),
         ...convertKeys(result, camelize)
       }
-    );
+    )
   return APICore.getRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/models/${params.modelId}`,
     convert
@@ -498,7 +498,7 @@ export async function fetchAllServices(params: FetchServiceParam): Promise<Servi
         registerDate: new Date(result.register_date * 1000),
         applicationId: result.application_id
       }
-    });
+    })
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/services`, convert)
 }
 export interface FetchServiceByIdParam {
@@ -517,7 +517,7 @@ export async function fetchServiceById(params: FetchServiceByIdParam): Promise<S
         registerDate: new Date(result.register_date * 1000),
         ...convertKeys(result, camelize)
       }
-    );
+    )
 
   if (params.isKubernetes && !params.isOnlyDescription) {
     return APICore.getRequest(
@@ -565,7 +565,7 @@ export async function fetchServiceRoute(params: FetchServiceRouteParam): Promise
           }
         })
       }
-    );
+    )
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/service_routing?service_level=${params.serviceLevel}`, convert)
 }
 
@@ -586,13 +586,13 @@ export async function switchModels(params: SwitchModelParam[]) {
         params: { model_id: param.modelId }
       }
     )
-  );
+  )
   const entryPoints = params.map(
     (param) => (
       `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${param.projectId}/applications/${param.applicationId}/services/${param.serviceId}`
     )
-  );
-  const convert = (result) => result.status;
+  )
+  const convert = (result) => result.status
 
   return APICore.rawMultiRequest(entryPoints, convert, requestOptions)
 }
@@ -606,13 +606,13 @@ export async function syncKubernetes(params: SyncKubernetesParam): Promise<boole
   const options = {
     method: 'PUT',
     body: new FormData()
-  };
+  }
 
   const idUrlString =
     params.applicationId && params.serviceId
       ? `/applications/${params.applicationId}/service_deployment/${params.serviceId}`
-      : '';
-  const convert = (result) => result.status;
+      : ''
+  const convert = (result) => result.status
 
   return APICore.rawRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}${idUrlString}`, convert, options)
 }
@@ -626,7 +626,7 @@ export interface IdParam {
   modelId?: number
 }
 export async function deleteKubernetes(params: IdParam): Promise<any> {
-  const convert = (result) => result.status;
+  const convert = (result) => result.status
 
   return APICore.deleteRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/kubernetes/${params.kubernetesId}`,
@@ -635,7 +635,7 @@ export async function deleteKubernetes(params: IdParam): Promise<any> {
 }
 
 export async function deleteDataServer(params: IdParam): Promise<any> {
-  const convert = (result) => result.status;
+  const convert = (result) => result.status
 
   return APICore.deleteRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/data_servers`,
@@ -644,7 +644,7 @@ export async function deleteDataServer(params: IdParam): Promise<any> {
 }
 
 export async function deleteApplication(params: IdParam): Promise<any> {
-  const convert = (result) => result.status;
+  const convert = (result) => result.status
 
   return APICore.deleteRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}`,
@@ -653,27 +653,27 @@ export async function deleteApplication(params: IdParam): Promise<any> {
 }
 
 export async function deleteServices(params: IdParam[]): Promise<Array<Promise<boolean>>> {
-  const convert = (result) => result.status;
+  const convert = (result) => result.status
   const entryPoints = params.map(
     (param) =>
       `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${param.projectId}/applications/${param.applicationId}/services/${param.serviceId}`
-  );
+  )
   const requestList = params.map(
     (param) => ({ options: { method: 'DELETE' } })
-  );
+  )
 
   return APICore.rawMultiRequest<boolean>(entryPoints, convert, requestList)
 }
 
 export async function deleteModels(params: IdParam[]): Promise<Array<Promise<boolean>>> {
-  const convert = (result) => result.status;
+  const convert = (result) => result.status
   const entryPoints = params.map(
     (param) =>
       `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${param.projectId}/applications/${param.applicationId}/models/${param.modelId}`
-  );
+  )
   const requestList = params.map(
     (param) => ({ options: { method: 'DELETE' } })
-  );
+  )
 
   return APICore.rawMultiRequest<boolean>(entryPoints, convert, requestList)
 }
@@ -693,7 +693,7 @@ export async function login(param: LoginParam) {
     return {
       jwt: result.jwt
     }
-  };
+  }
   return APICore.postJsonRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/login`,
     param,
@@ -732,16 +732,16 @@ export class UserInfo {
 export async function userInfo(): Promise<UserInfo> {
   const convert = (result): UserInfo => {
     const projectRoles: UserProjectRole[] = result.projects.map(
-      (e) => new UserProjectRole(e.project_id, e.project_role));
+      (e) => new UserProjectRole(e.project_id, e.project_role))
     const applicationRoles: UserApplicationRole[] = result.applications.map(
-      (e) => new UserApplicationRole(e.application_id, e.application_role));
+      (e) => new UserApplicationRole(e.application_id, e.application_role))
     return new UserInfo({
       userUid: result.user.auth_id,
       userName: result.user.user_name,
     },
       projectRoles,
       applicationRoles)
-  };
+  }
   return APICore.getRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/credential`,
     convert
@@ -755,7 +755,7 @@ export async function fetchAllUsers(): Promise<UserInfo[]> {
         userName: result.user_name
       }, [], [])
     })
-  };
+  }
   return APICore.getRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/users`,
     convert
@@ -783,14 +783,14 @@ export async function fetchProjectAccessControlList(params: AccessControlParam):
       result.user.user_name,
       apiConvertProjectRole(result.project_role)
     ))
-  };
+  }
   return APICore.getRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/acl`,
     convert
   )
 }
 export async function saveProjectAccessControl(params: AccessControlParam): Promise<boolean> {
-  const convert = (result) => result.status;
+  const convert = (result) => result.status
   return APICore.formDataRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/acl`,
     { ...params },
@@ -799,7 +799,7 @@ export async function saveProjectAccessControl(params: AccessControlParam): Prom
   )
 }
 export async function deleteProjectAccessControl(params: AccessControlParam): Promise<boolean> {
-  const convert = (result) => result.status;
+  const convert = (result) => result.status
   return APICore.deleteRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/acl/users/${params.uid}`,
     convert
@@ -820,7 +820,7 @@ export async function fetchApplicationAccessControlList(params: AccessControlPar
       result.user.user_name,
       apiConvertApplicationRole(result.role)
     ))
-  };
+  }
   return APICore.getRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/acl`,
     convert
@@ -828,7 +828,7 @@ export async function fetchApplicationAccessControlList(params: AccessControlPar
 }
 
 export async function saveApplicationAccessControl(params: AccessControlParam): Promise<boolean> {
-  const convert = (result) => result.status;
+  const convert = (result) => result.status
   return APICore.formDataRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/acl`,
     { ...params },
@@ -838,7 +838,7 @@ export async function saveApplicationAccessControl(params: AccessControlParam): 
 }
 
 export async function deleteApplicationAccessControl(params: AccessControlParam): Promise<boolean> {
-  const convert = (result) => result.status;
+  const convert = (result) => result.status
   return APICore.deleteRequest(
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/acl/users/${params.uid}`,
     convert
