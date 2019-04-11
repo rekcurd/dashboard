@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 
 import { UserInfo, UserApplicationRole } from '@src/apis'
 import { APIRequest, APIRequestStatusList } from '@src/apis/Core'
-import {applicationRole, serviceLevel} from '@components/Common/Enum'
+import { applicationRole, serviceLevel } from '@components/Common/Enum'
 
 interface Props {
   projectId: number
@@ -27,7 +27,7 @@ class SideMenu extends React.Component<SideMenuProps> {
           {
             text: 'Dashboard',
             path: 'dashboard',
-            icon: 'ship'
+            icon: 'chart-line'
           },
           {
             text: 'Services',
@@ -72,7 +72,7 @@ class SideMenu extends React.Component<SideMenuProps> {
       if (subMenuItem.items) {
         const child = subMenuItem.items.map((subsubMenuItem) => {
           return (
-            <li className='navbar-item mb-1' key={subsubMenuItem.path}>
+            <li key={subsubMenuItem.text}>
               <NavLink exact className='nav-link text-info' to={fullPath(subsubMenuItem.path)}>
                 {subsubMenuItem.text}
               </NavLink>
@@ -80,15 +80,15 @@ class SideMenu extends React.Component<SideMenuProps> {
           )
         })
         children = (
-          <li>
-            <ul>
+          <li key={subMenuItem.path + '-subsubmenu'}>
+            <ul style={{listStyleType: "none"}}>
               {child}
             </ul>
           </li>
         )
       }
       return (
-        <React.Fragment>
+        <React.Fragment key={subMenuItem.path}>
           <li className='navbar-item mb-1' key={subMenuItem.path}>
             <NavLink exact className='nav-link text-info' to={fullPath(subMenuItem.path)}>
               <i className={`fas fa-${subMenuItem.icon} fa-fw mr-2`}></i>
