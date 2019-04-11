@@ -8,7 +8,7 @@ import {
   Model, Service, SwitchModelParam, SyncKubernetesParam,
   Application, UserInfo,
   FetchApplicationByIdParam, FetchModelByIdParam, FetchServiceParam,
-  IdParam, FetchKubernetesByIdParam, Kubernetes
+  IdParam, FetchKubernetesByIdParam
 } from '@src/apis'
 import {
   addNotification,
@@ -18,23 +18,16 @@ import {
   switchModelsDispatcher,
   deleteServicesDispatcher,
   deleteModelsDispatcher,
-  syncKubernetesDispatcher, fetchAllKubernetesDispatcher
+  syncKubernetesDispatcher,
+  fetchIsKubernetesModeDispatcher
 } from '@src/actions'
 import { AddModelFileModal } from '@components/App/Model/Modals/AddModelFileModal'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import DashboardStatusForm from './DashboardStatusForm'
 
 
-export enum ControlMode {
-  VIEW_DEPLOY_STATUS,
-  EDIT_DEPLOY_STATUS,
-  SELECT_TARGETS,
-  UPLOAD_MODEL,
-  EVALUATE_MODELS
-}
-
 interface DashboardStatusState {
-  controlMode: ControlMode
+  isSwitchMode: boolean
   isDeleteModalOpen: boolean
   isAddModelFileModalOpen: boolean
   selectedData: { services: any[], models: any[] }
@@ -51,7 +44,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
     super(props, context)
 
     this.state = {
-      controlMode: ControlMode.VIEW_DEPLOY_STATUS,
+      isSwitchMode: false,
       isDeleteModalOpen: false,
       isAddModelFileModalOpen: false,
       selectedData: { services: [], models: [] },
@@ -61,28 +54,23 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
       syncNotified: false
     }
 
-    this.onSubmitDashboardStatusChanges = this.onSubmitDashboardStatusChanges.bind(this)
-    this.onSubmitDelete = this.onSubmitDelete.bind(this)
-    this.deleteServices = this.deleteServices.bind(this)
-    this.deleteModels = this.deleteModels.bind(this)
+    this.toggleSwitchMode = this.toggleSwitchMode.bind(this)
     this.toggleDeleteModal = this.toggleDeleteModal.bind(this)
     this.toggleAddModelFileModalOpen = this.toggleAddModelFileModalOpen.bind(this)
+    this.onSubmit = this.onSubmit.bind(this)
+    this.onCancel = this.onCancel.bind(this)
+    this.deleteServices = this.deleteServices.bind(this)
+    this.deleteModels = this.deleteModels.bind(this)
     this.syncKubernetes = this.syncKubernetes.bind(this)
     this.renderDashboardStatus = this.renderDashboardStatus.bind(this)
-    this.changeMode = this.changeMode.bind(this)
     this.complete = this.complete.bind(this)
   }
 
   componentDidMount() {
-    const { projectId, applicationId } = this.props.match.params
-    const params = {
-      projectId,
-      applicationId
-    }
-
-    this.props.fetchApplicationById(params)
-    this.props.fetchAllModels(params)
-    this.props.fetchAllServices(params)
+    this.props.fetchIsKubernetesMode(this.props.match.params)
+    this.props.fetchApplicationById(this.props.match.params)
+    this.props.fetchAllModels(this.props.match.params)
+    this.props.fetchAllServices(this.props.match.params)
   }
 
   static getDerivedStateFromProps(nextProps: DashboardStatusProps, prevState: DashboardStatusState){
@@ -97,7 +85,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
       projectId,
       applicationId
     }
-    const { controlMode, submitted, syncSubmitted, syncNotified } = prevState
+    const { isSwitchMode, submitted, syncSubmitted, syncNotified } = prevState
 
     const checkAllApiResultSucceeded =
       (result: APIRequest<boolean[]>) =>
@@ -108,40 +96,57 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
         (isAPISucceeded<boolean[]>(result) && !result.result.reduce((p, c) => (p && c))) || isAPIFailed<boolean[]>(result)
 
     // Switch to view mode when API successfully connected
-    if (submitted && controlMode === ControlMode.EDIT_DEPLOY_STATUS) {
+    if (submitted && isSwitchMode) {
       if (checkAllApiResultSucceeded(switchModelsStatus)) {
         nextProps.addNotification({ color: 'success', message: 'Successfully changed deployment' })
-      } else {
+        nextProps.fetchAllServices(params)
+        return {
+          isSwitchMode: false,
+          submitted: false,
+          notified: true,
+        }
+      } else if (checkAllApiResultFailed(switchModelsStatus)) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong with switching models, try again later' })
-      }
-      nextProps.fetchAllModels(params)
-      nextProps.fetchAllServices(params)
-      return {
-        controlMode: ControlMode.VIEW_DEPLOY_STATUS,
-        submitted: false,
-        notified: true,
-        selectedData: { services: [], models: [] }
+        return {
+          isSwitchMode: false,
+          submitted: false,
+          notified: true,
+        }
       }
     }
 
-    if (submitted && controlMode === ControlMode.SELECT_TARGETS) {
+    if (submitted) {
       if (checkAllApiResultSucceeded(deleteServicesStatus)) {
         nextProps.addNotification({ color: 'success', message: 'Successfully changed deletion services' })
+        nextProps.fetchAllServices(params)
+        return {
+          submitted: false,
+          notified: true,
+          selectedData: { services: [], models: [] }
+        }
       } else if (checkAllApiResultFailed(deleteServicesStatus)) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong with deletion services, try again later' })
+        return {
+          submitted: false,
+          notified: true,
+          selectedData: { services: [], models: [] }
+        }
       }
       if (checkAllApiResultSucceeded(deleteModelsStatus)) {
         nextProps.addNotification({ color: 'success', message: 'Successfully changed deletion models' })
+        nextProps.fetchAllModels(params)
+        return {
+          submitted: false,
+          notified: true,
+          selectedData: { services: [], models: [] }
+        }
       } else if (checkAllApiResultFailed(deleteModelsStatus)) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong with deletion models, try again later' })
-      }
-      nextProps.fetchAllModels(params)
-      nextProps.fetchAllServices(params)
-      return {
-        controlMode: ControlMode.VIEW_DEPLOY_STATUS,
-        submitted: false,
-        notified: true,
-        selectedData: { services: [], models: [] }
+        return {
+          submitted: false,
+          notified: true,
+          selectedData: { services: [], models: [] }
+        }
       }
     }
 
@@ -151,27 +156,29 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
 
       if (succeeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully synced application' })
+        nextProps.fetchAllModels(params)
+        nextProps.fetchAllServices(params)
+        return {
+          syncSubmitted: false,
+          syncNotified: true,
+        }
       } else if (failed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong with sync application. Try again later' })
-      }
-      nextProps.fetchAllModels(params)
-      nextProps.fetchAllServices(params)
-      return {
-        controlMode: ControlMode.VIEW_DEPLOY_STATUS,
-        submitted: false,
-        notified: true,
-        syncSubmitted: false,
-        syncNotified: true,
-        selectedData: { services: [], models: [] }
+        return {
+          syncSubmitted: false,
+          syncNotified: true,
+        }
       }
     }
+    return null
   }
 
   // Render methods
 
   render(): JSX.Element {
-    const { application, models, services, userInfoStatus, settings } = this.props
-    const statuses: any = { models, services, application }
+    const { projectId, applicationId } = this.props.match.params
+    const { kubernetesMode, application, models, services, userInfoStatus, settings } = this.props
+    const statuses: any = { models, services, application, kubernetesMode }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
     }
@@ -179,8 +186,8 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
       <APIRequestResultsRenderer
         APIStatus={statuses}
         render={this.renderDashboardStatus}
-        projectId={this.props.match.params.projectId}
-        applicationId={this.props.match.params.applicationId}
+        projectId={projectId}
+        applicationId={applicationId}
       />
     )
   }
@@ -193,58 +200,34 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
    * @param canEdit Boolean value of user's editor permission
    */
   renderDashboardStatus(fetchedResults, canEdit): JSX.Element {
-    const { controlMode } = this.state
-    const {
-      onSubmitDashboardStatusChanges,
-      onSubmitDelete,
-      changeMode
-    } = this
-    const kubernetesMode = fetchedResults.kuberneteses.length > 0
+    const { onSubmit, onCancel, toggleSwitchMode } = this
+    const kubernetesMode = fetchedResults.kubernetesMode
     const applicationName = fetchedResults.application.name
     const { projectId, applicationId } = this.props.match.params
 
     const services: Service[] = fetchedResults.services
     const models: Model[] = fetchedResults.models
     const deployStatus = this.makeDashboardStatus(services)
-    const onSubmitMap: { [mode: number]: (params: any) => Promise<void> } = {
-      [ControlMode.VIEW_DEPLOY_STATUS]: onSubmitDashboardStatusChanges, // Dummy to render form
-      [ControlMode.EDIT_DEPLOY_STATUS]: onSubmitDashboardStatusChanges,
-      [ControlMode.SELECT_TARGETS]: onSubmitDelete,
-    }
 
     // Render contents to control deploy status
-    switch (controlMode) {
-      case ControlMode.VIEW_DEPLOY_STATUS:
-      case ControlMode.EDIT_DEPLOY_STATUS:
-      case ControlMode.SELECT_TARGETS:
-        return (
-          this.renderContent(
-            <DashboardStatusForm
-              projectId={projectId}
-              applicationId={applicationId}
-              services={services}
-              models={models}
-              deployStatus={deployStatus}
-              mode={controlMode}
-              onSubmit={onSubmitMap[controlMode]}
-              changeMode={changeMode}
-              canEdit={canEdit} />,
-            applicationName,
-            kubernetesMode,
-            canEdit
-          )
-        )
-
-      case ControlMode.EVALUATE_MODELS:
-        return (
-          this.renderContent(
-            <div>TBD</div>,
-            applicationName,
-            kubernetesMode,
-            canEdit
-          )
-        )
-    }
+    return (
+      this.renderContent(
+        <DashboardStatusForm
+          projectId={projectId}
+          applicationId={applicationId}
+          services={services}
+          models={models}
+          deployStatus={deployStatus}
+          canEdit={canEdit}
+          isSwitchMode={this.state.isSwitchMode}
+          toggleSwitchMode={toggleSwitchMode}
+          onSubmit={onSubmit}
+          onCancel={onCancel} />,
+        applicationName,
+        kubernetesMode,
+        canEdit
+      )
+    )
   }
 
   renderContent = (content: JSX.Element, applicationName, kubernetesMode, canEdit: boolean): JSX.Element => {
@@ -264,11 +247,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
         </h3>
         <hr />
         {content}
-        {
-          this.state.controlMode === ControlMode.SELECT_TARGETS
-            ? this.renderConfirmDeleteModal()
-            : null
-        }
+        {this.renderConfirmDeleteModal()}
       </div>
     )
   }
@@ -330,19 +309,25 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
   renderConfirmDeleteModal(): JSX.Element {
     const { isDeleteModalOpen } = this.state
 
-    const cancel = () => {
+    const executeDeletion = (event) => {
+      if (this.state.selectedData.services.length > 0) {
+        this.deleteServices(this.state.selectedData.services)
+      }
+      if (this.state.selectedData.models.length > 0) {
+        this.deleteModels(this.state.selectedData.models)
+      }
       this.toggleDeleteModal()
+      return Promise.resolve()
     }
 
-    const executeDeletion = (event) => {
-      this.deleteServices(this.state.selectedData.services)
-      this.deleteModels(this.state.selectedData.models)
+    const cancelDeletion = (event) => {
       this.toggleDeleteModal()
+      return Promise.resolve()
     }
 
     return (
-      <Modal isOpen={isDeleteModalOpen} toggle={cancel} size='sm'>
-        <ModalHeader toggle={cancel}>Delete Services/Models</ModalHeader>
+      <Modal isOpen={isDeleteModalOpen} toggle={cancelDeletion} size='sm'>
+        <ModalHeader toggle={cancelDeletion}>Delete Services/Models</ModalHeader>
         <ModalBody>
           Are you sure to delete?
         </ModalBody>
@@ -360,7 +345,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
             color='secondary'
             size='lg'
             className='rounded-0 flex-1'
-            onClick={cancel}
+            onClick={cancelDeletion}
           >
             <i className='fas fa-ban mr-3' />
             Cancel
@@ -377,6 +362,12 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
 
   // Event handing methods
 
+  toggleSwitchMode(): void {
+    this.setState({
+      isSwitchMode: !this.state.isSwitchMode
+    })
+  }
+
   toggleDeleteModal(): void {
     this.setState({
       isDeleteModalOpen: !this.state.isDeleteModalOpen
@@ -389,7 +380,22 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
     })
   }
 
-  onSubmitDashboardStatusChanges(params): Promise<void> {
+  onSubmit(params): Promise<void> {
+    if (this.state.isSwitchMode) {
+      return this.onSubmitSwitchModels(params)
+    } else {
+      return this.onSubmitDelete(params)
+    }
+  }
+
+  onCancel(): void {
+    this.setState({
+      isSwitchMode: false,
+      selectedData: { services: [], models: [] }
+    })
+  }
+
+  private onSubmitSwitchModels(params): Promise<void> {
     const { switchModels } = this.props
     const { projectId, applicationId } = this.props.match.params
 
@@ -412,7 +418,6 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
             }))
 
     this.setState({ submitted: true })
-
     return switchModels(apiParams)
   }
 
@@ -422,7 +427,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
    *
    * @param params
    */
-  onSubmitDelete(params): Promise<void> {
+  private onSubmitDelete(params): Promise<void> {
     this.setState({
       isDeleteModalOpen: true,
       selectedData: {
@@ -438,18 +443,14 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
     const { projectId, applicationId } = this.props.match.params
 
     const apiParams =
-      Object.entries(params)
-        .filter(([key, value]) => (value))
-        .map(
-          ([key, value]) => (
-            {
-              projectId,
-              applicationId,
-              serviceId: key
-            }))
+      params.map((id) => (
+        {
+          projectId,
+          applicationId,
+          serviceId: id
+        }))
 
-    this.setState({ submitted: true })
-
+    this.setState({ submitted: true, notified: false })
     return deleteServices(apiParams)
   }
 
@@ -458,18 +459,14 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
     const { projectId, applicationId } = this.props.match.params
 
     const apiParams =
-      Object.entries(params)
-        .filter(([key, value]) => (value))
-        .map(
-          ([key, value]) => (
-            {
-              projectId,
-              applicationId,
-              modelId: Number(key)
-            }))
+      params.map((id) => (
+        {
+          projectId,
+          applicationId,
+          modelId: Number(id)
+        }))
 
-    this.setState({ submitted: true })
-
+    this.setState({ submitted: true, notified: false })
     return deleteModels(apiParams)
   }
 
@@ -488,16 +485,10 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
     return result
   }
 
-  changeMode(mode: ControlMode) {
-    this.setState({ controlMode: mode })
-  }
-
   complete(param) {
     this.props.addNotification(param)
     this.props.fetchAllModels(this.props.match.params)
-    this.props.fetchAllServices(this.props.match.params)
     this.setState({
-      controlMode: ControlMode.VIEW_DEPLOY_STATUS,
       submitted: false,
       selectedData: { services: [], models: [] }
     })
@@ -505,7 +496,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
 }
 
 export interface StateProps {
-  kuberneteses: APIRequest<Kubernetes[]>
+  kubernetesMode: APIRequest<boolean>
   application: APIRequest<Application>
   models: APIRequest<Model[]>
   services: APIRequest<Service[]>
@@ -519,7 +510,7 @@ export interface StateProps {
 
 const mapStateToProps = (state): StateProps => {
   return {
-    kuberneteses: state.fetchAllKubernetesReducer.fetchAllKubernetes,
+    kubernetesMode: state.fetchIsKubernetesModeReducer.fetchIsKubernetesMode,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     models: state.fetchAllModelsReducer.fetchAllModels,
     services: state.fetchAllServicesReducer.fetchAllServices,
@@ -534,7 +525,7 @@ const mapStateToProps = (state): StateProps => {
 
 export interface DispatchProps {
   addNotification
-  fetchAllKubernetes: (params: FetchKubernetesByIdParam) => Promise<void>
+  fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => Promise<void>
   fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
   fetchAllServices: (params: FetchServiceParam) => Promise<void>
@@ -547,7 +538,7 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
-    fetchAllKubernetes: (params: FetchKubernetesByIdParam) => fetchAllKubernetesDispatcher(dispatch, params),
+    fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => fetchIsKubernetesModeDispatcher(dispatch, params),
     fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
     fetchAllServices: (params: FetchServiceParam) => fetchAllServicesDispatcher(dispatch, params),

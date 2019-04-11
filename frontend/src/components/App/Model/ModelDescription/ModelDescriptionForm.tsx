@@ -1,8 +1,10 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { Card, CardBody, Button } from 'reactstrap'
-import { Formik, Form, ErrorMessage, Field } from 'formik'
+import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup';
+
+import { FormikInput } from '@common/Field'
 
 
 const ModelSchema = Yup.object().shape({
@@ -17,20 +19,22 @@ class ModelDescriptionFormImpl extends React.Component<ModelDescriptionFormProps
         <Card className='mb-3'>
           <Formik
             initialValues={{
-              description: this.props.initialValues.model.description,
+              description: this.props.initialValues.description,
             }}
             validationSchema={ModelSchema}
             onSubmit={this.props.onSubmit}>
             {({ errors, touched, isSubmitting }) => (
               <Form>
                 <CardBody>
-                  <Field name="description" component="textarea" placeholder="Description"/>
+                  <Field
+                    name="description"
+                    label="Description"
+                    component={FormikInput}
+                    className="form-control"
+                    type="textarea"
+                    placeholder="e.g. sklearn linearSVC C=0.01"
+                    required />
                 </CardBody>
-                {errors.description && touched.description ? (
-                  <div>{errors.description}</div>
-                ) : null}
-                <ErrorMessage name="description" />
-
                 {this.renderButtons(isSubmitting)}
               </Form>
             )}

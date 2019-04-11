@@ -6,75 +6,65 @@ import { Formik, Form } from 'formik'
 
 import { APIRequest } from '@src/apis/Core'
 import { Service, Model } from '@src/apis'
-import { ControlMode } from './index'
 import { Checkbox, Radio } from '@common/Field'
 
 
 class DashboardStatusForm extends React.Component<DashboardStatusFormProps, DashboardStatusFormState> {
   constructor(props, context) {
     super(props, context)
-
-    this.handleDiscardChanges = this.handleDiscardChanges.bind(this)
-    this.handleModeChanges = this.handleModeChanges.bind(this)
   }
 
   render() {
-    const {
-      onSubmit
-    } = this.props
+    const { onSubmit } = this.props
+    const initialValues = {
+      switch: this.props.initialValues.switch,
+      delete_services: this.props.initialValues.delete.services,
+      delete_models: this.props.initialValues.delete.models
+    }
 
     return (
       <Formik
-        initialValues={{
-          status: this.props.initialValues.status,
-          switch: this.props.initialValues.switch,
-          delete_services: this.props.initialValues.delete.services,
-          delete_models: this.props.initialValues.delete.models
-        }}
-        onSubmit={onSubmit}>
-        {({ isInitialValid, isSubmitting }) => (
+        initialValues={initialValues}
+        onSubmit={onSubmit} >
+        {({ isValid, isSubmitting, resetForm }) => (
           <Form>
-            {this.handleModeChanges(isInitialValid)}
             <div className='mb-2'>
-              {this.renderSwitchModelsButton()}
+              {this.renderTopButton(isValid, resetForm, initialValues)}
             </div>
             <Table hover className='mb-3'>
               {this.renderTableHead()}
               {this.renderTableBody()}
             </Table>
             <hr />
-            {this.renderSubmitButtons(isInitialValid, isSubmitting)}
+            {this.renderSubmitButtons(isValid, isSubmitting)}
           </Form>
         )}
       </Formik>
     )
   }
 
-  renderSwitchModelsButton = () => {
-    const { mode, changeMode, canEdit } = this.props
+  renderTopButton = (isValid, resetForm, initialValues) => {
+    const { canEdit, isSwitchMode, toggleSwitchMode, onCancel } = this.props
 
     if (!canEdit) {
       return null
     }
-    switch (mode) {
-      case ControlMode.EDIT_DEPLOY_STATUS:
-      case ControlMode.SELECT_TARGETS:
-        return (
-          <Button outline color='danger' onClick={this.handleDiscardChanges}>
-            <i className={`fas fa-times fa-fw mr-2`}></i>
-            Discard changes
-          </Button>
-        )
-      default:
-        return (
-          <div>
-            <Button color='success'
-              onClick={(event) => {changeMode(ControlMode.EDIT_DEPLOY_STATUS)}} >
-              <i className={`fas fa-screwdriver fa-fw mr-2`}></i>
-              Switch models
-            </Button>
-          </div>
-        )
+    if (isValid || isSwitchMode) {
+      return (
+        <Button outline color='danger' onClick={() => {onCancel(); resetForm(initialValues);}}>
+          <i className={`fas fa-times fa-fw mr-2`}></i>
+          Discard changes
+        </Button>
+      )
+    } else {
+      return (
+        <Button color='success'
+                type='button'
+                onClick={toggleSwitchMode} >
+          <i className={`fas fa-screwdriver fa-fw mr-2`}></i>
+          Switch models
+        </Button>
+      )
     }
   }
 
@@ -86,29 +76,20 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
    * @param services Services to be shown (Currently show all, but should be filtered)
    */
   renderTableHead = () => {
-    const { mode, projectId, applicationId, canEdit, services } = this.props
+    const { projectId, applicationId, canEdit, isSwitchMode, services } = this.props
 
     // Button to delete Service (for deleting k8s services)
     const deleteCheckButton = (serviceName: string, serviceId: string) => {
       return (
         <Row>
-          { canEdit ?
-            <Checkbox name='delete_services' value={`service-${serviceId}`} label='' />
+          { canEdit && !isSwitchMode ?
+            <Checkbox name='delete_services' value={serviceId} label='' />
             : null }
           <Link className='text-info' to={`/projects/${projectId}/applications/${applicationId}/services/${serviceId}/edit`}>
             {serviceName}
           </Link>
         </Row>
       )
-    }
-
-    const renderButton = (serviceName, serviceId) => {
-      const renderMap = {
-        [ControlMode.VIEW_DEPLOY_STATUS] : deleteCheckButton(serviceName, serviceId),
-        [ControlMode.SELECT_TARGETS] : deleteCheckButton(serviceName, serviceId),
-        [ControlMode.EDIT_DEPLOY_STATUS]: <span>{serviceName}</span>
-      }
-      return renderMap[mode]
     }
 
     return (
@@ -121,7 +102,7 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
         {services.map(
           (service: Service) => (
             <th key={service.name} scope='col'>
-              {renderButton(service.name, service.serviceId)}
+              {deleteCheckButton(service.name, service.serviceId)}
             </th>
           )
         )}
@@ -134,7 +115,7 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
    * Render body of the table
    */
   renderTableBody = () => {
-    const { models, projectId, applicationId, mode, canEdit } = this.props
+    const { models, projectId, applicationId, canEdit, isSwitchMode } = this.props
 
     const deleteCheckButton = (modelName: string, modelId: string) => {
       const checkBox = (
@@ -142,21 +123,12 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
       )
       return (
         <Row>
-          {canEdit ? checkBox : null}
+          {canEdit && !isSwitchMode ? checkBox : null}
           <Link className='text-info' to={`/projects/${projectId}/applications/${applicationId}/models/${modelId}/edit`}>
             {modelName}
           </Link>
         </Row>
       )
-    }
-
-    const renderButton = (modelName, modelId) => {
-      const renderMap = {
-        [ControlMode.VIEW_DEPLOY_STATUS] : deleteCheckButton(modelName, modelId),
-        [ControlMode.SELECT_TARGETS] : deleteCheckButton(modelName, modelId),
-        [ControlMode.EDIT_DEPLOY_STATUS]: <span>{modelName}</span>
-      }
-      return renderMap[mode]
     }
 
     return (
@@ -166,7 +138,7 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
           (model: Model, index: number) => (
             <tr key={index}>
               <td>
-                {renderButton(model.description, model.modelId)}
+                {deleteCheckButton(model.description, model.modelId.toString())}
               </td>
               {this.renderStatusRow(model)}
             </tr>
@@ -188,9 +160,9 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
   )
 
   renderStatusCell = (serviceId: string, model: Model) => {
-    const { mode, deployStatus } = this.props
+    const { isSwitchMode, deployStatus } = this.props
 
-    if (mode !== ControlMode.VIEW_DEPLOY_STATUS) {
+    if (isSwitchMode) {
       return (
         <Radio name='switch' value={model.modelId} label='' />
       )
@@ -211,19 +183,17 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
    * Show delete button if selected targets exist
    * Show save button if editing deploy status
    */
-  renderSubmitButtons(isInitialValid, isSubmitting): JSX.Element {
-    const { mode } = this.props
+  renderSubmitButtons(isValid, isSubmitting): JSX.Element {
+    const { isSwitchMode } = this.props
 
-    const showSubmitButton: boolean = mode !== ControlMode.VIEW_DEPLOY_STATUS
-
-    if (!showSubmitButton) {
+    if (!isValid) {
       return null
     }
 
-    const paramsMap = {
-      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services/Models' },
-      [ControlMode.EDIT_DEPLOY_STATUS]: { color: 'success', icon: 'save', text: 'Save Changes' }
-    }
+    const paramsMap = [
+      { color: 'danger', icon: 'trash', text: 'Delete Services/Models' },
+      { color: 'success', icon: 'save', text: 'Switch Models' }
+    ]
 
     // Submit button element(s)
     const buttons = (params) => (
@@ -231,9 +201,8 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
         <Button
           color={params.color}
           className='mr-2'
-          disabled={isInitialValid || isSubmitting}
-          type='submit'
-        >
+          disabled={!isValid || isSubmitting}
+          type='submit'>
           <i className={`fas fa-${params.icon} fa-fw mr-2`}></i>
           {params.text}
         </Button>
@@ -247,66 +216,39 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
       </div>
     )
 
-    return isSubmitting ? submittingLoader : buttons(paramsMap[mode])
-  }
-
-  // Handle event methods
-
-  handleDiscardChanges(event): void {
-    const { changeMode } = this.props
-    changeMode(ControlMode.VIEW_DEPLOY_STATUS)
-  }
-
-  handleModeChanges(isInitialValid): void {
-    const { mode, changeMode } = this.props
-    if (mode === ControlMode.VIEW_DEPLOY_STATUS && !isInitialValid) {
-      changeMode(ControlMode.SELECT_TARGETS)
-    } else if (mode === ControlMode.SELECT_TARGETS && isInitialValid) {
-      changeMode(ControlMode.VIEW_DEPLOY_STATUS)
-    }
+    return isSubmitting ? submittingLoader : isSwitchMode ? buttons(paramsMap[1]) : buttons(paramsMap[0])
   }
 }
 
 interface DashboardStatusFormCustomProps {
   projectId
   applicationId
-  mode: ControlMode
   services: Service[]
   models: Model[]
   deployStatus
   canEdit: boolean
-  onSubmit: (e) => Promise<void>
-  changeMode: (mode: ControlMode) => void
+  isSwitchMode: boolean
+  toggleSwitchMode
+  onSubmit
+  onCancel
 }
 
 interface StateProps {
   switchModelsStatus: APIRequest<boolean[]>
   initialValues: {
-    status
     switch
     delete
   }
 }
 
 const mapStateToProps = (state: any, extraProps: DashboardStatusFormCustomProps) => {
-  // Map of service ID to delete flag
-  const initialServiceStatus: { [x: string]: boolean } =
-    extraProps.services
-    .map((service) => ({[service.serviceId]: false}))
-    .reduce((l, r) => Object.assign(l, r), {})
-  const initialModelStatus: { [x: string]: boolean } =
-    extraProps.models
-      .map((model) => ({[model.modelId]: false}))
-      .reduce((l, r) => Object.assign(l, r), {})
-
   return {
     ...state.form,
     initialValues: {
-      status: extraProps.deployStatus,
       switch: extraProps.deployStatus,
       delete: {
-        services: initialServiceStatus,
-        models: initialModelStatus
+        services: [],
+        models: []
       }
     }
   }

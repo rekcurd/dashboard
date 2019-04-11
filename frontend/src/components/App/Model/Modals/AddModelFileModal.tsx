@@ -7,7 +7,9 @@ import { UploadModelParam } from '@src/apis'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
 import * as Yup from "yup";
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
+
+import { FileUpload, FormikInput } from '@common/Field'
 
 
 const AddModelFileSchema = Yup.object().shape({
@@ -57,6 +59,7 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
         return {submitting: false}
       }
     }
+    return null
   }
 
   onCancel(event) {
@@ -78,7 +81,8 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
             filepath: null
           }}
           validationSchema={AddModelFileSchema}
-          onSubmit={this.onSubmit}>
+          onSubmit={this.onSubmit}
+          onReset={this.onCancel}>
           {({ errors, touched, setFieldValue, isSubmitting }) => (
             <Form>
               <ModalHeader toggle={this.onCancel}>
@@ -86,18 +90,23 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
                 Add Model
               </ModalHeader>
               <ModalBody>
-                <Field name="description" component="textarea" placeholder="Description"/>
-                {errors.description && touched.description ? (
-                  <div>{errors.description}</div>
-                ) : null}
-                <ErrorMessage name="description" />
-                <input name="filepath" type="file" onChange={(event) => {
-                  setFieldValue("filepath", event.currentTarget.files[0]);
-                }} />
-                {errors.filepath && touched.filepath ? (
-                  <div>{errors.filepath}</div>
-                ) : null}
-                <ErrorMessage name="filepath" />
+                <Field
+                  name="description"
+                  label="Description"
+                  component={FormikInput}
+                  className="form-control"
+                  type="textarea"
+                  placeholder="e.g. sklearn linearSVC C=0.01"
+                  required />
+                <FileUpload
+                  errors={errors}
+                  touched={touched}
+                  setFieldValue={setFieldValue}
+                  name="filepath"
+                  label="Model File"
+                  className="form-control"
+                  placeholder="Upload your machine learning model file."
+                  required />
               </ModalBody>
               {this.renderFooterButtons(isSubmitting)}
             </Form>
@@ -129,7 +138,7 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
           Submit
         </Button>
         {' '}
-        <Button outline color='info' onClick={this.onCancel}>
+        <Button outline color='info' type='reset'>
           <i className='fas fa-ban fa-fw mr-2'></i>
           Cancel
         </Button>

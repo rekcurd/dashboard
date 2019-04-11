@@ -60,8 +60,7 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
     // Close modal when API successfully finished
     if (submitting && !notified) {
       const succeeded: boolean = isAPISucceeded<boolean>(updateModelStatus) && updateModelStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(updateModelStatus) && !updateModelStatus.result) ||
-        isAPIFailed<boolean>(updateModelStatus)
+      const failed: boolean = (isAPISucceeded<boolean>(updateModelStatus) && !updateModelStatus.result) || isAPIFailed<boolean>(updateModelStatus)
       if (succeeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully saved model' })
         push(`/projects/${projectId}/applications/${applicationId}`)
@@ -71,6 +70,7 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
         return { notified: true }
       }
     }
+    return null
   }
 
   render() {
@@ -85,16 +85,14 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
   }
 
   renderForm(result) {
-    const { method } = this.props
-
     return (
       <Row className='justify-content-center'>
         <Col md='10'>
           <h1 className='mb-3'>
             <i className='fas fa-box fa-fw mr-2'></i>
-            {method === 'patch' ? 'Edit' : 'Add'} Model
+            Edit Model
           </h1>
-          { method === 'patch' ? <ModelDescription method={method}/> : null }
+          <ModelDescription />
         </Col>
       </Row>
     )
@@ -118,9 +116,7 @@ interface StateProps {
   userInfoStatus: APIRequest<UserInfo>
 }
 
-interface CustomProps {
-  method: string
-}
+interface CustomProps {}
 
 const mapStateToProps = (state: any, extraProps: CustomProps): StateProps => (
   {

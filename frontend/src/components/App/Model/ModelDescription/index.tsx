@@ -31,12 +31,7 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
   }
 
   componentDidMount(): void {
-    const { method } = this.props
-    const { modelId, applicationId } = this.props.match.params
-
-    if (method === 'patch') {
-      this.props.fetchModelById(this.props.match.params)
-    }
+    this.props.fetchModelById(this.props.match.params)
   }
 
   static getDerivedStateFromProps(nextProps: ModelDescriptionProps, prevState: ModelDescriptionState){
@@ -48,8 +43,7 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
     // Close modal when API successfully finished
     if (submitting && !notified) {
       const succeeded: boolean = isAPISucceeded<boolean>(updateModelStatus) && updateModelStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(updateModelStatus) && !updateModelStatus.result) ||
-        isAPIFailed<boolean>(updateModelStatus)
+      const failed: boolean = (isAPISucceeded<boolean>(updateModelStatus) && !updateModelStatus.result) || isAPIFailed<boolean>(updateModelStatus)
       if (succeeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully saved model description' })
         push(`/projects/${projectId}/applications/${applicationId}`)
@@ -59,20 +53,18 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
         return { notified: true }
       }
     }
+    return null
   }
 
   render() {
-    const { fetchModelByIdStatus, method } = this.props
+    const { fetchModelByIdStatus } = this.props
 
-    if (method === 'patch') {
-      return(
-        <APIRequestResultsRenderer
-          render={this.renderForm}
-          APIStatus={{model: fetchModelByIdStatus}}
-        />
-      )
-    }
-    return this.renderForm({})
+    return(
+      <APIRequestResultsRenderer
+        render={this.renderForm}
+        APIStatus={{model: fetchModelByIdStatus}}
+      />
+    )
   }
 
   renderForm(params) {
@@ -97,16 +89,14 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
   }
 
   onSubmit(parameters): Promise<void> {
-    const { updateModel, method } = this.props
+    const { updateModel } = this.props
     const { projectId, applicationId, modelId } = this.props.match.params
 
     const request = {
-      ...parameters,
-      method,
       projectId,
       applicationId,
       modelId,
-      saveDescription: true
+      ...parameters,
     }
 
     this.setState({ submitting: true, notified: false })
@@ -125,9 +115,7 @@ interface ModelDescriptionState {
   notified: boolean
 }
 
-interface CustomProps {
-  method: string
-}
+interface CustomProps {}
 
 interface StateProps {
   fetchModelByIdStatus: APIRequest<Model>
