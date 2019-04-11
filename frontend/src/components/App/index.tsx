@@ -144,7 +144,8 @@ class ApplicationsRoute extends React.Component<ApplicationsRouteProps> {
     return (
       <Application>
         <Switch>
-          <Route path='/projects/:projectId/applications/:applicationId/dashboard' component={Dashboard} />
+          <Redirect exact from='/projects/:projectId/applications/:applicationId' to='/projects/:projectId/applications/:applicationId/dashboard' />
+          <Route exact path='/projects/:projectId/applications/:applicationId/dashboard' component={Dashboard} />
           <Route exact path='/projects/:projectId/applications/:applicationId/services' component={Services} />
           <Route exact path='/projects/:projectId/applications/:applicationId/models' component={Models} />
           <Route exact path='/projects/:projectId/applications/:applicationId/routing' component={ServiceRouting} />
@@ -153,8 +154,7 @@ class ApplicationsRoute extends React.Component<ApplicationsRouteProps> {
           <Route exact path='/projects/:projectId/applications/:applicationId/services/:serviceId/edit'
                  render={(props) => <Service {...props} method='patch'/>} />
           <Route exact path='/projects/:projectId/applications/:applicationId/models/:modelId/edit'
-                 render={(props) => <Model {...props} method='patch'/>} />
-          <Redirect exact from='/projects/:projectId/applications/:applicationId' to='/projects/:projectId/applications/:applicationId/dashboard' />
+                 render={(props) => <Model {...props} />} />
         </Switch>
       </Application>
     )

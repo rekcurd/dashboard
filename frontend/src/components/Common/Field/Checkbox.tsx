@@ -15,7 +15,6 @@ class CheckboxImpl extends React.Component<CheckboxProps, CheckboxState> {
           <label>
             <input
               type="checkbox"
-              {...this.props}
               checked={field.value.includes(this.props.value)}
               onChange={() => {
                 if (field.value.includes(this.props.value)) {
@@ -26,7 +25,7 @@ class CheckboxImpl extends React.Component<CheckboxProps, CheckboxState> {
                 } else {
                   const nextValue = field.value.concat(this.props.value);
                     form.setFieldValue(this.props.name, nextValue);
-                  }
+                }
                 }}
             />
             {this.props.label}

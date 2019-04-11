@@ -43,7 +43,7 @@ model_model_params = model_api_namespace.model('Model', {
 @model_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/models')
 class ApiModels(Resource):
     upload_model_parser = reqparse.RequestParser()
-    upload_model_parser.add_argument('file', location='files',
+    upload_model_parser.add_argument('filepath', location='files',
                                      type=FileStorage, required=True)
     upload_model_parser.add_argument('description', type=str, required=True, location='form')
 
@@ -57,7 +57,7 @@ class ApiModels(Resource):
     def post(self, project_id: int, application_id: str):
         """upload_model"""
         args = self.upload_model_parser.parse_args()
-        file: FileStorage = args['file']
+        file: FileStorage = args['filepath']
         description: str = args['description']
 
         data_server_model: DataServerModel = db.session.query(

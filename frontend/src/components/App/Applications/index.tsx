@@ -136,7 +136,7 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
           <tr key={value.applicationId}>
             <td>
               <Link
-                to={`projects/${projectId}/applications/${value.applicationId}`}
+                to={`/projects/${projectId}/applications/${value.applicationId}`}
                 className='text-info'
               >
                 {value.name}

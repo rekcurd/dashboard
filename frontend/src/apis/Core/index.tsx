@@ -226,9 +226,10 @@ export async function rawMultiRequest<T = any>(
   return Promise.all(
     entryPoints.map(
       (entryPoint, i) => {
-        return fetch(entryPoint, fullOptionsList[i]).then((response) => {
-          return _handleAPIResponse<T>(response, convert)
-        })
+        return fetch(entryPoint, fullOptionsList[i])
+          .then((response) => {
+            return _handleAPIResponse<T>(response, convert)
+          })
       }
     )
   )

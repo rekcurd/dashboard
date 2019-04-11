@@ -45,7 +45,7 @@ class ApiModelsTest(BaseTestCase):
         description = 'test'
         dummy_file = 'test/dummy'
         response = self.client.post(
-            self.__URL, data={'file': (open(dummy_file, 'rb'), dummy_file), 'description': description})
+            self.__URL, data={'filepath': (open(dummy_file, 'rb'), dummy_file), 'description': description})
         model_model = db.session.query(ModelModel).filter(
             ModelModel.description == description).one_or_none()
         self.assertEqual(200, response.status_code)
@@ -54,7 +54,7 @@ class ApiModelsTest(BaseTestCase):
         DataServerModel.query.filter(DataServerModel.project_id == TEST_PROJECT_ID).delete()
         create_data_server_model(mode=DataServerModeEnum.CEPH_S3, save=True)
         response = self.client.post(
-            self.__URL, data={'file': (open(dummy_file, 'rb'), dummy_file), 'description': description})
+            self.__URL, data={'filepath': (open(dummy_file, 'rb'), dummy_file), 'description': description})
         self.assertEqual(200, response.status_code)
 
 
