@@ -11,7 +11,8 @@ import {
 import {
   fetchApplicationByIdDispatcher,
   saveServiceDeploymentDispatcher,
-  addNotification, fetchAllKubernetesDispatcher
+  addNotification,
+  fetchIsKubernetesModeDispatcher
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import ServiceDeployment from './ServiceDeployment'
@@ -36,7 +37,7 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
     const { userInfoStatus, history } = this.props
     const { applicationId } = this.props.match.params
 
-    this.props.fetchAllKubernetes(this.props.match.params)
+    this.props.fetchIsKubernetesMode(this.props.match.params)
     this.props.fetchApplicationById(this.props.match.params)
 
     const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
@@ -70,23 +71,32 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
         return { notified: true }
       }
     }
+    return null
   }
 
   render() {
-    const { kuberneteses, application } = this.props
-    const targetStatus = { kuberneteses, application }
+    const { projectId, applicationId } = this.props.match.params
+    const { kubernetesMode, application } = this.props
+    const targetStatus = { kubernetesMode, application }
 
     return(
       <APIRequestResultsRenderer
         render={this.renderForm}
         APIStatus={targetStatus}
+        projectId={projectId}
+        applicationId={applicationId}
       />
     )
   }
 
-  renderForm(result) {
+  renderForm(result, canEdit) {
     const { method } = this.props
-    const kubernetesMode = result.kuberneteses.length > 0
+    const { projectId, applicationId } = this.props.match.params
+    const kubernetesMode = result.kubernetesMode
+
+    if (!canEdit) {
+      this.props.history.push(`/projects/${projectId}/applications/${applicationId}`)
+    }
 
     return (
       <Row className='justify-content-center'>
@@ -113,7 +123,7 @@ interface ServiceState {
 }
 
 interface StateProps {
-  kuberneteses: APIRequest<Kubernetes[]>
+  kubernetesMode: APIRequest<boolean>
   application: APIRequest<Application>
   service: APIRequest<Service>
   saveServiceDeploymentStatus: APIRequest<boolean>
@@ -126,7 +136,7 @@ interface CustomProps {
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
-    kuberneteses: state.fetchAllKubernetesReducer.fetchAllKubernetes,
+    kubernetesMode: state.fetchIsKubernetesModeReducer.fetchIsKubernetesMode,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     service: state.fetchServiceByIdReducer.fetchServiceById,
     saveServiceDeploymentStatus: state.saveServiceDeploymentReducer.saveServiceDeployment,
@@ -137,7 +147,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
 )
 
 export interface DispatchProps {
-  fetchAllKubernetes: (params: FetchKubernetesByIdParam) => Promise<void>
+  fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => Promise<void>
   fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   saveServiceDeployment: (params: ServiceDeploymentParam) => Promise<void>
   addNotification: (params) => Promise<void>
@@ -145,7 +155,7 @@ export interface DispatchProps {
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    fetchAllKubernetes: (params: FetchKubernetesByIdParam) => fetchAllKubernetesDispatcher(dispatch, params),
+    fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => fetchIsKubernetesModeDispatcher(dispatch, params),
     fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     saveServiceDeployment: (params: ServiceDeploymentParam) => saveServiceDeploymentDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))

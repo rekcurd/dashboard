@@ -1,9 +1,11 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { Card, CardBody, Button } from 'reactstrap'
+import { Card, CardBody, CardTitle, Button } from 'reactstrap'
 
 import * as Yup from "yup";
-import { ErrorMessage, Field } from "formik";
+import { Field } from "formik";
+
+import { FormikInput } from '@common/Field'
 
 
 export const ServiceDeploymentSchema = {
@@ -14,26 +16,25 @@ export const ServiceDeploymentSchema = {
   replicasMaximum: Yup.number()
     .positive()
     .integer()
-    .moreThan(Yup.ref('replicasDefault')),
+    .min(Yup.ref('replicasDefault')),
   replicasMinimum: Yup.number()
     .positive()
     .integer()
-    .lessThan(Yup.ref('replicasDefault')),
+    .max(Yup.ref('replicasDefault')),
   autoscaleCpuThreshold: Yup.number()
     .positive()
     .integer()
-    .min(0)
     .max(100),
   policyMaxSurge: Yup.number()
-    .positive()
+    .min(0)
     .integer(),
   policyMaxUnavailable: Yup.number()
-    .positive()
+    .min(0)
     .integer(),
   policyWaitSeconds: Yup.number()
-    .positive()
-    .integer()
-    .max(86400),
+    .min(0)
+    .max(86400)
+    .integer(),
   containerImage: Yup.string()
     .required('Required')
     .max(512),
@@ -59,102 +60,148 @@ export const ServiceDeploymentSchema = {
 
 class ServiceDeploymentFormImpl extends React.Component<ServiceDeploymentFormProps> {
   render() {
-    const { errors, touched } = this.props
+    const { isPost } = this.props
 
     return (
       <React.Fragment>
         <Card className='mb-3'>
           <CardBody>
-            <Field name="containerImage" placeholder="Image location of Docker registry"/>
-            {errors.containerImage && touched.containerImage ? (
-              <div>{errors.containerImage}</div>
-            ) : null}
-            <ErrorMessage name="containerImage" />
-            <Field name="serviceGitUrl" placeholder="URL of git repository of your Rekcurd application "/>
-            {errors.serviceGitUrl && touched.serviceGitUrl ? (
-              <div>{errors.serviceGitUrl}</div>
-            ) : null}
-            <ErrorMessage name="serviceGitUrl" />
-            <Field name="serviceGitBranch" placeholder="Git branch name"/>
-            {errors.serviceGitBranch && touched.serviceGitBranch ? (
-              <div>{errors.serviceGitBranch}</div>
-            ) : null}
-            <ErrorMessage name="serviceGitBranch" />
-            <Field name="serviceBootScript" placeholder="Script file name for booting."/>
-            {errors.serviceBootScript && touched.serviceBootScript ? (
-              <div>{errors.serviceBootScript}</div>
-            ) : null}
-            <ErrorMessage name="serviceBootScript" />
+            <CardTitle>Your Application</CardTitle>
+            <Field
+              name="containerImage"
+              label="Container Image URL"
+              component={FormikInput}
+              className="form-control"
+              placeholder="Image location of Docker registry."
+              required={isPost} />
+            <Field
+              name="serviceGitUrl"
+              label="Git URL"
+              component={FormikInput}
+              className="form-control"
+              placeholder="[Option] Git URL of your Rekcurd service. Your code will be downloaded when a container boots IF YOU USE Rekcurd's official docker image (e.g. 'rekcurd/rekcurd:python-latest')." />
+            <div className='form-row'>
+              <Field
+                name="serviceGitBranch"
+                label="Git Branch Name"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-6 pr-3'
+                placeholder="[Option] Git Branch name of your Rekcurd service (e.g. 'master')." />
+              <Field
+                name="serviceBootScript"
+                label="Booting Shell Script"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-6'
+                placeholder="[Option] Script file name for booting (e.g. 'start.sh')." />
+            </div>
           </CardBody>
         </Card>
 
         <Card className='mb-3'>
           <CardBody>
-            <Field name="resourceRequestCpu" placeholder="Request CPU limit."/>
-            {errors.resourceRequestCpu && touched.resourceRequestCpu ? (
-              <div>{errors.resourceRequestCpu}</div>
-            ) : null}
-            <ErrorMessage name="resourceRequestCpu" />
-            <Field name="resourceRequestMemory" placeholder="Request memory limit."/>
-            {errors.resourceRequestMemory && touched.resourceRequestMemory ? (
-              <div>{errors.resourceRequestMemory}</div>
-            ) : null}
-            <ErrorMessage name="resourceRequestMemory" />
-            <Field name="resourceLimitCpu" placeholder="Maximum CPU limit."/>
-            {errors.resourceLimitCpu && touched.resourceLimitCpu ? (
-              <div>{errors.resourceLimitCpu}</div>
-            ) : null}
-            <ErrorMessage name="resourceLimitCpu" />
-            <Field name="resourceLimitMemory" placeholder="Maximum memory limit."/>
-            {errors.resourceLimitMemory && touched.resourceLimitMemory ? (
-              <div>{errors.resourceLimitMemory}</div>
-            ) : null}
-            <ErrorMessage name="resourceLimitMemory" />
+            <CardTitle>Resource Requirement</CardTitle>
+            <div className='form-row'>
+              <Field
+                name="resourceRequestCpu"
+                label="CPU Request"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-6 pr-3'
+                placeholder="CPU resource which your service need."
+                required={isPost} />
+              <Field
+                name="resourceRequestMemory"
+                label="Memory Request"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-6'
+                placeholder="Memory resource which your service need."
+                required={isPost} />
+            </div>
+            <div className='form-row'>
+              <Field
+                name="resourceLimitCpu"
+                label="CPU Limit"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-6 pr-3'
+                placeholder="Maximum CPU resource which your service need. Default is the same volume of 'CPU Request'" />
+              <Field
+                name="resourceLimitMemory"
+                label="Memory Limit"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-6'
+                placeholder="Maximum Memory resource which your service need. Default is the same volume of 'Memory Request'" />
+            </div>
           </CardBody>
         </Card>
 
         <Card className='mb-3'>
           <CardBody>
-            <Field name="replicasDefault" placeholder="Initial number of replicas"/>
-            {errors.replicasDefault && touched.replicasDefault ? (
-              <div>{errors.replicasDefault}</div>
-            ) : null}
-            <ErrorMessage name="replicasDefault" />
-            <Field name="replicasMaximum" placeholder="Maximum number of replicas"/>
-            {errors.replicasMaximum && touched.replicasMaximum ? (
-              <div>{errors.replicasMaximum}</div>
-            ) : null}
-            <ErrorMessage name="replicasMaximum" />
-            <Field name="replicasMinimum" placeholder="Minimum number of replicas"/>
-            {errors.replicasMinimum && touched.replicasMinimum ? (
-              <div>{errors.replicasMinimum}</div>
-            ) : null}
-            <ErrorMessage name="replicasMinimum" />
+            <CardTitle>HA Configuration</CardTitle>
+            <div className='form-row'>
+              <Field
+                name="replicasDefault"
+                label="Default Replicas"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-4 pr-3'
+                placeholder="Number of service. If '3', '3' services are booted."
+                required={isPost} />
+              <Field
+                name="replicasMaximum"
+                label="Maximum Replicas"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-4 pr-3'
+                placeholder="Maximum number of service. Automatically scaled up to this number. Default is the same as 'Default'" />
+              <Field
+                name="replicasMinimum"
+                label="Minimum Replicas"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-4'
+                placeholder="Minimum number of service. Automatically scaled down to this number. Default is the same as 'Default'" />
+              <Field
+                name="autoscaleCpuThreshold"
+                label="Auto-scalling Trigger (CPU Threshold)"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-4 pr-3'
+                placeholder="CPU threshold for auto-scaling trigger. Default is '80'% of CPU usage." />
+            </div>
           </CardBody>
         </Card>
 
         <Card className='mb-3'>
           <CardBody>
-            <Field name="autoscaleCpuThreshold" placeholder="CPU threshold for auto-scaling trigger"/>
-            {errors.autoscaleCpuThreshold && touched.autoscaleCpuThreshold ? (
-              <div>{errors.autoscaleCpuThreshold}</div>
-            ) : null}
-            <ErrorMessage name="autoscaleCpuThreshold" />
-            <Field name="policyMaxSurge" placeholder="Maximum number of serged pod when updating. Recommendation is 'ceil(0.25 * <replicas_default>)'."/>
-            {errors.policyMaxSurge && touched.policyMaxSurge ? (
-              <div>{errors.policyMaxSurge}</div>
-            ) : null}
-            <ErrorMessage name="policyMaxSurge" />
-            <Field name="policyMaxUnavailable" placeholder="Maximum number of unavailable pod when updating. Recommendation is 'floor(0.25 * <replicas_default>)'."/>
-            {errors.policyMaxUnavailable && touched.policyMaxUnavailable ? (
-              <div>{errors.policyMaxUnavailable}</div>
-            ) : null}
-            <ErrorMessage name="policyMaxUnavailable" />
-            <Field name="policyWaitSeconds" placeholder="Minimum wait seconds when deploying. Recommendation is 'actual boot time + margin time [second]'."/>
-            {errors.policyWaitSeconds && touched.policyWaitSeconds ? (
-              <div>{errors.policyWaitSeconds}</div>
-            ) : null}
-            <ErrorMessage name="policyWaitSeconds" />
+            <CardTitle>Deployment Strategy</CardTitle>
+            <div className='form-row'>
+              <Field
+                name="policyMaxSurge"
+                label="Max Surge"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-4 pr-3'
+                placeholder="Maximum number of surged pod when rolling deploying. Default is 'ceil(0.25 * <Default Replicas>)'." />
+              <Field
+                name="policyMaxUnavailable"
+                label="Max Unavailable"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-4 pr-3'
+                placeholder="Maximum number of unavailable pod when rolling deploying. Default is 'floor(0.25 * <Default Replicas>)'." />
+              <Field
+                name="policyWaitSeconds"
+                label="Wait Seconds"
+                component={FormikInput}
+                className="form-control"
+                groupClassName='col-md-4'
+                placeholder="Minimum wait seconds for booting your service. Recommendation is 'actual booting time' + 'margin'. Default is '300' seconds." />
+            </div>
           </CardBody>
         </Card>
       </React.Fragment>
@@ -171,9 +218,9 @@ export const ServiceDeploymentDefaultInitialValues = {
   policyMaxUnavailable: 0,
   policyWaitSeconds: 300,
   containerImage: 'rekcurd/rekcurd:python-latest',
-  serviceGitUrl: null,
-  serviceGitBranch: null,
-  serviceBootScript: null,
+  serviceGitUrl: '',
+  serviceGitBranch: '',
+  serviceBootScript: '',
   resourceRequestCpu: 1,
   resourceRequestMemory: '512Mi',
   resourceLimitCpu: 1,
@@ -181,8 +228,7 @@ export const ServiceDeploymentDefaultInitialValues = {
 }
 
 interface CustomProps {
-  errors
-  touched
+  isPost: boolean
 }
 
 type ServiceDeploymentFormProps = CustomProps

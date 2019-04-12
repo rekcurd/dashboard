@@ -1,12 +1,14 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { Card, CardBody, Button } from 'reactstrap'
+import { Card, CardBody, CardTitle, Button } from 'reactstrap'
 
 import { serviceLevel } from '@components/Common/Enum'
 import { Model } from '@src/apis'
 
 import * as Yup from "yup";
-import { ErrorMessage, Field } from "formik";
+import { Field } from "formik";
+
+import { FormikInput } from '@common/Field'
 
 
 export const SingleServiceSchema = {
@@ -21,88 +23,123 @@ export const SingleServiceSchema = {
             serviceLevel.sandbox.toString()]),
   version: Yup.string()
     .required('Required')
-    .oneOf(['v3']),
-  serviceInsecureHost: Yup.string()
+    .oneOf(['v2']),
+  insecureHost: Yup.string()
     .required('Required')
     .max(512),
-  serviceInsecurePort: Yup.number()
+  insecurePort: Yup.number()
     .required('Required')
     .positive()
     .integer(),
   serviceModelAssignment: Yup.number()
     .required('Required')
-    .positive()
     .integer(),
 }
 
 class SingleServiceFormImpl extends React.Component<SingleServiceFormProps> {
-  render() {
-    const { models, errors, touched } = this.props
-
+  private renderServiceLevels(isPost) {
     const serviceLevels = Object.values(serviceLevel).map((serviceLevelName: string) => {
-      return (
-        <option value={serviceLevelName} label={serviceLevelName}>
-          {serviceLevelName}
-        </option>
-      )
+      return {
+        value: serviceLevelName,
+        label: serviceLevelName
+      }
     })
-    const versions = (
-      <option value='v3' label='v3'>
-        'v3'
-      </option>
+    return (
+      <Field
+        name="serviceLevel"
+        label="Service Level"
+        component={FormikInput}
+        type="select"
+        className='form-control'
+        groupClassName='col-md-6 pr-3'
+        placeholder="Service level of your service."
+        options={serviceLevels}
+        onChange={()=>{}}
+        required={isPost} />
     )
-    const serviceModelAssignments = models.map( (model: Model) => {
-      return (
-        <option value={model.modelId} label={model.modelId.toString()}>
-          {model.modelId}-{model.description}
-        </option>
-      )
+  }
+
+  private renderVersions(isPost) {
+    const versions = [{value: 'v2', label: 'v2'}]
+    return (
+      <Field
+        name="version"
+        label="Rekcurd gRPC version"
+        component={FormikInput}
+        type="select"
+        className='form-control'
+        groupClassName='col-md-6'
+        placeholder="Rekcurd gRPC version."
+        options={versions}
+        onChange={()=>{}}
+        required={isPost} />
+    )
+  }
+
+  private renderServiceModelAssignments() {
+    const serviceModelAssignments = this.props.models.map( (model: Model) => {
+      return {
+        value: model.modelId,
+        label: `ID ${model.modelId}: ${model.description}`
+      }
     })
+    return (
+      <Field
+        name="serviceModelAssignment"
+        label="Model Assignment"
+        component={FormikInput}
+        type="select"
+        className='form-control'
+        placeholder="Model assignment of this service."
+        options={serviceModelAssignments}
+        onChange={()=>{}} />
+    )
+  }
+
+  render() {
+    const { isPost } = this.props
 
     return (
       <Card className='mb-3'>
         <CardBody>
-          <Field name="displayName" placeholder="Display Name"/>
-          {errors.displayName && touched.displayName ? (
-            <div>{errors.displayName}</div>
-          ) : null}
-          <ErrorMessage name="displayName" />
-          <Field name="serviceLevel" component="select" className='form-control' id='serviceLevel'>
-            {serviceLevels}
-          </Field>
-          {errors.serviceLevel && touched.serviceLevel ? (
-            <div>{errors.serviceLevel}</div>
-          ) : null}
-          <ErrorMessage name="serviceLevel" />
-          <Field name="version" component="select" className='form-control' id='version' placeholder="Rekcurd gRPC version">
-            {versions}
-          </Field>
-          {errors.version && touched.version ? (
-            <div>{errors.version}</div>
-          ) : null}
-          <ErrorMessage name="version" />
-          <Field name="serviceInsecureHost" placeholder="Insecure Host"/>
-          {errors.serviceInsecureHost && touched.serviceInsecureHost ? (
-            <div>{errors.serviceInsecureHost}</div>
-          ) : null}
-          <ErrorMessage name="serviceInsecureHost" />
-          <Field name="serviceInsecurePort" placeholder="Insecure Port"/>
-          {errors.serviceInsecurePort && touched.serviceInsecurePort ? (
-            <div>{errors.serviceInsecurePort}</div>
-          ) : null}
-          <ErrorMessage name="serviceInsecurePort" />
-          <Field name="serviceModelAssignment" component="select" className='form-control' id='serviceModelAssignment'>
-            {serviceModelAssignments}
-          </Field>
-          {errors.serviceModelAssignment && touched.serviceModelAssignment ? (
-            <div>{errors.serviceModelAssignment}</div>
-          ) : null}
-          <ErrorMessage name="serviceModelAssignment" />
-          <Field name="description" component="textarea" placeholder="Description"/>
-          {errors.description && touched.description ? (
-            <div>{errors.description}</div>
-          ) : null}
-          <ErrorMessage name="description" />
+          <CardTitle>Basic Info</CardTitle>
+          <Field
+            name="displayName"
+            label="Display Name"
+            component={FormikInput}
+            className="form-control"
+            placeholder="e.g. 'development-01'"
+            required={isPost} />
+          <div className='form-row'>
+            {this.renderServiceLevels(isPost)}
+            {this.renderVersions(isPost)}
+          </div>
+          <div className='form-row'>
+            <Field
+              name="insecureHost"
+              label="Insecure Host"
+              component={FormikInput}
+              className="form-control"
+              groupClassName='col-md-6 pr-3'
+              placeholder="Address accepted on your service. Default is all ('[::]')."
+              required={isPost} />
+            <Field
+              name="insecurePort"
+              label="Insecure Port"
+              component={FormikInput}
+              className="form-control"
+              groupClassName='col-md-6'
+              placeholder="Port number accepted on your service. Default is '5000'"
+              required={isPost} />
+          </div>
+          {this.renderServiceModelAssignments()}
+          <Field
+            name="description"
+            label="Description"
+            component={FormikInput}
+            className="form-control"
+            type="textarea"
+            placeholder="Description"/>
         </CardBody>
       </Card>
     )
@@ -110,19 +147,18 @@ class SingleServiceFormImpl extends React.Component<SingleServiceFormProps> {
 }
 
 export const SingleServiceDefaultInitialValues = {
-  displayName: null,
+  displayName: '',
   description: '',
   serviceLevel: serviceLevel.development.toString(),
-  version: 'v3',
-  serviceInsecureHost: '[::]',
-  serviceInsecurePort: 5000,
-  serviceModelAssignment: null,
+  version: 'v2',
+  insecureHost: '[::]',
+  insecurePort: 5000,
+  serviceModelAssignment: 0,
 }
 
 interface CustomProps {
+  isPost: boolean
   models: Model[]
-  errors
-  touched
 }
 
 type SingleServiceFormProps = CustomProps

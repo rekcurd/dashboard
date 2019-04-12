@@ -65,17 +65,20 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
       if (succeeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully saved service' })
         push(`/projects/${projectId}/applications/${applicationId}`)
-        return { notified: true }
+        return { submitting: false, notified: true }
       } else if (failed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
-        return { notified: true }
+        return { submitting: false, notified: true }
       }
     }
+    return null
   }
 
   render() {
-    const { fetchServiceByIdStatus, fetchAllModelsStatus } = this.props
-    const targetStatus = {service: fetchServiceByIdStatus, models: fetchAllModelsStatus}
+    const { method, kubernetesMode, fetchServiceByIdStatus, fetchAllModelsStatus } = this.props
+    const targetStatus = (method === 'patch') ?
+      {service: fetchServiceByIdStatus, models: fetchAllModelsStatus} :
+      {models: fetchAllModelsStatus}
 
     return(
       <APIRequestResultsRenderer
@@ -90,12 +93,20 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
 
     let ValidationSchema
     let InitialValues
-    let FormikContents
+    let onSubmit
+    let formContent
     if (kubernetesMode) {
       ValidationSchema = Yup.object().shape({
         ...SingleServiceForm.SingleServiceSchema,
         ...ServiceDeploymentForm.ServiceDeploymentSchema
       })
+      onSubmit = this.onDeploymentSubmit
+      formContent = (
+        <React.Fragment>
+          <SingleServiceForm.SingleServiceForm isPost={(method === 'post')} models={params.models} />
+          <ServiceDeploymentForm.ServiceDeploymentForm isPost={(method === 'post')} />
+        </React.Fragment>
+      )
       if (method === 'post') {
         InitialValues = {
           ...SingleServiceForm.SingleServiceDefaultInitialValues,
@@ -103,49 +114,46 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
         }
       } else {
         InitialValues = {
+          serviceModelAssignment: params.service.modelId,
           ...params.service
         }
       }
-      FormikContents = (
-        <Formik
-          initialValues={InitialValues}
-          validationSchema={ValidationSchema}
-          onSubmit={this.onDeploymentSubmit}>
-          {({ errors, touched, isSubmitting }) => (
-            <Form>
-              <ServiceDeploymentForm.ServiceDeploymentForm errors={errors} touched={touched} />
-              {this.renderButtons(isSubmitting)}
-            </Form>
-          )}
-        </Formik>
-      )
     } else {
       ValidationSchema = Yup.object().shape({
         ...SingleServiceForm.SingleServiceSchema
       })
+      formContent = (
+        <React.Fragment>
+          <SingleServiceForm.SingleServiceForm isPost={(method === 'post')} models={params.models} />
+        </React.Fragment>
+      )
       if (method === 'post') {
         InitialValues = {
           ...SingleServiceForm.SingleServiceDefaultInitialValues
         }
+        onSubmit = this.onDeploymentSubmit
       } else {
         InitialValues = {
+          serviceModelAssignment: params.service.modelId,
           ...params.service
         }
+        onSubmit = this.onServiceInfoSubmit
       }
-      FormikContents = (
-        <Formik
-          initialValues={InitialValues}
-          validationSchema={ValidationSchema}
-          onSubmit={this.onServiceInfoSubmit}>
-          {({ errors, touched, isSubmitting }) => (
-            <Form>
-              <SingleServiceForm.SingleServiceForm errors={errors} touched={touched} models={params.models} />
-              {this.renderButtons(isSubmitting)}
-            </Form>
-          )}
-        </Formik>
-      )
     }
+    const FormikContents = (
+      <Formik
+        initialValues={InitialValues}
+        validationSchema={ValidationSchema}
+        onSubmit={onSubmit}
+        onReset={this.onCancel}>
+        {({ isSubmitting }) => (
+          <Form>
+            {formContent}
+            {this.renderButtons(isSubmitting)}
+          </Form>
+        )}
+      </Formik>
+    )
 
     return (
       <React.Fragment>
@@ -164,26 +172,29 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
 
     if (isSubmitting) {
       return (
-        <CardBody>
-          <div className='loader loader-primary loader-xs mr-2' />
-          Submitting...
-        </CardBody>
+        <Card className='mb-3'>
+          <CardBody>
+            <div className='loader loader-primary loader-xs mr-2' />
+            Submitting...
+          </CardBody>
+        </Card>
       )
     }
 
     return (
-      <CardBody className='text-right'>
-        <Button color='success' type='submit'>
-          <i className='fas fa-check fa-fw mr-2'></i>
-          {method === 'post' ? 'Add Service' : kubernetesMode ? 'Rolling-update Service' : 'Update Service description'}
-          Update Model Description
-        </Button>
-        {' '}
-        <Button outline color='info' onClick={this.onCancel}>
-          <i className='fas fa-ban fa-fw mr-2'></i>
-          Reset
-        </Button>
-      </CardBody>
+      <Card className='mb-3'>
+        <CardBody className='text-right'>
+          <Button color='success' type='submit'>
+            <i className='fas fa-check fa-fw mr-2'></i>
+            {method === 'post' ? 'Add Service' : kubernetesMode ? 'Rolling-update Service' : 'Update Service description'}
+          </Button>
+          {' '}
+          <Button outline color='info' type='reset'>
+            <i className='fas fa-ban fa-fw mr-2'></i>
+            Reset
+          </Button>
+        </CardBody>
+      </Card>
     )
   }
 
