@@ -5,6 +5,7 @@ import traceback
 
 from flask_restplus import Api
 from flask_restplus.utils import default_id
+from werkzeug.exceptions import HTTPException
 from kubernetes.client.rest import ApiException
 
 from rekcurd_dashboard.utils import RekcurdDashboardException, ProjectUserRoleException, ApplicationUserRoleException

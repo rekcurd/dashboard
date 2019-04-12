@@ -67,14 +67,17 @@ class ApiModels(Resource):
         if data_server_model.data_server_mode == DataServerModeEnum.LOCAL:
             """Only if DataServerModeEnum.LOCAL, send file to the server."""
             filepath = "ml-{0:%Y%m%d%H%M%S}.model".format(datetime.datetime.utcnow())
-            service_model: ServiceModel = db.session.query(
-                ServiceModel).filter(ServiceModel.application_id == application_id).first()
-            rekcurd_dashboard_application = RekcurdDashboardClient(
-                host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
-                service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
-            response_body = rekcurd_dashboard_application.run_upload_model(filepath, file)
-            if not response_body.get("status", True):
-                raise RekcurdDashboardException(response_body.get("message", "Error."))
+            service_models = db.session.query(
+                ServiceModel).filter(ServiceModel.application_id == application_id).all()
+            for service_model in service_models:
+                rekcurd_dashboard_application = RekcurdDashboardClient(
+                    host=service_model.insecure_host, port=service_model.insecure_port,
+                    application_name=application_model.application_name,
+                    service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
+                response_body = rekcurd_dashboard_application.run_upload_model(filepath, file)
+                if not response_body.get("status", True):
+                    raise RekcurdDashboardException(response_body.get("message", "Error."))
+            response_body = {"status": True, "message": "Success."}
         else:
             """Otherwise, upload file."""
             with tempfile.NamedTemporaryFile() as fp:
