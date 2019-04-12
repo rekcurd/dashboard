@@ -253,6 +253,21 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
   }
 
   renderTitle = (applicationName, kubernetesMode, canEdit: boolean): JSX.Element => {
+    const { push } = this.props.history
+    const { projectId, applicationId} = this.props.match.params
+
+    const kubeSyncButton = (
+      <React.Fragment>
+        {` `}
+        <Button
+          color='success' size='sm'
+          onClick={this.syncKubernetes}>
+          <i className='fas fa-sync-alt fa-fw mr-2'></i>
+          Sync
+        </Button>
+      </React.Fragment>
+    )
+
     const buttons = (
       <Col xs='5' className='text-right'>
         <Button
@@ -263,9 +278,17 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
           Add Model
         </Button>
         {' '}
-        {kubernetesMode && canEdit ? this.renderKubernetesControlButtons() : null}
+        <Button
+          color='primary'
+          size='sm'
+          onClick={() => { push(`/projects/${projectId}/applications/${applicationId}/services/add`) }}>
+          <i className='fas fa-box fa-fw mr-2'></i>
+          Add Service
+        </Button>
+        {kubernetesMode ? kubeSyncButton : null}
       </Col>
     )
+
     return (
       <Row className='align-items-center mb-5'>
         <Col xs='7'>
@@ -276,33 +299,6 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
         </Col>
         {canEdit ? buttons : null}
       </Row>
-    )
-  }
-
-  renderKubernetesControlButtons() {
-    const { push } = this.props.history
-    const { syncKubernetes } = this
-    const { projectId, applicationId } = this.props.match.params
-
-    return (
-      <React.Fragment>
-        <Button
-          color='primary'
-          size='sm'
-          onClick={() => { push(`/projects/${projectId}/applications/${applicationId}/services/add`) }}
-        >
-          <i className='fas fa-box fa-fw mr-2'></i>
-          Add Service
-          </Button>
-        {` `}
-        <Button
-          color='success' size='sm'
-          onClick={(event) => syncKubernetes()}
-        >
-          <i className='fas fa-sync-alt fa-fw mr-2'></i>
-          Sync
-          </Button>
-      </React.Fragment>
     )
   }
 

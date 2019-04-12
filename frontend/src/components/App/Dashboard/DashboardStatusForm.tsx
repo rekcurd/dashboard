@@ -125,7 +125,7 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
         <Row>
           {canEdit && !isSwitchMode ? checkBox : null}
           <Link className='text-info' to={`/projects/${projectId}/applications/${applicationId}/models/${modelId}/edit`}>
-            {modelName}
+            {`${modelId}: ${modelName}`}
           </Link>
         </Row>
       )

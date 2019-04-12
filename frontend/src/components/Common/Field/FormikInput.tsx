@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { FormGroup, Label, Input, FormFeedback } from 'reactstrap'
+import { FormGroup, Label, Input, FormFeedback, FormText } from 'reactstrap'
 
 
 /**
@@ -11,6 +11,8 @@ export const FormikInput = (
   {
     options = [] as Array<{label: string, value: string, disabled: boolean}>,
     required,
+    placeholder,
+    groupClassName,
     field: {...fields},
     form: {touched, errors, setFieldValue, ...rest},
     ...props
@@ -26,7 +28,7 @@ export const FormikInput = (
   const requiredClass = required ? 'required' : ''
 
   return (
-    <FormGroup className={`${margin}`}>
+    <FormGroup className={`${groupClassName || ''} ${margin}`}>
       <Label for={props.id} className={`${requiredClass} text-info`}>{props.label}</Label>
       <Input
         {...props}
@@ -35,6 +37,7 @@ export const FormikInput = (
         invalid={Boolean(touched[fields.name] && errors[fields.name])} >
         {options.length > 0 ? renderOptionElements() : null}
       </Input>
+      <FormText>{placeholder}</FormText>
       {touched[fields.name] && errors[fields.name] ? <FormFeedback>{errors[fields.name]}</FormFeedback> : ''}
     </FormGroup>
   )

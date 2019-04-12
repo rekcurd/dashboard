@@ -48,7 +48,7 @@ class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, ModelDelet
     return (
       <thead>
       <tr className='bg-light text-primary'>
-        <th>Description</th>
+        <th>ID + Description</th>
         <th>Registered Date</th>
       </tr>
       </thead>
@@ -76,7 +76,7 @@ class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, ModelDelet
               label='' />
             : null }
           <Link className='text-info' to={`/projects/${projectId}/applications/${applicationId}/models/${modelId}/edit`}>
-            {modelName}
+            {`${modelId}: ${modelName}`}
           </Link>
         </Row>
       )

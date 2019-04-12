@@ -149,8 +149,8 @@ export interface SingleServiceParam {
   serviceLevel: string
   version: string
   serviceModelAssignment: number
-  serviceInsecureHost: string
-  serviceInsecurePort: number
+  insecureHost: string
+  insecurePort: number
   registerDate?: Date
   method: string
 }
@@ -512,7 +512,6 @@ export async function fetchServiceById(params: FetchServiceByIdParam): Promise<S
   const convert =
     (result) => (
       {
-        serviceId: result.service_id,
         name: result.display_name,
         registerDate: new Date(result.register_date * 1000),
         ...convertKeys(result, camelize)

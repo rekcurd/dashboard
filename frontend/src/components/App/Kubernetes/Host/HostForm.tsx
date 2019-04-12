@@ -84,14 +84,14 @@ class HostFormImpl extends React.Component<HostFormProps> {
                     label="Exposed Host"
                     component={FormikInput}
                     className="form-control"
-                    placeholder="Exposed Host"
+                    placeholder="Exposed Host such as Gateway IP, Ingress IP and LoadBalancer IP."
                     required={isPost} />
                   <Field
                     name="exposedPort"
                     label="Exposed Port"
                     component={FormikInput}
                     className="form-control"
-                    placeholder="Exposed Port"
+                    placeholder="Exposed Port. Istio default exposed port is '31380'."
                     required={isPost} />
                   <Field
                     name="description"
@@ -129,7 +129,7 @@ type HostFormProps = CustomProps
 const defaultInitialValues = {
   displayName: '',
   description: '',
-  exposedHost: 'localhost',
+  exposedHost: '127.0.0.1',
   exposedPort: 31380
 }
 

@@ -63,6 +63,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
         component={FormikInput}
         type="select"
         className='form-control'
+        placeholder="Select your data server. For production, selecting online storage is recommended."
         options={modes}
         onChange={this.onChange}
         required />
@@ -85,28 +86,28 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               label="Ceph Access Key"
               component={FormikInput}
               className="form-control"
-              placeholder="xxxxx"
+              placeholder="e.g. 'xxxxx'"
               required />
             <Field
               name="cephSecretKey"
               label="Ceph Secret Key"
               component={FormikInput}
               className="form-control"
-              placeholder="xxxxx"
+              placeholder="e.g. 'xxxxx'"
               required />
             <Field
               name="cephHost"
               label="Ceph Host URL"
               component={FormikInput}
               className="form-control"
-              placeholder="127.0.0.1"
+              placeholder="e.g. '127.0.0.1'"
               required />
             <Field
               name="cephPort"
               label="Ceph Port"
               component={FormikInput}
               className="form-control"
-              placeholder="80"
+              placeholder="e.g. '80'"
               required />
             <Field
               name="cephIsSecure"
@@ -114,6 +115,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               component={FormikInput}
               type="select"
               className="form-control"
+              placeholder="If ceph is secure, then choose 'Yes'."
               options={yesno}
               onChange={()=>{}}
               required />
@@ -122,7 +124,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               label="Ceph Bucket Name"
               component={FormikInput}
               className="form-control"
-              placeholder="xxxxx"
+              placeholder="e.g. 'xxxxx'"
               required />
           </CardBody>
         </Card>
@@ -136,21 +138,21 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               label="AWS Access Key"
               component={FormikInput}
               className="form-control"
-              placeholder="xxxxx"
+              placeholder="e.g. 'xxxxx'"
               required />
             <Field
               name="awsSecretKey"
               label="AWS Secret Key"
               component={FormikInput}
               className="form-control"
-              placeholder="xxxxx"
+              placeholder="e.g. 'xxxxx'"
               required />
             <Field
               name="awsBucketName"
               label="AWS Bucket Name"
               component={FormikInput}
               className="form-control"
-              placeholder="xxxxx"
+              placeholder="e.g. 'xxxxx'"
               required />
           </CardBody>
         </Card>
@@ -206,7 +208,7 @@ interface DataServerState {
 }
 
 const defaultInitialValues = {
-  dataServerMode: dataServerMode.local.toString(),
+  dataServerMode: '',
   cephAccessKey: '',
   cephSecretKey: '',
   cephHost: '',

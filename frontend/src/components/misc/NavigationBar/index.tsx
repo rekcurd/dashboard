@@ -51,11 +51,18 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
 
     let projectAdmin: React.ReactNode
     if (projectId) {
+      const applicationslink = `/projects/${projectId}/applications`
       const adminlink = `/projects/${projectId}/admin`
       const kubelink = `/projects/${projectId}/kubernetes`
       const dataserverlink = `/projects/${projectId}/data_servers`
       projectAdmin = (
         <React.Fragment>
+          <NavItem>
+            <NavLink className='text-info nav-link' exact to={applicationslink}>
+              <i className='fas fa-plug fa-fw mr-1'></i>
+              Applications
+            </NavLink>
+          </NavItem>
           <NavItem>
             <NavLink className='text-info nav-link' to={adminlink}>
               <i className='fas fa-users-cog fa-fw mr-1'></i>
@@ -84,7 +91,7 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
         <Collapse isOpen={true} className='ml-5' navbar>
           <Nav>
             <NavItem>
-              <NavLink className='text-info nav-link' to='/projects'>
+              <NavLink className='text-info nav-link' exact to='/projects'>
                 <i className='fas fa-anchor fa-fw mr-1'></i>
                 Projects
               </NavLink>

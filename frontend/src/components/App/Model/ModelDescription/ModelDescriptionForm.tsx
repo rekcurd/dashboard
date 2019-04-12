@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { Card, CardBody, Button } from 'reactstrap'
+import { Card, CardBody, CardTitle, Button } from 'reactstrap'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup';
 
@@ -26,6 +26,7 @@ class ModelDescriptionFormImpl extends React.Component<ModelDescriptionFormProps
             {({ errors, touched, isSubmitting }) => (
               <Form>
                 <CardBody>
+                  <CardTitle>{`Model ID: ${this.props.initialValues.modelId}`}</CardTitle>
                   <Field
                     name="description"
                     label="Description"

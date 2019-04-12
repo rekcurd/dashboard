@@ -63,6 +63,12 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
     const { saveDataServerStatus, fetchDataServerStatus } = nextProps
     const { submitting, notified } = prevState
 
+    const chk = (isAPISucceeded<boolean>(fetchDataServerStatus) && !fetchDataServerStatus.result) || isAPIFailed<boolean>(fetchDataServerStatus)
+    if (chk && !notified) {
+      nextProps.addNotification({ color: 'error', message: 'No data server registered. Please register it first.' })
+      return {submitting: false, notified: true}
+    }
+
     // Handling submitted API results
     if (submitting && !notified) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveDataServerStatus) && saveDataServerStatus.result
