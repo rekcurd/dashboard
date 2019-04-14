@@ -19,7 +19,7 @@ class TestApiModels(BaseTestCase):
         with open(POSITIVE_MODEL_PATH, 'rb') as f:
             response = self.client.post(
                 f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/models',
-                data={'file': (f, model_name), 'description': 'A model always return positive labels.'})
+                data={'filepath': (f, model_name), 'description': 'A model always return positive labels.'})
             self.assertEqual(200, response.status_code)
 
         # Use `ls` to see the model exists or not
