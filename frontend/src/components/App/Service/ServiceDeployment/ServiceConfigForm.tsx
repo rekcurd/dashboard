@@ -11,11 +11,7 @@ import { Field } from "formik";
 import { FormikInput } from '@common/Field'
 
 
-export const SingleServiceSchema = {
-  displayName: Yup.string()
-    .required('Required')
-    .max(128),
-  description: Yup.string(),
+export const ServiceConfigSchema = {
   serviceLevel: Yup.string()
     .required('Required')
     .oneOf([serviceLevel.development.toString(), serviceLevel.staging.toString(),
@@ -36,8 +32,8 @@ export const SingleServiceSchema = {
     .integer(),
 }
 
-class SingleServiceFormImpl extends React.Component<SingleServiceFormProps> {
-  private renderServiceLevels(isPost) {
+class ServiceConfigFormImpl extends React.Component<ServiceConfigFormProps> {
+  private renderServiceLevels() {
     const serviceLevels = Object.values(serviceLevel).map((serviceLevelName: string) => {
       return {
         value: serviceLevelName,
@@ -55,11 +51,11 @@ class SingleServiceFormImpl extends React.Component<SingleServiceFormProps> {
         placeholder="Service level of your service."
         options={serviceLevels}
         onChange={()=>{}}
-        required={isPost} />
+        required />
     )
   }
 
-  private renderVersions(isPost) {
+  private renderVersions() {
     const versions = [{value: 'v2', label: 'v2'}]
     return (
       <Field
@@ -72,7 +68,7 @@ class SingleServiceFormImpl extends React.Component<SingleServiceFormProps> {
         placeholder="Rekcurd gRPC version."
         options={versions}
         onChange={()=>{}}
-        required={isPost} />
+        required />
     )
   }
 
@@ -97,22 +93,13 @@ class SingleServiceFormImpl extends React.Component<SingleServiceFormProps> {
   }
 
   render() {
-    const { isPost } = this.props
-
     return (
       <Card className='mb-3'>
         <CardBody>
-          <CardTitle>Basic Info</CardTitle>
-          <Field
-            name="displayName"
-            label="Display Name"
-            component={FormikInput}
-            className="form-control"
-            placeholder="e.g. 'development-01'"
-            required={isPost} />
+          <CardTitle>Service Configuration</CardTitle>
           <div className='form-row'>
-            {this.renderServiceLevels(isPost)}
-            {this.renderVersions(isPost)}
+            {this.renderServiceLevels()}
+            {this.renderVersions()}
           </div>
           <div className='form-row'>
             <Field
@@ -122,7 +109,7 @@ class SingleServiceFormImpl extends React.Component<SingleServiceFormProps> {
               className="form-control"
               groupClassName='col-md-6 pr-3'
               placeholder="Address accepted on your service. Default is all ('[::]')."
-              required={isPost} />
+              required />
             <Field
               name="insecurePort"
               label="Insecure Port"
@@ -130,25 +117,16 @@ class SingleServiceFormImpl extends React.Component<SingleServiceFormProps> {
               className="form-control"
               groupClassName='col-md-6'
               placeholder="Port number accepted on your service. Default is '5000'"
-              required={isPost} />
+              required />
           </div>
           {this.renderServiceModelAssignments()}
-          <Field
-            name="description"
-            label="Description"
-            component={FormikInput}
-            className="form-control"
-            type="textarea"
-            placeholder="Description"/>
         </CardBody>
       </Card>
     )
   }
 }
 
-export const SingleServiceDefaultInitialValues = {
-  displayName: '',
-  description: '',
+export const ServiceConfigDefaultInitialValues = {
   serviceLevel: serviceLevel.development.toString(),
   version: 'v2',
   insecureHost: '[::]',
@@ -157,15 +135,14 @@ export const SingleServiceDefaultInitialValues = {
 }
 
 interface CustomProps {
-  isPost: boolean
   models: Model[]
 }
 
-type SingleServiceFormProps = CustomProps
+type ServiceConfigFormProps = CustomProps
 
-export const SingleServiceForm = connect(
+export const ServiceConfigForm = connect(
   (state: any, extraProps: CustomProps) => ({
     ...state.form,
     ...extraProps,
   })
-)(SingleServiceFormImpl)
+)(ServiceConfigFormImpl)

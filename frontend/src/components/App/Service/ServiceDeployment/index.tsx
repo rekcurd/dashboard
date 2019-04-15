@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
-import { Alert, Card, CardBody, Button } from 'reactstrap'
+import { Alert, Card, CardBody, Button, Input, Label } from 'reactstrap'
 import { Formik, Form } from 'formik'
 import * as Yup from "yup";
 
@@ -18,9 +18,19 @@ import {
   addNotification
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
+import * as ServiceDescriptionForm from './ServiceDescriptionForm'
+import * as ServiceConfigForm from './ServiceConfigForm'
 import * as ServiceDeploymentForm from './ServiceDeploymentForm'
-import * as SingleServiceForm from './SingleServiceForm'
 
+
+const UpdateFlagSchema = {
+  isUpdate: Yup.boolean()
+    .required('Required')
+}
+
+const UpdateFlagInitialValues = {
+  isUpdate: false
+}
 
 /**
  * Page for adding service
@@ -31,8 +41,7 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
     super(props, context)
 
     this.renderForm = this.renderForm.bind(this)
-    this.onServiceInfoSubmit = this.onServiceInfoSubmit.bind(this)
-    this.onDeploymentSubmit = this.onDeploymentSubmit.bind(this)
+    this.onSubmit = this.onSubmit.bind(this)
     this.onCancel = this.onCancel.bind(this)
     this.state = {
       submitting: false,
@@ -53,20 +62,31 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
   }
 
   static getDerivedStateFromProps(nextProps: SaveServiceProps, prevState: SaveServiceState){
-    const { saveServiceDeploymentStatus } = nextProps
+    const { updateServiceStatus, saveServiceDeploymentStatus } = nextProps
     const { push } = nextProps.history
     const { projectId, applicationId } = nextProps.match.params
     const { submitting, notified } = prevState
 
     // Close modal when API successfully finished
     if (submitting && !notified) {
-      const succeeded: boolean = isAPISucceeded<boolean>(saveServiceDeploymentStatus) && saveServiceDeploymentStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(saveServiceDeploymentStatus) && !saveServiceDeploymentStatus.result) || isAPIFailed<boolean>(saveServiceDeploymentStatus)
-      if (succeeded) {
+      const deploySucceeded: boolean = isAPISucceeded<boolean>(saveServiceDeploymentStatus) && saveServiceDeploymentStatus.result
+      const deployFailed: boolean = (isAPISucceeded<boolean>(saveServiceDeploymentStatus) && !saveServiceDeploymentStatus.result) || isAPIFailed<boolean>(saveServiceDeploymentStatus)
+      if (deploySucceeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully saved service' })
         push(`/projects/${projectId}/applications/${applicationId}`)
         return { submitting: false, notified: true }
-      } else if (failed) {
+      } else if (deployFailed) {
+        nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+        return { submitting: false, notified: true }
+      }
+
+      const updateSucceeded: boolean = isAPISucceeded<boolean>(updateServiceStatus) && updateServiceStatus.result
+      const updateFailed: boolean = (isAPISucceeded<boolean>(updateServiceStatus) && !updateServiceStatus.result) || isAPIFailed<boolean>(updateServiceStatus)
+      if (updateSucceeded) {
+        nextProps.addNotification({ color: 'success', message: 'Successfully updated service' })
+        push(`/projects/${projectId}/applications/${applicationId}`)
+        return { submitting: false, notified: true }
+      } else if (updateFailed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
         return { submitting: false, notified: true }
       }
@@ -75,7 +95,7 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
   }
 
   render() {
-    const { method, kubernetesMode, fetchServiceByIdStatus, fetchAllModelsStatus } = this.props
+    const { method, fetchServiceByIdStatus, fetchAllModelsStatus } = this.props
     const targetStatus = (method === 'patch') ?
       {service: fetchServiceByIdStatus, models: fetchAllModelsStatus} :
       {models: fetchAllModelsStatus}
@@ -91,64 +111,17 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
   renderForm(params) {
     const { kubernetesMode, method } = this.props
 
-    let ValidationSchema
-    let InitialValues
-    let onSubmit
-    let formContent
-    if (kubernetesMode) {
-      ValidationSchema = Yup.object().shape({
-        ...SingleServiceForm.SingleServiceSchema,
-        ...ServiceDeploymentForm.ServiceDeploymentSchema
-      })
-      onSubmit = this.onDeploymentSubmit
-      formContent = (
-        <React.Fragment>
-          <SingleServiceForm.SingleServiceForm isPost={(method === 'post')} models={params.models} />
-          <ServiceDeploymentForm.ServiceDeploymentForm isPost={(method === 'post')} />
-        </React.Fragment>
-      )
-      if (method === 'post') {
-        InitialValues = {
-          ...SingleServiceForm.SingleServiceDefaultInitialValues,
-          ...ServiceDeploymentForm.ServiceDeploymentDefaultInitialValues
-        }
-      } else {
-        InitialValues = {
-          serviceModelAssignment: params.service.modelId,
-          ...params.service
-        }
-      }
-    } else {
-      ValidationSchema = Yup.object().shape({
-        ...SingleServiceForm.SingleServiceSchema
-      })
-      formContent = (
-        <React.Fragment>
-          <SingleServiceForm.SingleServiceForm isPost={(method === 'post')} models={params.models} />
-        </React.Fragment>
-      )
-      if (method === 'post') {
-        InitialValues = {
-          ...SingleServiceForm.SingleServiceDefaultInitialValues
-        }
-        onSubmit = this.onDeploymentSubmit
-      } else {
-        InitialValues = {
-          serviceModelAssignment: params.service.modelId,
-          ...params.service
-        }
-        onSubmit = this.onServiceInfoSubmit
-      }
-    }
+    const ValidationSchema = this.setValidationSchema(kubernetesMode, method)
+    const InitialValues = this.setInitialValues(kubernetesMode, method, params)
     const FormikContents = (
       <Formik
         initialValues={InitialValues}
         validationSchema={ValidationSchema}
-        onSubmit={onSubmit}
+        onSubmit={this.onSubmit}
         onReset={this.onCancel}>
-        {({ isSubmitting }) => (
+        {({ isSubmitting, setFieldValue }) => (
           <Form>
-            {formContent}
+            {this.setFormContent(kubernetesMode, method, params, isSubmitting, setFieldValue)}
             {this.renderButtons(isSubmitting)}
           </Form>
         )}
@@ -162,6 +135,110 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
     )
   }
 
+  setValidationSchema(kubernetesMode, method) {
+    if (kubernetesMode) {
+      if (method === 'post') {
+        return Yup.object().shape({
+          ...ServiceDescriptionForm.ServiceDescriptionSchema,
+          ...ServiceConfigForm.ServiceConfigSchema,
+          ...ServiceDeploymentForm.ServiceDeploymentSchema
+        })
+      } else {
+        return Yup.object().shape({
+          ...ServiceDescriptionForm.ServiceDescriptionSchema,
+          ...UpdateFlagSchema,
+          ...ServiceConfigForm.ServiceConfigSchema,
+          ...ServiceDeploymentForm.ServiceDeploymentSchema
+        })
+      }
+    } else {
+      if (method === 'post') {
+        return Yup.object().shape({
+          ...ServiceDescriptionForm.ServiceDescriptionSchema,
+          ...ServiceConfigForm.ServiceConfigSchema,
+        })
+      } else {
+        return Yup.object().shape({
+          ...ServiceDescriptionForm.ServiceDescriptionSchema,
+          ...UpdateFlagSchema,
+          ...ServiceConfigForm.ServiceConfigSchema,
+        })
+      }
+    }
+  }
+
+  setInitialValues(kubernetesMode, method, params) {
+    if (kubernetesMode) {
+      if (method === 'post') {
+        return {
+          ...ServiceDescriptionForm.ServiceDescriptionDefaultInitialValues,
+          ...ServiceConfigForm.ServiceConfigDefaultInitialValues,
+          ...ServiceDeploymentForm.ServiceDeploymentDefaultInitialValues
+        }
+      } else {
+        return {
+          ...UpdateFlagInitialValues,
+          serviceModelAssignment: params.service.modelId,
+          ...params.service
+        }
+      }
+    } else {
+      if (method === 'post') {
+        return {
+          ...ServiceDescriptionForm.ServiceDescriptionDefaultInitialValues,
+          ...ServiceConfigForm.ServiceConfigDefaultInitialValues
+        }
+      } else {
+        return {
+          ...UpdateFlagInitialValues,
+          serviceModelAssignment: params.service.modelId,
+          ...params.service
+        }
+      }
+    }
+  }
+
+  setFormContent(kubernetesMode, method, params, isSubmitting, setFieldValue) {
+    const isPost = (method === 'post')
+    if (kubernetesMode) {
+      if (isPost) {
+        return (
+          <React.Fragment>
+            <ServiceDescriptionForm.ServiceDescriptionForm />
+            <ServiceConfigForm.ServiceConfigForm models={params.models}/>
+            <ServiceDeploymentForm.ServiceDeploymentForm />
+          </React.Fragment>
+        )
+      } else {
+        return (
+          <React.Fragment>
+            <ServiceDescriptionForm.ServiceDescriptionForm />
+            {this.renderUpdateButtons(isSubmitting, setFieldValue)}
+            <ServiceConfigForm.ServiceConfigForm models={params.models}/>
+            <ServiceDeploymentForm.ServiceDeploymentForm />
+          </React.Fragment>
+        )
+      }
+    } else {
+      if (isPost) {
+        return (
+          <React.Fragment>
+            <ServiceDescriptionForm.ServiceDescriptionForm />
+            <ServiceConfigForm.ServiceConfigForm models={params.models}/>
+          </React.Fragment>
+        )
+      } else {
+        return (
+          <React.Fragment>
+            <ServiceDescriptionForm.ServiceDescriptionForm />
+            {this.renderUpdateButtons(isSubmitting, setFieldValue)}
+            <ServiceConfigForm.ServiceConfigForm models={params.models}/>
+          </React.Fragment>
+        )
+      }
+    }
+  }
+
   /**
    * Render control buttons
    *
@@ -172,29 +249,51 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
 
     if (isSubmitting) {
       return (
-        <Card className='mb-3'>
-          <CardBody>
-            <div className='loader loader-primary loader-xs mr-2' />
-            Submitting...
-          </CardBody>
-        </Card>
+        <div className='text-right mb-3'>
+          <div className='loader loader-primary loader-xs mr-2' />
+          Submitting...
+        </div>
       )
     }
 
     return (
-      <Card className='mb-3'>
-        <CardBody className='text-right'>
-          <Button color='success' type='submit'>
-            <i className='fas fa-check fa-fw mr-2'></i>
-            {method === 'post' ? 'Add Service' : kubernetesMode ? 'Rolling-update Service' : 'Update Service description'}
-          </Button>
-          {' '}
-          <Button outline color='info' type='reset'>
-            <i className='fas fa-ban fa-fw mr-2'></i>
-            Reset
-          </Button>
-        </CardBody>
-      </Card>
+      <div className='text-right mb-3'>
+        <Button color='success' type='submit'>
+          <i className='fas fa-check fa-fw mr-2'></i>
+          {method === 'post' ? 'Add New Service' : kubernetesMode ? 'Rolling Deploying' : 'Deploying'}
+        </Button>
+        {' '}
+        <Button outline color='info' type='reset'>
+          <i className='fas fa-ban fa-fw mr-2'></i>
+          Reset
+        </Button>
+      </div>
+    )
+  }
+
+  renderUpdateButtons(isSubmitting, setFieldValue): JSX.Element {
+    if (isSubmitting) {
+      return (
+        <div className='text-right mb-3'>
+          <div className='loader loader-primary loader-xs mr-2' />
+          Submitting...
+        </div>
+      )
+    }
+
+    return (
+      <div className='text-right mb-3'>
+        <Input name="isUpdate" type="hidden" />
+        <Button color='success' type='submit' onClick={()=>{setFieldValue('isUpdate', true)}}>
+          <i className='fas fa-check fa-fw mr-2'></i>
+          Update without deploying
+        </Button>
+        {' '}
+        <Button outline color='info' type='reset'>
+          <i className='fas fa-ban fa-fw mr-2'></i>
+          Reset
+        </Button>
+      </div>
     )
   }
 
@@ -209,7 +308,18 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
     push(`/projects/${projectId}/applications/${applicationId}`)
   }
 
-  onServiceInfoSubmit(parameters) {
+  onSubmit(parameters) {
+    const { kubernetesMode, method } = this.props
+    if (parameters["isUpdate"]) {
+      this.onServiceInfoUpdateSubmit(parameters)
+    } else if (!kubernetesMode && (method === 'patch')) {
+      this.onServiceInfoUpdateSubmit(parameters)
+    } else {
+      this.onDeploymentSubmit(parameters)
+    }
+  }
+
+  onServiceInfoUpdateSubmit(parameters) {
     const { updateServiceDeployment, method } = this.props
     const { projectId, applicationId, serviceId } = this.props.match.params
 

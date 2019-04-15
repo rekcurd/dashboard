@@ -46,34 +46,31 @@ export const ServiceDeploymentSchema = {
     .max(512),
   resourceRequestCpu: Yup.number()
     .required('Required')
-    .positive()
-    .integer(),
+    .positive(),
   resourceRequestMemory: Yup.string()
     .required('Required')
     .max(16),
   resourceLimitCpu: Yup.number()
     .positive()
-    .integer(),
+    .min(Yup.ref('resourceRequestCpu')),
   resourceLimitMemory: Yup.string()
     .max(16)
 }
 
 class ServiceDeploymentFormImpl extends React.Component<ServiceDeploymentFormProps> {
   render() {
-    const { isPost } = this.props
-
     return (
       <React.Fragment>
         <Card className='mb-3'>
           <CardBody>
-            <CardTitle>Your Application</CardTitle>
+            <CardTitle>Container Image / Source Code</CardTitle>
             <Field
               name="containerImage"
               label="Container Image URL"
               component={FormikInput}
               className="form-control"
               placeholder="Image location of Docker registry."
-              required={isPost} />
+              required />
             <Field
               name="serviceGitUrl"
               label="Git URL"
@@ -110,7 +107,7 @@ class ServiceDeploymentFormImpl extends React.Component<ServiceDeploymentFormPro
                 className="form-control"
                 groupClassName='col-md-6 pr-3'
                 placeholder="CPU resource which your service need."
-                required={isPost} />
+                required />
               <Field
                 name="resourceRequestMemory"
                 label="Memory Request"
@@ -118,7 +115,7 @@ class ServiceDeploymentFormImpl extends React.Component<ServiceDeploymentFormPro
                 className="form-control"
                 groupClassName='col-md-6'
                 placeholder="Memory resource which your service need."
-                required={isPost} />
+                required />
             </div>
             <div className='form-row'>
               <Field
@@ -150,7 +147,7 @@ class ServiceDeploymentFormImpl extends React.Component<ServiceDeploymentFormPro
                 className="form-control"
                 groupClassName='col-md-4 pr-3'
                 placeholder="Number of service. If '3', '3' services are booted."
-                required={isPost} />
+                required />
               <Field
                 name="replicasMaximum"
                 label="Maximum Replicas"
@@ -227,9 +224,7 @@ export const ServiceDeploymentDefaultInitialValues = {
   resourceLimitMemory: '512Mi',
 }
 
-interface CustomProps {
-  isPost: boolean
-}
+interface CustomProps {}
 
 type ServiceDeploymentFormProps = CustomProps
 

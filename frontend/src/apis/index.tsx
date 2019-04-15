@@ -140,7 +140,7 @@ export async function updateService(params: UpdateServiceParam): Promise<boolean
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/services/${params.serviceId}`, requestBody, convert, 'PATCH')
 }
 
-export interface SingleServiceParam {
+export interface ServiceDescriptionParam {
   isKubernetes: boolean
   projectId: number
   applicationId: number
@@ -173,7 +173,7 @@ export interface DeploymentParam {
   resourceLimitMemory?: string
   debugMode?: boolean
 }
-export type ServiceDeploymentParam = SingleServiceParam & DeploymentParam
+export type ServiceDeploymentParam = ServiceDescriptionParam & DeploymentParam
 export async function saveServiceDeployment(params: ServiceDeploymentParam): Promise<boolean> {
   const requestBody = {
     ...convertKeys(params, snakelize),
