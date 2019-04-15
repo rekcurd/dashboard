@@ -73,29 +73,25 @@ class ApplicationDeploymentFormImpl extends React.Component<AddApplicationFormPr
   renderButtons(isSubmitting) {
     if (isSubmitting) {
       return (
-        <Card className='mb-3'>
-          <CardBody>
-            <div className='loader loader-primary loader-xs mr-2' />
-            Submitting...
-          </CardBody>
-        </Card>
+        <div className='text-right mb-3'>
+          <div className='loader loader-primary loader-xs mr-2' />
+          Submitting...
+        </div>
       )
     }
 
     return (
-      <Card className='mb-3'>
-        <CardBody className='text-right'>
-          <Button color='success' type='submit'>
-            <i className='fas fa-check fa-fw mr-2'></i>
-            Create Application
-          </Button>
-          {' '}
-          <Button outline color='info' type='reset'>
-            <i className='fas fa-ban fa-fw mr-2'></i>
-            Reset
-          </Button>
-        </CardBody>
-      </Card>
+      <div className='text-right mb-3'>
+        <Button color='success' type='submit'>
+          <i className='fas fa-check fa-fw mr-2'></i>
+          Create Application
+        </Button>
+        {' '}
+        <Button outline color='info' type='reset'>
+          <i className='fas fa-ban fa-fw mr-2'></i>
+          Reset
+        </Button>
+      </div>
     )
   }
 }

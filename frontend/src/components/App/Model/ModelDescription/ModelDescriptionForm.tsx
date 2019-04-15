@@ -53,15 +53,15 @@ class ModelDescriptionFormImpl extends React.Component<ModelDescriptionFormProps
   renderButtons(isSubmitting): JSX.Element {
     if (isSubmitting) {
       return (
-        <CardBody>
+        <div className='text-right mb-3'>
           <div className='loader loader-primary loader-xs mr-2' />
           Submitting...
-        </CardBody>
+        </div>
       )
     }
 
     return (
-      <CardBody className='text-right'>
+      <div className='text-right mb-3'>
         <Button color='success' type='submit'>
           <i className='fas fa-check fa-fw mr-2'></i>
           Update Model Description
@@ -71,7 +71,7 @@ class ModelDescriptionFormImpl extends React.Component<ModelDescriptionFormProps
           <i className='fas fa-ban fa-fw mr-2'></i>
           Reset
         </Button>
-      </CardBody>
+      </div>
     )
   }
 }
