@@ -109,26 +109,22 @@ class ProjectIdRoute extends React.Component<ProjectsRouteProps> {
     const dataServerComponent = <Route exact path='/projects/:projectId/data_servers' component={DataServer} />
     const kubenetesComponent = <Route path='/projects/:projectId/kubernetes' component={KubernetesRoute} />
     let projectAdmin
-    let applicationAdmin
     if (this.props.settings.auth) {
       projectAdmin = <Route exact path='/projects/:projectId/admin' component={ProjectAdmin} />
-      applicationAdmin = <Route exact path='/projects/:projectId/applications/:applicationId/admin' component={ApplicationAdmin} />
     } else {
       projectAdmin = <Redirect from='/projects/:projectId/admin' to='/projects/:projectId/applications' />
-      applicationAdmin = <Redirect from='/projects/:projectId/applications/:applicationId/admin' to='/projects/:projectId/applications/:applicationId/dashboard' />
     }
 
     return (
       <Layout auth={this.props.settings.auth}>
         <Switch>
+          {projectAdmin}
+          {dataServerComponent}
+          {kubenetesComponent}
           <Redirect exact from='/projects/:projectId' to='/projects/:projectId/applications' />
           <Route exact path='/projects/:projectId/applications' component={Applications} />
           <Route exact path='/projects/:projectId/applications/add' component={SaveApplication} />
           <Route path='/projects/:projectId/applications/:applicationId' render={() => <ApplicationsRoute settings={this.props.settings} />} />
-          {projectAdmin}
-          {dataServerComponent}
-          {kubenetesComponent}
-          {applicationAdmin}
         </Switch>
       </Layout>
     )
@@ -141,9 +137,16 @@ interface ApplicationsRouteProps {
 
 class ApplicationsRoute extends React.Component<ApplicationsRouteProps> {
   render() {
+    let applicationAdmin
+    if (this.props.settings.auth) {
+      applicationAdmin = <Route exact path='/projects/:projectId/applications/:applicationId/admin' component={ApplicationAdmin} />
+    } else {
+      applicationAdmin = <Redirect from='/projects/:projectId/applications/:applicationId/admin' to='/projects/:projectId/applications/:applicationId/dashboard' />
+    }
     return (
       <Application>
         <Switch>
+          {applicationAdmin}
           <Redirect exact from='/projects/:projectId/applications/:applicationId' to='/projects/:projectId/applications/:applicationId/dashboard' />
           <Route exact path='/projects/:projectId/applications/:applicationId/dashboard' component={Dashboard} />
           <Route exact path='/projects/:projectId/applications/:applicationId/services' component={Services} />

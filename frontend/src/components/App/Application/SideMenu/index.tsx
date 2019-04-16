@@ -55,7 +55,7 @@ class SideMenu extends React.Component<SideMenuProps> {
             title: '',
             items: [
               {
-                text: 'Admin',
+                text: 'Apps Admin',
                 path: 'admin',
                 icon: 'user-lock'
               }

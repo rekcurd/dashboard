@@ -784,8 +784,8 @@ export interface AccessControlParam {
   role?: string
 }
 export async function fetchProjectAccessControlList(params: AccessControlParam): Promise<ProjectAccessControlList[]> {
-  const convert = (results: any): ProjectAccessControlList[] => {
-    return results.map((result: any) => new ProjectAccessControlList(
+  const convert = (results): ProjectAccessControlList[] => {
+    return results.map((result) => new ProjectAccessControlList(
       result.user.auth_id,
       result.user.user_name,
       apiConvertProjectRole(result.project_role)
@@ -821,11 +821,11 @@ export class ApplicationAccessControlList {
   ) { }
 }
 export async function fetchApplicationAccessControlList(params: AccessControlParam): Promise<ApplicationAccessControlList[]> {
-  const convert = (results: any): ApplicationAccessControlList[] => {
-    return results.map((result: any) => new ApplicationAccessControlList(
+  const convert = (results): ApplicationAccessControlList[] => {
+    return results.map((result) => new ApplicationAccessControlList(
       result.user.auth_id,
       result.user.user_name,
-      apiConvertApplicationRole(result.role)
+      apiConvertApplicationRole(result.application_role)
     ))
   }
   return APICore.getRequest(

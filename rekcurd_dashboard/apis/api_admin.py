@@ -14,8 +14,12 @@ user_info = admin_api_namespace.model('User', {
     'auth_id': fields.String(required=True),
     'user_name': fields.String(required=True)
 })
-role_info = admin_api_namespace.model('Role', {
-    'role': fields.String(required=True),
+project_role_info = admin_api_namespace.model('Role', {
+    'project_role': fields.String(required=True),
+    'user': fields.Nested(user_info, required=True)
+})
+application_role_info = admin_api_namespace.model('Role', {
+    'application_role': fields.String(required=True),
     'user': fields.Nested(user_info, required=True)
 })
 
@@ -58,7 +62,7 @@ class ApiProjectIdACL(Resource):
     save_acl_parser.add_argument('role', type=str, required=True, location='form',
                                  choices=('admin', 'member'))
 
-    @admin_api_namespace.marshal_list_with(role_info)
+    @admin_api_namespace.marshal_list_with(project_role_info)
     def get(self, project_id):
         roles = ProjectUserRoleModel.query.filter_by(project_id=project_id).all()
         return roles
@@ -132,7 +136,7 @@ class ApiApplicationIdACL(Resource):
     save_acl_parser.add_argument('role', type=str, required=True, location='form',
                                  choices=('admin', 'editor', 'viewer'))
 
-    @admin_api_namespace.marshal_list_with(role_info)
+    @admin_api_namespace.marshal_list_with(application_role_info)
     def get(self, project_id, application_id):
         roles = ApplicationUserRoleModel.query.filter_by(application_id=application_id).all()
         return roles
