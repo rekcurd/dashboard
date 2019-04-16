@@ -1,8 +1,10 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { Button, Card, CardBody } from 'reactstrap'
-import { Formik, Form, ErrorMessage, Field } from 'formik'
+import { Formik, Form, Field } from 'formik'
 import * as Yup from "yup";
+
+import { FormikInput } from '@common/Field'
 
 
 const LoginSchema = Yup.object().shape({
@@ -33,16 +35,21 @@ class LoginFormImpl extends React.Component<LoginFormProps> {
             <Form>
               <Card className='mb-3'>
                 <CardBody>
-                  <Field name="username" placeholder="User name"/>
-                  {errors.username && touched.username ? (
-                    <div>{errors.username}</div>
-                  ) : null}
-                  <ErrorMessage name="username" />
-                  <Field name="password" placeholder="Password"/>
-                  {errors.password && touched.password ? (
-                    <div>{errors.password}</div>
-                  ) : null}
-                  <ErrorMessage name="password" />
+                  <Field
+                    name="username"
+                    label="Username"
+                    component={FormikInput}
+                    className="form-control"
+                    placeholder=""
+                    required />
+                  <Field
+                    name="password"
+                    label="Password"
+                    component={FormikInput}
+                    type="password"
+                    className="form-control"
+                    placeholder=""
+                    required />
                 </CardBody>
               </Card>
               <Card className='mb-3'>

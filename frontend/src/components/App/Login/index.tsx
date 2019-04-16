@@ -21,7 +21,7 @@ class Login extends React.Component<LoginProps, LoginState> {
   onSubmit(parameters) {
     const { submitLogin } = this.props
     this.setState({ submitting: true })
-    return submitLogin({ ...parameters.login })
+    return submitLogin({ ...parameters })
   }
 
   componentWillReceiveProps(nextProps: LoginProps) {
