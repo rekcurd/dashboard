@@ -190,7 +190,6 @@ interface ServiceDeleteFormCustomState {}
 
 interface StateProps {
   initialValues: {
-    status
     delete
   }
 }
