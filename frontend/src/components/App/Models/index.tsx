@@ -153,7 +153,7 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
           reload={this.complete}
         />
         <h3>
-          <i className='fas fa-server fa-fw mr-2'></i>
+          <i className='fas fa-database fa-fw mr-2'></i>
           Models
         </h3>
         <hr />

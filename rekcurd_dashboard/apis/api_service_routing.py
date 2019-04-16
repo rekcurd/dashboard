@@ -36,18 +36,28 @@ service_routing_params = service_routing_api_namespace.model('Routing', {
         description='Service weights.'
     )
 })
-
-service_routing_parser = reqparse.RequestParser()
-service_routing_parser.add_argument(
-    'service_level', location='form', type=str, required=True,
-    choices=('development','beta','staging','sandbox','production'),
-    help='Service level. [development/beta/staging/sandbox/production].')
-service_routing_parser.add_argument(
-    'service_ids', location='form', type=str, action='append', required=True,
-    help='Service Ids.')
-service_routing_parser.add_argument(
-    'service_weights', location='form', type=int, action='append', required=True,
-    help='Service weights.')
+service_weight_expect = service_routing_api_namespace.model('Weight', {
+    'service_id': fields.String(
+        required=True,
+        description='Service ID.'
+    ),
+    'service_weight': fields.Integer(
+        required=True,
+        description='Service weight.'
+    )
+})
+service_routing_expect = service_routing_api_namespace.model('Routing', {
+    'service_level': fields.String(
+        required=True,
+        description='Service level. [development/beta/staging/sandbox/production]',
+        example='development'
+    ),
+    'service_weights': fields.List(
+        fields.Nested(service_weight_expect),
+        required=True,
+        description='Service weights.'
+    )
+})
 
 
 @service_routing_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/service_routing')
@@ -57,6 +67,15 @@ class ApiServiceRouting(Resource):
         'service_level', location='args', type=str, required=True,
         choices=('development', 'beta', 'staging', 'sandbox', 'production'),
         help='Service level. [development/beta/staging/sandbox/production].')
+
+    service_routing_parser = reqparse.RequestParser()
+    service_routing_parser.add_argument(
+        'service_level', type=str, required=True,
+        choices=('development','beta','staging','sandbox','production'),
+        help='Service level. [development/beta/staging/sandbox/production].')
+    service_routing_parser.add_argument(
+        'service_weights', type=dict, action='append', required=True,
+        help='Service weights.')
 
     @service_routing_api_namespace.marshal_with(service_routing_params)
     @service_routing_api_namespace.expect(get_parser)
@@ -86,12 +105,15 @@ class ApiServiceRouting(Resource):
         return response_body
 
     @service_routing_api_namespace.marshal_with(success_or_not)
-    @service_routing_api_namespace.expect(service_routing_parser)
+    @service_routing_api_namespace.expect(service_routing_expect)
     def patch(self, project_id: int, application_id: str):
         """Update routing weights."""
-        args = service_routing_parser.parse_args()
-        service_level: str = args["service_level"]
-        service_ids: list = args["service_ids"]
-        service_weights: list = args["service_weights"]
+        service_routing_args = self.service_routing_parser.parse_args()
+        service_level: str = service_routing_args["service_level"]
+        service_ids = []
+        service_weights = []
+        for service_weight in service_routing_args["service_weights"]:
+            service_ids.append(service_weight["service_id"])
+            service_weights.append(service_weight["service_weight"])
         apply_new_route_weight(project_id, application_id, service_level, service_ids, service_weights)
         return {"status": True, "message": "Success."}

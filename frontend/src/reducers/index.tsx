@@ -26,7 +26,7 @@ export class AppState {
     public fetchModelById: APIRequest<Apis.Model> = { status: APIRequestStatusList.notStarted},
     public fetchAllServices: APIRequest<Apis.Service[]> = { status: APIRequestStatusList.notStarted},
     public fetchServiceById: APIRequest<Apis.Service> = { status: APIRequestStatusList.notStarted},
-    public fetchServiceRoute: APIRequest<Apis.ServiceRoute> = { status: APIRequestStatusList.notStarted},
+    public fetchServiceRouting: APIRequest<Apis.ServiceRouting> = { status: APIRequestStatusList.notStarted},
     public switchModels: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted},
     public syncKubernetes: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     public deleteKubernetes: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
@@ -128,8 +128,8 @@ export const fetchAllServicesReducer = APIRequestReducerCreator<Apis.FetchServic
   Actions.fetchAllServicesActionCreators, 'fetchAllServices')
 export const fetchServiceByIdReducer = APIRequestReducerCreator<Apis.FetchServiceByIdParam, Apis.Service>(
   Actions.fetchServiceByIdActionCreators, 'fetchServiceById')
-export const fetchServiceRouteReducer = APIRequestReducerCreator<Apis.FetchServiceRouteParam, Apis.ServiceRoute>(
-  Actions.fetchServiceRouteActionCreators, 'fetchServiceRoute')
+export const fetchServiceRoutingReducer = APIRequestReducerCreator<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>(
+  Actions.fetchServiceRoutingActionCreators, 'fetchServiceRouting')
 export const switchModelsReducer = APIRequestReducerCreator<Apis.SwitchModelParam[], boolean[]>(
   Actions.switchModelsActionCreators, 'switchModels')
 export const syncKubernetesReducer = APIRequestReducerCreator<Apis.SyncKubernetesParam, boolean[]>(

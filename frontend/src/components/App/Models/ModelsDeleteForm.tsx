@@ -8,7 +8,7 @@ import { Model } from '@src/apis'
 import { Checkbox } from '@common/Field'
 
 
-class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, ModelDeleteFormCustomState> {
+class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, ModelsDeleteFormCustomState> {
   constructor(props, context) {
     super(props, context)
   }
@@ -164,11 +164,10 @@ interface ModelsDeleteFormCustomProps {
   onCancel
 }
 
-interface ModelDeleteFormCustomState {}
+interface ModelsDeleteFormCustomState {}
 
 interface StateProps {
   initialValues: {
-    status
     delete
   }
 }

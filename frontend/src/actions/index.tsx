@@ -221,11 +221,11 @@ export const fetchServiceByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.
   Apis.fetchServiceById
 )
 
-export const fetchServiceRouteActionCreators =
-  new APIRequestActionCreators<Apis.FetchServiceRouteParam, Apis.ServiceRoute>('FETCH_SERVICE_ROUTE_BY_ID')
-export const fetchServiceRouteDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchServiceRouteParam, Apis.ServiceRoute>(
-  fetchServiceRouteActionCreators,
-  Apis.fetchServiceRoute
+export const fetchServiceRoutingActionCreators =
+  new APIRequestActionCreators<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>('FETCH_SERVICE_ROUTE_BY_ID')
+export const fetchServiceRoutingDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>(
+  fetchServiceRoutingActionCreators,
+  Apis.fetchServiceRouting
 )
 
 export const switchModelsActionCreators =

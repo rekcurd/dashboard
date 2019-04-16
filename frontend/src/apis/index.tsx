@@ -29,7 +29,7 @@ export async function saveProject(params: ProjectParam) {
     method: {} = {}
   }
 
-  const convert = (response) => response.status
+  const convert = (result) => result.status
 
   if (params.method === 'post') {
     return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects`, requestBody, convert, 'POST')
@@ -61,7 +61,7 @@ export async function saveDataServer(params: DataServerParam) {
     method: {} = {}
   }
 
-  const convert = (response) => response.status
+  const convert = (result) => result.status
 
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/data_servers`, requestBody, convert, params.method === 'post' ? 'POST' : 'PATCH')
 }
@@ -85,7 +85,7 @@ export async function saveKubernetes(params: KubernetesParam) {
     configPath: {} = {}
   }
 
-  const convert = (response) => response.status
+  const convert = (result) => result.status
 
   if (params.method === 'post') {
     return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/kubernetes`, requestBody, convert, 'POST')
@@ -110,7 +110,7 @@ export async function saveApplication(params: ApplicationParam) {
     method: {} = {},
   }
 
-  const convert = (response) => response.status
+  const convert = (result) => result.status
 
   if (params.method === 'post') {
     return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications`, requestBody, convert, 'POST')
@@ -135,7 +135,7 @@ export async function updateService(params: UpdateServiceParam): Promise<boolean
     method: {} = {},
   }
 
-  const convert = (response) => response.status
+  const convert = (result) => result.status
 
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/services/${params.serviceId}`, requestBody, convert, 'PATCH')
 }
@@ -180,7 +180,7 @@ export async function saveServiceDeployment(params: ServiceDeploymentParam): Pro
     method: {} = {},
   }
 
-  const convert = (response) => response.status
+  const convert = (result) => result.status
 
   if (params.isKubernetes) {
     if (params.method === 'post') {
@@ -195,22 +195,30 @@ export async function saveServiceDeployment(params: ServiceDeploymentParam): Pro
   throw new RangeError(`You specified wrong save method ${params.method}`)
 }
 
+export interface ServiceWeightParam {
+  serviceId: string
+  serviceWeight: number
+}
 export interface ServiceRoutingParam {
   projectId: number
-  applicationId: number
+  applicationId: string
   serviceLevel: string
-  serviceIds: string[]
-  serviceWeights: number[]
+  serviceWeights: ServiceWeightParam[]
 }
 export async function updateServiceRouting(params: ServiceRoutingParam): Promise<boolean> {
+  const serviceWeights = params.serviceWeights.map((serviceWeight) => {
+    return {
+      ...convertKeys(serviceWeight, snakelize),
+    }
+  })
   const requestBody = {
     ...convertKeys(params, snakelize),
-    method: {} = {},
+    service_weights: serviceWeights
   }
 
-  const convert = (response) => response.status
+  const convert = (result) => result.status
 
-  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/service_routing`, requestBody, convert, 'PATCH')
+  return APICore.patchJsonRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/service_routing`, requestBody, convert)
 }
 
 export interface UploadModelParam {
@@ -224,7 +232,7 @@ export async function uploadModel(params: UploadModelParam) {
     ...params
   }
 
-  const convert = (response) => response.status
+  const convert = (result) => result.status
 
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/models`, requestBody, convert, 'POST')
 }
@@ -240,7 +248,7 @@ export async function updateModel(params: UpdateModelParam): Promise<boolean> {
     ...params
   }
 
-  const convert = (response) => response.status
+  const convert = (result) => result.status
 
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/models/${params.modelId}`, requestBody, convert, 'PATCH')
 }
@@ -531,32 +539,32 @@ export async function fetchServiceById(params: FetchServiceByIdParam): Promise<S
   }
 }
 
-export class ServiceRouteWeight {
+export class ServiceRoutingWeight {
   constructor(
     public displayName: string,
     public serviceId: string,
     public serviceWeight: number
   ) { }
 }
-export class ServiceRoute {
+export class ServiceRouting {
   constructor(
     public applicationName: string,
     public serviceLevel: string,
-    public serviceWeights: ServiceRouteWeight[]
+    public serviceWeights: ServiceRoutingWeight[]
   ) { }
 }
-export interface FetchServiceRouteParam {
+export interface FetchServiceRoutingParam {
   projectId: number
   applicationId: string
   serviceLevel: string
 }
-export async function fetchServiceRoute(params: FetchServiceRouteParam): Promise<ServiceRoute> {
+export async function fetchServiceRouting(params: FetchServiceRoutingParam): Promise<ServiceRouting> {
   const convert =
     (result) => (
       {
         applicationName: result.application_name,
         serviceLevel: result.service_level,
-        serviceWeights: result.map((weight): ServiceRouteWeight => {
+        serviceWeights: result.service_weights.map((weight): ServiceRoutingWeight => {
           return {
             displayName: weight.display_name,
             serviceId: weight.service_id,

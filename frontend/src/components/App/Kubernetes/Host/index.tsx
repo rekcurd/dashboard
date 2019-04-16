@@ -73,15 +73,14 @@ class Host extends React.Component<HostProps, HostState> {
     // Handling submitted API results
     if (submitting && !notified) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveKubernetesStatus) && saveKubernetesStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(saveKubernetesStatus) && !saveKubernetesStatus.result) ||
-        isAPIFailed<boolean>(saveKubernetesStatus)
+      const failed: boolean = (isAPISucceeded<boolean>(saveKubernetesStatus) && !saveKubernetesStatus.result) || isAPIFailed<boolean>(saveKubernetesStatus)
       if (succeeded) {
         push(`/projects/${nextProps.match.params.projectId}/kubernetes`)
         nextProps.addNotification({ color: 'success', message: 'Successfully saved host' })
-        return {notified: true}
+        return { submitting: false, notified: true }
       } else if (failed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
-        return {notified: true}
+        return { submitting: false, notified: true }
       }
     }
     return null

@@ -242,7 +242,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
           reload={this.complete}
         />
         <h3>
-          <i className='fas fa-signal fa-fw mr-2'></i>
+          <i className='fas fa-chart-line fa-fw mr-2'></i>
           Service Status
         </h3>
         <hr />

@@ -120,6 +120,21 @@ export async function putJsonRequest(
   return rawRequest(entryPoint, convert, options)
 }
 
+export async function patchJsonRequest(
+  entryPoint: string,
+  data: any,
+  convert: (response) => any = (response) => response,
+) {
+  const options = {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+  return rawRequest(entryPoint, convert, options)
+}
+
 export async function deleteRequest(
   entryPoint: string,
   convert: (response) => any = (response) => response

@@ -148,7 +148,8 @@ class ApplicationsRoute extends React.Component<ApplicationsRouteProps> {
           <Route exact path='/projects/:projectId/applications/:applicationId/dashboard' component={Dashboard} />
           <Route exact path='/projects/:projectId/applications/:applicationId/services' component={Services} />
           <Route exact path='/projects/:projectId/applications/:applicationId/models' component={Models} />
-          <Route exact path='/projects/:projectId/applications/:applicationId/routing' component={ServiceRouting} />
+          <Redirect exact from='/projects/:projectId/applications/:applicationId/routing' to='/projects/:projectId/applications/:applicationId/routing/development' />
+          <Route exact path='/projects/:projectId/applications/:applicationId/routing/:serviceLevel' component={ServiceRouting} />
           <Route exact path='/projects/:projectId/applications/:applicationId/services/add'
                  render={(props) => <Service {...props} method='post'/>} />
           <Route exact path='/projects/:projectId/applications/:applicationId/services/:serviceId/edit'
