@@ -117,10 +117,10 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
   }
 
   onSubmit(params) {
-    const serviceWeights = Object.entries(params.serviceWeights).map(([key,val]) => {
+    const serviceWeights = params.serviceWeights.map((serviceWeight) => {
       return {
-        serviceId: key,
-        serviceWeight: Number(val)
+        serviceId: serviceWeight.serviceId,
+        serviceWeight: Number(serviceWeight.serviceWeight)
       }
     })
     const apiParams = {

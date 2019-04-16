@@ -2,7 +2,7 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { Button, Table, Row } from 'reactstrap'
 import { Link } from 'react-router-dom'
-import { Formik, Form, Field } from 'formik'
+import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from "yup";
 
 import { ServiceRouting, ServiceRoutingWeight } from '@src/apis'
@@ -31,16 +31,17 @@ class ServiceRoutingForm extends React.Component<ServiceRoutingFormProps, Servic
   render() {
     const { onSubmit, onCancel, routings } = this.props
 
-    let initialValues = {serviceWeights: {}}
+    let initialValues = {serviceWeights: []}
     routings.serviceWeights.map((serviceWeight: ServiceRoutingWeight) => {
-      const key = serviceWeight.serviceId
-      const val = serviceWeight.serviceWeight
-      initialValues["serviceWeights"][key] = val
+      initialValues["serviceWeights"].push({
+        serviceId: serviceWeight.serviceId, serviceWeight: serviceWeight.serviceWeight
+      })
     })
 
     return (
       <Formik
         initialValues={initialValues}
+        validationSchema={ServiceRoutingSchema}
         onSubmit={onSubmit}
         onReset={onCancel}>
         {({ isValid, isSubmitting, resetForm, values }) => (
@@ -97,8 +98,14 @@ class ServiceRoutingForm extends React.Component<ServiceRoutingFormProps, Servic
             </td>
             <td>
               <Field
-                name={`serviceWeights[${weight.serviceId}]`}
+                name={`serviceWeights[${index}]['serviceId']`}
+                type='hidden' />
+              <Field
+                name={`serviceWeights[${index}]['serviceWeight']`}
                 readOnly={!canEdit} />
+              <ErrorMessage name={`serviceWeights[${index}]['serviceWeight']`}>
+                {msg => <div style={{color: 'red'}}>{msg}</div>}
+              </ErrorMessage>
             </td>
           </tr>
         )
@@ -108,7 +115,7 @@ class ServiceRoutingForm extends React.Component<ServiceRoutingFormProps, Servic
   }
 
   renderTableFoot = (values) => {
-    const sumWeight = Number(Object.entries(values.serviceWeights).map(([key,val]) => val).reduce((a: number, v: number) => a + v, 0))
+    const sumWeight = Number(values.serviceWeights.map((serviceWeight) => serviceWeight.serviceWeight).reduce((a: number, v: number) => a + v, 0))
     const warningMessage = (sumWeight !== 100) ? (<div style={{color: 'red'}}>Total weight must be "100"</div>) : null
     return (
       <tfoot>
