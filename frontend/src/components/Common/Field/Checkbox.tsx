@@ -24,7 +24,7 @@ class CheckboxImpl extends React.Component<CheckboxProps, CheckboxState> {
                   form.setFieldValue(this.props.name, nextValue);
                 } else {
                   const nextValue = field.value.concat(this.props.value);
-                    form.setFieldValue(this.props.name, nextValue);
+                  form.setFieldValue(this.props.name, nextValue);
                 }
                 }}
             />

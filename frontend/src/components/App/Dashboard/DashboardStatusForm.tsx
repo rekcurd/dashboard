@@ -17,6 +17,7 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
   render() {
     const { onSubmit } = this.props
     const initialValues = {
+      status: this.props.initialValues.switch,
       switch: this.props.initialValues.switch,
       delete_services: this.props.initialValues.delete.services,
       delete_models: this.props.initialValues.delete.models
@@ -164,7 +165,7 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
 
     if (isSwitchMode) {
       return (
-        <Radio name='switch' value={model.modelId} label='' />
+        <Radio name='switch' id={serviceId} value={model.modelId} label='' />
       )
     }
 
@@ -244,6 +245,7 @@ interface StateProps {
 const mapStateToProps = (state: any, extraProps: DashboardStatusFormCustomProps) => {
   return {
     ...state.form,
+    ...extraProps,
     initialValues: {
       switch: extraProps.deployStatus,
       delete: {

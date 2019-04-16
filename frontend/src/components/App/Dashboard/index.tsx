@@ -399,10 +399,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
       Object.entries(params.switch)
         .filter(
           ([key, value]) => {
-            if (params.status[key] === value) {
-              return false
-            }
-            return true
+            return (params.status[key] !== value)
           })
         .map(
           ([key, value]): SwitchModelParam => (
@@ -413,7 +410,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
               modelId: value ? value as number : undefined
             }))
 
-    this.setState({ submitted: true })
+    this.setState({ submitted: true, notified: false })
     return switchModels(apiParams)
   }
 
