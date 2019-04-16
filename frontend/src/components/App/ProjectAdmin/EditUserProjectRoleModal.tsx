@@ -1,12 +1,14 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { Formik, Form, ErrorMessage, Field } from 'formik'
+import { Formik, Form, Field } from 'formik'
 import * as Yup from "yup";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
 import { ProjectAccessControlList } from '@src/apis'
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
 import { projectRole } from "@components/Common/Enum";
+import { FormikInput } from '@common/Field'
+
 
 interface EditUserProjectRoleModalState {
   submitting: boolean
@@ -23,6 +25,9 @@ class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, Edit
     super(props)
     this.onCancel = this.onCancel.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
+    this.state = {
+      submitting: false
+    }
   }
   componentDidUpdate(prevProps, prevState) {
     const { isModalOpen } = prevProps
@@ -55,7 +60,7 @@ class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, Edit
           }}
           validationSchema={UserRoleSchema}
           onSubmit={this.onSubmit}>
-          {({ errors, touched }) => (
+          {({ isSubmitting }) => (
             <Form>
               <ModalHeader toggle={this.onCancel}>
                 <i className='fas fa-user-plus fa-fw mr-2'></i>
@@ -63,13 +68,9 @@ class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, Edit
               </ModalHeader>
               <ModalBody>
                 {this.renderRoles(target)}
-                {errors.role && touched.role ? (
-                  <div>{errors.role}</div>
-                ) : null}
-                <ErrorMessage name="role" />
               </ModalBody>
               <ModalFooter>
-                <Button color='success' type='submit' disabled={this.state.submitting} >
+                <Button color='success' type='submit' disabled={isSubmitting} >
                   <i className='fas fa-check fa-fw mr-2'></i>
                   Submit
                 </Button>
@@ -90,16 +91,22 @@ class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, Edit
       return null
     }
     const roles = Object.values(projectRole).map((roleName: string) => {
-      return (
-        <option value={roleName} label={roleName}>
-          {roleName}
-        </option>
-      )
+      return {
+        value: roleName,
+        label: roleName
+      }
     })
     return (
-      <Field name="role" component="select" className='form-control' id='userRole'>
-        {roles}
-      </Field>
+      <Field
+        name="role"
+        label="Project Role"
+        component={FormikInput}
+        type="select"
+        className='form-control'
+        placeholder=""
+        options={roles}
+        onChange={() => {}}
+        required />
     )
   }
   private onCancel() {

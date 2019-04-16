@@ -7,7 +7,7 @@ import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstr
 import {
   ProjectAccessControlList, Project, UserInfo, AccessControlParam, FetchProjectByIdParam
 } from '@src/apis'
-import { APIRequest, isAPISucceeded } from '@src/apis/Core'
+import {APIRequest, isAPIFailed, isAPISucceeded} from '@src/apis/Core'
 import {
   addNotification,
   AddNotificationAction,
@@ -76,18 +76,19 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
 
   static getDerivedStateFromProps(nextProps: ProjectAdminProps, prevState: ProjectAdminState){
     const { submitted } = prevState
-    const params = {
-      projectId: nextProps.match.params.projectId
-    }
+    const { deleteProjectAccessControlStatus } = nextProps
 
     if (submitted) {
-      if (isAPISucceeded<boolean>(nextProps.deleteProjectAccessControlStatus)) {
+      const succeeded: boolean = isAPISucceeded<boolean>(deleteProjectAccessControlStatus) && deleteProjectAccessControlStatus.result
+      const failed: boolean = (isAPISucceeded<boolean>(deleteProjectAccessControlStatus) && !deleteProjectAccessControlStatus.result) || isAPIFailed<boolean>(deleteProjectAccessControlStatus)
+      if (succeeded) {
         nextProps.addNotification({color: 'success', message: 'Successfully removed user'})
-        nextProps.fetchProjectAccessControlList(params)
-      } else {
+        nextProps.fetchProjectAccessControlList(nextProps.match.params)
+        return { submitted: false }
+      } else if (failed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+        return { submitted: false }
       }
-      return { submitted: false }
     }
     return null
   }
@@ -144,55 +145,50 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
       )
     })
     return (
-      <div className='pb-5'>
-        <Row className='align-items-center mb-5'>
-          <Col xs='7'>
+      <div className='row justify-content-center'>
+        <div className='col-10 pt-5'>
+          <div className='d-flex justify-content-between align-items-center mb-4'>
             <h1>
-              <i className='fas fa-ship fa-fw mr-2'></i>
-              {project.name}
+              <i className='fas fa-unlock fa-fw mr-2'></i>
+              Project Access Control List
             </h1>
-          </Col>
-          <Col xs='5' className='text-right'>
-            <Button
-              color='primary'
-              size='sm'
-              onClick={this.toggleAddUserProjectRoleModalOpen}
-            >
-              <i className='fas fa-user-plus fa-fw mr-2'></i>
-              Add User
-            </Button>
-          </Col>
-        </Row>
-        <AddUserProjectRoleModal
-          isModalOpen={isAddUserProjectRoleModalOpen}
-          toggle={this.toggleAddUserProjectRoleModalOpen}
-          reload={this.reload}
-          acl={projectAcl}
-        />
-        <EditUserProjectRoleModal
-          projectId={match.params.projectId}
-          isModalOpen={isEditUserProjectRoleModalOpen}
-          toggle={this.toggleEditUserProjectRoleModalOpen}
-          reload={this.reload}
-          target={editUserProjectRoleTarget}
-          saveProjectAccessControl={saveProjectAccessControl}
-          saveProjectAccessControlStatus={this.props.saveProjectAccessControlStatus}
-          addNotification={this.props.addNotification}
-        />
-        {this.renderConfirmRemoveUserModal()}
-        <h3>
-          <i className='fas fa-unlock fa-fw mr-2'></i>
-          Access Control List
-        </h3>
-        <hr />
-        <Table hover className='mb-3'>
-          <thead>
+            <div>
+              <Button
+                color='primary'
+                size='sm'
+                onClick={this.toggleAddUserProjectRoleModalOpen} >
+                <i className='fas fa-user-plus fa-fw mr-2'></i>
+                Add User
+              </Button>
+            </div>
+          </div>
+          <AddUserProjectRoleModal
+            isModalOpen={isAddUserProjectRoleModalOpen}
+            toggle={this.toggleAddUserProjectRoleModalOpen}
+            reload={this.reload}
+            acl={projectAcl}
+          />
+          <EditUserProjectRoleModal
+            projectId={match.params.projectId}
+            isModalOpen={isEditUserProjectRoleModalOpen}
+            toggle={this.toggleEditUserProjectRoleModalOpen}
+            reload={this.reload}
+            target={editUserProjectRoleTarget}
+            saveProjectAccessControl={saveProjectAccessControl}
+            saveProjectAccessControlStatus={this.props.saveProjectAccessControlStatus}
+            addNotification={this.props.addNotification}
+          />
+          {this.renderConfirmRemoveUserModal()}
+          <hr />
+          <Table hover className='mb-3'>
+            <thead>
             <tr className='bg-light text-primary'>
               <th>ID</th><th>Name</th><th>Role</th><th></th>
             </tr>
-          </thead>
-          <tbody>{tableBody}</tbody>
-        </Table>
+            </thead>
+            <tbody>{tableBody}</tbody>
+          </Table>
+        </div>
       </div>
     )
   }
