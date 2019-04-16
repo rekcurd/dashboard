@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router'
-import { Formik, Form, ErrorMessage, Field } from 'formik'
+import { Formik, Form, Field } from 'formik'
 import * as Yup from "yup";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
@@ -14,7 +14,9 @@ import {
   fetchAllUsersDispatcher,
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
-import { applicationRole } from '@components/Common/Enum'
+import {applicationRole, projectRole} from '@components/Common/Enum'
+import { FormikInput } from '@common/Field'
+
 
 interface CustomProps {
   isModalOpen: boolean
@@ -108,7 +110,7 @@ class AddUserApplicationRoleModal extends React.Component<AddUserApplicationRole
         }}
         validationSchema={UserRoleSchema}
         onSubmit={this.onSubmit}>
-        {({ errors, touched }) => (
+        {({ isSubmitting }) => (
           <Form>
             <ModalHeader toggle={this.onCancel}>
               <i className='fas fa-user-plus fa-fw mr-2'></i>
@@ -116,18 +118,10 @@ class AddUserApplicationRoleModal extends React.Component<AddUserApplicationRole
             </ModalHeader>
             <ModalBody>
               {this.renderUsers(results.fetchAllUsersStatus)}
-              {errors.uid && touched.uid ? (
-                <div>{errors.uid}</div>
-              ) : null}
-              <ErrorMessage name="uid" />
               {this.renderRoles()}
-              {errors.role && touched.role ? (
-                <div>{errors.role}</div>
-              ) : null}
-              <ErrorMessage name="role" />
             </ModalBody>
             <ModalFooter>
-              <Button color='success' type='submit' disabled={this.state.submitting} >
+              <Button color='success' type='submit' disabled={isSubmitting} >
                 <i className='fas fa-check fa-fw mr-2'></i>
                 Submit
               </Button>
@@ -144,30 +138,44 @@ class AddUserApplicationRoleModal extends React.Component<AddUserApplicationRole
   }
   private renderUsers(userInfos: UserInfo[]) {
     const users = userInfos.map((v: UserInfo) => {
-      return (
-        <option value={v.user.userUid} label={v.user.userUid} disabled={this.alreadyAdded.has(v.user.userUid)}>
-          {v.user.userUid}
-        </option>
-      )
+      const disabled = this.alreadyAdded.has(v.user.userUid)
+      return {
+        value: v.user.userUid,
+        label: v.user.userUid,
+        disabled: disabled
+      }
     })
     return (
-      <Field name="uid" component="select" className='form-control' id='userId'>
-        {users}
-      </Field>
+      <Field
+        name="uid"
+        label="UserID"
+        component={FormikInput}
+        type="select"
+        className='form-control'
+        placeholder=""
+        options={users}
+        onChange={() => {}}
+        required />
     )
   }
   private renderRoles() {
     const roles = Object.values(applicationRole).map((roleName: string) => {
-      return (
-        <option value={roleName} label={roleName}>
-          {roleName}
-        </option>
-      )
+      return {
+        value: roleName,
+        label: roleName
+      }
     })
     return (
-      <Field name="role" component="select" className='form-control' id='userRole'>
-        {roles}
-      </Field>
+      <Field
+        name="role"
+        label="Application Role"
+        component={FormikInput}
+        type="select"
+        className='form-control'
+        placeholder=""
+        options={roles}
+        onChange={() => {}}
+        required />
     )
   }
   private onCancel() {

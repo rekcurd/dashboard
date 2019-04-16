@@ -7,7 +7,7 @@ import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstr
 import {
   ApplicationAccessControlList, Application, UserInfo, AccessControlParam, FetchApplicationByIdParam
 } from '@src/apis'
-import { APIRequest, isAPISucceeded } from '@src/apis/Core'
+import {APIRequest, isAPIFailed, isAPISucceeded} from '@src/apis/Core'
 import {
   addNotification,
   AddNotificationAction,
@@ -77,19 +77,19 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
 
   static getDerivedStateFromProps(nextProps: ApplicationAdminProps, prevState: ApplicationAdminState){
     const { submitted } = prevState
-    const params = {
-      projectId: nextProps.match.params.projectId,
-      applicationId: nextProps.match.params.applicationId
-    }
+    const { deleteApplicationAccessControlStatus } = nextProps
 
     if (submitted) {
-      if (isAPISucceeded<boolean>(nextProps.deleteApplicationAccessControlStatus)) {
+      const succeeded: boolean = isAPISucceeded<boolean>(deleteApplicationAccessControlStatus) && deleteApplicationAccessControlStatus.result
+      const failed: boolean = (isAPISucceeded<boolean>(deleteApplicationAccessControlStatus) && !deleteApplicationAccessControlStatus.result) || isAPIFailed<boolean>(deleteApplicationAccessControlStatus)
+      if (succeeded) {
         nextProps.addNotification({color: 'success', message: 'Successfully removed user'})
-        nextProps.fetchApplicationAccessControlList(params)
-      } else {
+        nextProps.fetchApplicationAccessControlList(nextProps.match.params)
+        return { submitted: false }
+      } else if (failed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+        return { submitted: false }
       }
-      return { submitted: false }
     }
     return null
   }
@@ -185,7 +185,7 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
         {this.renderConfirmRemoveUserModal()}
         <h3>
           <i className='fas fa-unlock fa-fw mr-2'></i>
-          Access Control List
+          Application Access Control List
         </h3>
         <hr />
         <Table hover className='mb-3'>
