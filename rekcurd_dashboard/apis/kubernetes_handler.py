@@ -764,7 +764,7 @@ def switch_model_assignment(project_id: int, application_id: str, service_id: st
     deployment_info["commit_message"] = "model_id={0} on {1:%Y%m%d%H%M%S}".format(model_id, datetime.utcnow())
 
     apply_rekcurd_to_kubernetes(
-        project_id=project_id, application_id=application_id, service_id=service_id, **deployment_info)
+        project_id=project_id, application_id=application_id, **deployment_info)
 
     service_model.model_id = model_id
     db.session.flush()

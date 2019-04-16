@@ -12,18 +12,27 @@ class RadioImpl extends React.Component<RadioProps, RadioState> {
     return (
       <Field name={this.props.name}>
         {({ field, form }) => (
-          <label>
-            <input
-              type="radio"
-              {...this.props}
-              checked={field.value === this.props.value}
-              onChange={() => {
-                form.setFieldValue(this.props.name, this.props.value)
-              }}
-            />
-            {this.props.label}
-          </label>
-        )}
+            <label>
+              <input
+                type="radio"
+                checked={field.value[this.props.id] === this.props.value}
+                onChange={() => {
+                  const nextValue = {}
+                  Object.entries(field.value).map(([key, val]) => {
+                    if (key === this.props.id) {
+                      nextValue[key] = this.props.value
+                    } else {
+                      nextValue[key] = val
+                    }
+                    return null
+                  })
+                  form.setFieldValue(this.props.name, nextValue)
+                }}
+              />
+              {this.props.label}
+            </label>
+          )
+        }
       </Field>
     )
   }
@@ -35,6 +44,7 @@ interface RadioState {}
 
 interface CustomProps {
   name: string
+  id
   value
   label: string
 }

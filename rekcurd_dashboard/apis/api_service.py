@@ -105,7 +105,8 @@ class ApiServiceId(Resource):
             raise RekcurdDashboardException("No need to switch model.")
         if len(kubernetes_models) and data_server_model.data_server_mode != DataServerModeEnum.LOCAL:
             """If Kubernetes mode and data_sever_mode is not LOCAL, then request switch to Kubernetes WebAPI"""
-            response_body = switch_model_assignment(project_id, application_id, service_id, model_id)
+            switch_model_assignment(project_id, application_id, service_id, model_id)
+            response_body = {"status": True, "message": "Success."}
         else:
             """Otherwise, switch model directly by requesting gRPC proto."""
             application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
