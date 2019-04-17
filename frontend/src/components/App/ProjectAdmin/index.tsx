@@ -94,28 +94,25 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
   }
 
   render() {
-    const {
-      fetchProjectByIdStatus,
-      fetchProjectAccessControlListStatus,
-      userInfoStatus } = this.props
+    const { fetchProjectByIdStatus, fetchProjectAccessControlListStatus, userInfoStatus } = this.props
+    const targetStatus = {fetchProjectByIdStatus, fetchProjectAccessControlListStatus, userInfoStatus}
+
     return (
       <APIRequestResultsRenderer
-        APIStatus={{
-          fetchProjectByIdStatus, fetchProjectAccessControlListStatus,
-          userInfoStatus
-        }}
+        APIStatus={targetStatus}
         render={this.renderProjectAccessControlList}
+        projectId={this.props.match.params.projectId}
       />
     )
   }
-  renderProjectAccessControlList(results) {
+  renderProjectAccessControlList(results, canEdit) {
     const project: Project = results.fetchProjectByIdStatus
     const projectAcl: ProjectAccessControlList[] = results.fetchProjectAccessControlListStatus
     const userInfo: UserInfo = results.userInfoStatus
-    return this.renderContent(project, projectAcl, userInfo)
+    return this.renderContent(project, projectAcl, userInfo, canEdit)
   }
   renderContent(project: Project, projectAcl: ProjectAccessControlList[],
-                userInfo: UserInfo) {
+                userInfo: UserInfo, canEdit: boolean) {
     const { match, saveProjectAccessControl } = this.props
     const {
       isAddUserProjectRoleModalOpen, isEditUserProjectRoleModalOpen, editUserProjectRoleTarget
@@ -131,16 +128,18 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
       return (
         <tr key={i}>
           <td>
-            <div
-              className={isMyself ? '' : 'text-info'}
-              style={isMyself ? {} : { cursor: 'pointer' }}
-              onClick={isMyself ? null : this.onClickEditUser(e)}>
-              {e.userUid}
-            </div>
+            {canEdit ?
+              <div
+                className={isMyself ? '' : 'text-info'}
+                style={isMyself ? {} : {cursor: 'pointer'}}
+                onClick={isMyself ? null : this.onClickEditUser(e)}>
+                {e.userUid}
+              </div> : <span>{e.userUid}</span>
+            }
           </td>
           <td>{e.userName}</td>
           <td>{typeof e.role === "boolean" ? null : e.role.replace(/ProjectRole./, '')}</td>
-          <td>{isMyself ? null : removeButton}</td>
+          {(!canEdit || isMyself) ? null : <td>{removeButton}</td>}
         </tr>
       )
     })
@@ -152,38 +151,45 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
               <i className='fas fa-unlock fa-fw mr-2'></i>
               Project Access Control List
             </h1>
-            <div>
-              <Button
-                color='primary'
-                size='sm'
-                onClick={this.toggleAddUserProjectRoleModalOpen} >
-                <i className='fas fa-user-plus fa-fw mr-2'></i>
-                Add User
-              </Button>
-            </div>
+            {canEdit ?
+              <div>
+                <Button
+                  color='primary'
+                  size='sm'
+                  onClick={this.toggleAddUserProjectRoleModalOpen} >
+                  <i className='fas fa-user-plus fa-fw mr-2'></i>
+                  Add User
+                </Button>
+              </div> : null
+            }
           </div>
-          <AddUserProjectRoleModal
-            isModalOpen={isAddUserProjectRoleModalOpen}
-            toggle={this.toggleAddUserProjectRoleModalOpen}
-            reload={this.reload}
-            acl={projectAcl}
-          />
-          <EditUserProjectRoleModal
-            projectId={match.params.projectId}
-            isModalOpen={isEditUserProjectRoleModalOpen}
-            toggle={this.toggleEditUserProjectRoleModalOpen}
-            reload={this.reload}
-            target={editUserProjectRoleTarget}
-            saveProjectAccessControl={saveProjectAccessControl}
-            saveProjectAccessControlStatus={this.props.saveProjectAccessControlStatus}
-            addNotification={this.props.addNotification}
-          />
-          {this.renderConfirmRemoveUserModal()}
+          {canEdit ?
+            <React.Fragment>
+              <AddUserProjectRoleModal
+                isModalOpen={isAddUserProjectRoleModalOpen}
+                toggle={this.toggleAddUserProjectRoleModalOpen}
+                reload={this.reload}
+                acl={projectAcl}
+              />
+              <EditUserProjectRoleModal
+                projectId={match.params.projectId}
+                isModalOpen={isEditUserProjectRoleModalOpen}
+                toggle={this.toggleEditUserProjectRoleModalOpen}
+                reload={this.reload}
+                target={editUserProjectRoleTarget}
+                saveProjectAccessControl={saveProjectAccessControl}
+                saveProjectAccessControlStatus={this.props.saveProjectAccessControlStatus}
+                addNotification={this.props.addNotification}
+              />
+              {this.renderConfirmRemoveUserModal()}
+            </React.Fragment> : null
+          }
           <hr />
           <Table hover className='mb-3'>
             <thead>
             <tr className='bg-light text-primary'>
-              <th>ID</th><th>Name</th><th>Role</th><th></th>
+              <th>ID</th><th>Name</th><th>Role</th>
+              {canEdit ? <th></th> : null}
             </tr>
             </thead>
             <tbody>{tableBody}</tbody>
