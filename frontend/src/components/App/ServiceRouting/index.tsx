@@ -48,7 +48,7 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
   }
 
   static getDerivedStateFromProps(nextProps: ServiceRoutingProps, prevState: ServiceRoutingState){
-    const { updateServiceRoutingStatus } = nextProps
+    const { updateServiceRoutingStatus, routings } = nextProps
     const { submitted, notified } = prevState
 
     if (submitted && !notified) {
@@ -64,7 +64,11 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
     }
     if (prevState.serviceLevel != nextProps.match.params.serviceLevel) {
       nextProps.fetchServiceRouting(nextProps.match.params)
-      return { serviceLevel: nextProps.match.params.serviceLevel }
+      return { serviceLevel: nextProps.match.params.serviceLevel, notified: false }
+    }
+    if (isAPIFailed(routings) && !notified) {
+      nextProps.addNotification({ color: 'error', message: 'No service available. Please Deploy your service firstly.' })
+      return { notified: true }
     }
     return null
   }
@@ -72,9 +76,12 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
   render(): JSX.Element {
     const { projectId, applicationId } = this.props.match.params
     const { kubernetesMode, routings, userInfoStatus, settings } = this.props
-    const statuses: any = { kubernetesMode, routings }
+    const statuses: any = { kubernetesMode }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
+    }
+    if (isAPISucceeded(routings)) {
+      statuses.routings = routings
     }
     return (
       <APIRequestResultsRenderer
@@ -88,32 +95,36 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
 
   renderContent(fetchedResults, canEdit) {
     const {projectId, applicationId, serviceLevel} = this.props.match.params
-    const applicationName = fetchedResults.routings.applicationName
+    const routings = fetchedResults.routings
 
-    return (
-      <React.Fragment>
-        <Row className='align-items-center mb-5'>
-          <Col xs='7'>
-            <h1>
-              <i className='fas fa-ship fa-fw mr-2'></i>
-              {applicationName}
-            </h1>
-          </Col>
-        </Row>
-        <h3>
-          <i className='fas fa-route fa-fw mr-2'></i>
-          Routing Weight ({serviceLevel})
-        </h3>
-        <hr />
-        <ServiceRoutingForm
-          projectId={projectId}
-          applicationId={applicationId}
-          canEdit={canEdit}
-          routings={fetchedResults.routings}
-          onSubmit={this.onSubmit}
-          onCancel={this.onCancel} />
-      </React.Fragment>
-    )
+    if (routings) {
+      return (
+        <React.Fragment>
+          <Row className='align-items-center mb-5'>
+            <Col xs='7'>
+              <h1>
+                <i className='fas fa-ship fa-fw mr-2'></i>
+                {routings.applicationName}
+              </h1>
+            </Col>
+          </Row>
+          <h3>
+            <i className='fas fa-route fa-fw mr-2'></i>
+            Routing Weight ({serviceLevel})
+          </h3>
+          <hr />
+          <ServiceRoutingForm
+            projectId={projectId}
+            applicationId={applicationId}
+            canEdit={canEdit}
+            routings={routings}
+            onSubmit={this.onSubmit}
+            onCancel={this.onCancel} />
+        </React.Fragment>
+      )
+    } else {
+      return (<div>Nothing to show.</div>)
+    }
   }
 
   onSubmit(params) {

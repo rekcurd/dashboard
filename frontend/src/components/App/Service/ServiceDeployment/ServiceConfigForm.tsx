@@ -88,7 +88,8 @@ class ServiceConfigFormImpl extends React.Component<ServiceConfigFormProps> {
         className='form-control'
         placeholder="Model assignment of this service."
         options={serviceModelAssignments}
-        onChange={()=>{}} />
+        onChange={()=>{}}
+        required />
     )
   }
 

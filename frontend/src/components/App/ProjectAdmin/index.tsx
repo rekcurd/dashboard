@@ -134,7 +134,7 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
                 style={isMyself ? {} : {cursor: 'pointer'}}
                 onClick={isMyself ? null : this.onClickEditUser(e)}>
                 {e.userUid}
-              </div> : <span>{e.userUid}</span>
+              </div> : <div>{e.userUid}</div>
             }
           </td>
           <td>{e.userName}</td>

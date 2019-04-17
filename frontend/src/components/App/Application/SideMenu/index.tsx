@@ -2,9 +2,9 @@ import * as React from 'react'
 import { NavLink, withRouter, RouteComponentProps } from 'react-router-dom'
 import { connect } from 'react-redux'
 
-import { UserInfo, UserApplicationRole } from '@src/apis'
+import { UserInfo } from '@src/apis'
 import { APIRequest, APIRequestStatusList } from '@src/apis/Core'
-import { applicationRole, serviceLevel } from '@components/Common/Enum'
+import { serviceLevel } from '@components/Common/Enum'
 
 interface Props {
   projectId: number
@@ -14,10 +14,10 @@ interface Props {
 class SideMenu extends React.Component<SideMenuProps> {
   render() {
     const { userInfoStatus, projectId, applicationId　} = this.props
-    const serviceLevels = Object.values(serviceLevel).map((serviceName: string) => {
+    const serviceLevels = Object.values(serviceLevel).map((serviceLevelName: string) => {
       return {
-        text: serviceName,
-        path: `routing/${serviceName}`
+        text: serviceLevelName,
+        path: `routing/${serviceLevelName}`
       }
     })
     const menuContents = [
@@ -49,19 +49,15 @@ class SideMenu extends React.Component<SideMenuProps> {
       }
     ]
     if (userInfoStatus.status === APIRequestStatusList.success) {
-      userInfoStatus.result.applicationRoles.forEach((e: UserApplicationRole) => {
-        if (String(e.applicationId) === applicationId && e.role === applicationRole.admin) {
-          menuContents.push({
-            title: '',
-            items: [
-              {
-                text: 'Apps Admin',
-                path: 'admin',
-                icon: 'user-lock'
-              }
-            ]
-          })
-        }
+      menuContents.push({
+        title: 'Application',
+        items: [
+          {
+            text: 'Admin',
+            path: 'admin',
+            icon: 'user-lock'
+          }
+        ]
       })
     }
 

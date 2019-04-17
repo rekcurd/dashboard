@@ -39,6 +39,7 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
     const { projectId } = this.props.match.params
 
     let user: React.ReactNode
+    let projectAdmin: React.ReactNode
     if (auth) {
       user = (
         <APIRequestResultsRenderer
@@ -47,12 +48,22 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
           renderFailed={() => null}
         />
       )
+      if (projectId) {
+        const adminlink = `/projects/${projectId}/admin`
+        projectAdmin = (
+          <NavItem>
+            <NavLink className='text-info nav-link' to={adminlink}>
+              <i className='fas fa-users-cog fa-fw mr-1'></i>
+              Admin
+            </NavLink>
+          </NavItem>
+        )
+      }
     }
 
     let projectMenu: React.ReactNode
     if (projectId) {
       const applicationslink = `/projects/${projectId}/applications`
-      const adminlink = `/projects/${projectId}/admin`
       const kubelink = `/projects/${projectId}/kubernetes`
       const dataserverlink = `/projects/${projectId}/data_servers`
       projectMenu = (
@@ -63,12 +74,7 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
               Applications
             </NavLink>
           </NavItem>
-          <NavItem>
-            <NavLink className='text-info nav-link' to={adminlink}>
-              <i className='fas fa-users-cog fa-fw mr-1'></i>
-              Admin
-            </NavLink>
-          </NavItem>
+          {projectAdmin}
           <NavItem>
             <NavLink className='text-info nav-link' to={kubelink}>
               <i className='fas fa-ship fa-fw mr-1'></i>
