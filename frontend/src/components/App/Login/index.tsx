@@ -37,7 +37,7 @@ class Login extends React.Component<LoginProps, LoginState> {
           message: 'Successfully logged in'
         })
         window.localStorage.setItem(JWT_TOKEN_KEY, result.jwt)
-        history.push('/')
+        history.goBack()
         fetchUserInfo()
       }
       if (failed) {

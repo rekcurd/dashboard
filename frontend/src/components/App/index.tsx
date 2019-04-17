@@ -4,8 +4,8 @@ import { Dispatch } from 'redux'
 import { Route, BrowserRouter, Redirect, Switch } from 'react-router-dom'
 
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
-import { AppState } from '@src/reducers'
 import { settingsDispatcher } from '@src/actions'
+import { APIRequest } from "@src/apis/Core";
 
 import Layout from './Layout'
 import Login from './Login'
@@ -29,7 +29,7 @@ import ServiceRouting from './ServiceRouting'
 
 
 interface AppStateProps {
-  settingsState: AppState
+  settingsState: APIRequest<{}>
 }
 
 interface AppDispatchProps {
