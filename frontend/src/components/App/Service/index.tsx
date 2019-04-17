@@ -6,7 +6,7 @@ import { Row, Col } from 'reactstrap'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Service, Application, UserInfo, UserApplicationRole,
-  FetchApplicationByIdParam, ServiceDeploymentParam, Kubernetes, FetchKubernetesByIdParam
+  FetchApplicationByIdParam, ServiceDeploymentParam, FetchKubernetesByIdParam
 } from '@src/apis'
 import {
   fetchApplicationByIdDispatcher,
@@ -43,7 +43,7 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
     const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
     if (userInfo) {
       const canEdit: boolean = userInfo.applicationRoles.some((userRole: UserApplicationRole) => {
-        return String(userRole.applicationId) === applicationId &&
+        return String(userRole.applicationId) === String(applicationId) &&
           (userRole.role === applicationRole.editor || userRole.role === applicationRole.admin)
       })
       if (!canEdit) {

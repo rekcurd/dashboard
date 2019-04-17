@@ -42,7 +42,7 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
     const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
     if (userInfo) {
       const canEdit: boolean = userInfo.applicationRoles.some((role: UserApplicationRole) => {
-        return String(role.applicationId) === applicationId &&
+        return String(role.applicationId) === String(applicationId) &&
           (role.role === applicationRole.editor || role.role === applicationRole.admin)
       })
       if (!canEdit) {
