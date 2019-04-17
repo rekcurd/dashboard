@@ -96,9 +96,12 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
   }
 
   render() {
-    const { fetchAllKubernetesStatus, userInfoStatus } = this.props
-    const targetStatus = { hosts: fetchAllKubernetesStatus, userInfoStatus }
+    const { fetchAllKubernetesStatus, userInfoStatus, settings } = this.props
+    const targetStatus: any = { hosts: fetchAllKubernetesStatus }
 
+    if (isAPISucceeded(settings) && settings.result.auth) {
+      targetStatus.userInfoStatus = userInfoStatus
+    }
     return (
       <APIRequestResultsRenderer
         APIStatus={targetStatus}
@@ -254,6 +257,7 @@ interface StateProps {
   fetchAllKubernetesStatus: APIRequest<Kubernetes[]>
   deleteKubernetesStatus: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
+  settings: APIRequest<any>
 }
 
 const mapStateToProps = (state): StateProps => {
@@ -261,6 +265,7 @@ const mapStateToProps = (state): StateProps => {
     fetchAllKubernetesStatus: state.fetchAllKubernetesReducer.fetchAllKubernetes,
     deleteKubernetesStatus: state.deleteKubernetesReducer.deleteKubernetes,
     userInfoStatus: state.userInfoReducer.userInfo,
+    settings: state.settingsReducer.settings,
   }
 }
 

@@ -92,11 +92,14 @@ class Host extends React.Component<HostProps, HostState> {
   }
 
   render() {
-    const { method, userInfoStatus } = this.props
-    const targetStatus = {userInfoStatus}
+    const { method, userInfoStatus, settings } = this.props
+    const targetStatus: any = {}
 
+    if (isAPISucceeded(settings) && settings.result.auth) {
+      targetStatus.userInfoStatus = userInfoStatus
+    }
     if (method === 'patch') {
-      targetStatus['host'] = this.props.fetchKubernetesByIdStatus
+      targetStatus.host = this.props.fetchKubernetesByIdStatus
     }
     return (
       <APIRequestResultsRenderer
@@ -149,6 +152,7 @@ interface StateProps {
   saveKubernetesStatus: APIRequest<boolean>
   fetchKubernetesByIdStatus: APIRequest<any>
   userInfoStatus: APIRequest<UserInfo>
+  settings: APIRequest<any>
 }
 
 interface CustomProps {
@@ -160,6 +164,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     saveKubernetesStatus: state.saveKubernetesReducer.saveKubernetes,
     fetchKubernetesByIdStatus: state.fetchKubernetesByIdReducer.fetchKubernetesById,
     userInfoStatus: state.userInfoReducer.userInfo,
+    settings: state.settingsReducer.settings,
     ...state.form,
     ...extraProps
   }

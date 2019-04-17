@@ -95,12 +95,15 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
   }
 
   render() {
-    const { userInfoStatus } = this.props
+    const { userInfoStatus, settings } = this.props
     const { method } = this.state
-    const targetStatus = {userInfoStatus}
+    const targetStatus: any = {}
 
+    if (isAPISucceeded(settings) && settings.result.auth) {
+      targetStatus.userInfoStatus = userInfoStatus
+    }
     if (method === 'patch') {
-      targetStatus['data_servers'] = this.props.fetchDataServerStatus
+      targetStatus.data_servers = this.props.fetchDataServerStatus
     }
     return (
       <APIRequestResultsRenderer
@@ -154,6 +157,7 @@ interface StateProps {
   saveDataServerStatus: APIRequest<boolean>
   fetchDataServerStatus: APIRequest<any>
   userInfoStatus: APIRequest<UserInfo>
+  settings: APIRequest<any>
 }
 
 interface CustomProps {}
@@ -163,6 +167,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     saveDataServerStatus: state.saveDataServerReducer.saveDataServer,
     fetchDataServerStatus: state.fetchDataServerReducer.fetchDataServer,
     userInfoStatus: state.userInfoReducer.userInfo,
+    settings: state.settingsReducer.settings,
     ...state.form,
     ...extraProps
   }
