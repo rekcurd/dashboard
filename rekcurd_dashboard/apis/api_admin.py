@@ -24,28 +24,6 @@ application_role_info = admin_api_namespace.model('Role', {
 })
 
 
-def check_owner_role(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        user_id = get_jwt_identity()
-        project_id = kwargs.get('project_id')
-        application_id = kwargs.get('application_id')
-        project_user_role = fetch_project_role(user_id, project_id)
-        if not api.dashboard_config.IS_ACTIVATE_AUTH:
-            return fn(*args, **kwargs)
-        if application_id is None:
-            if project_user_role == ProjectRole.admin:
-                return fn(*args, **kwargs)
-            else:
-                raise ProjectUserRoleException("ProjectUserRoleException")
-        application_user_role = fetch_application_role(user_id, application_id)
-        if project_user_role is not None and application_user_role == ApplicationRole.admin:
-            return fn(*args, **kwargs)
-        else:
-            raise ApplicationUserRoleException("ApplicationUserRoleException")
-    return wrapper
-
-
 @admin_api_namespace.route('/users')
 class ApiUsers(Resource):
     @admin_api_namespace.marshal_list_with(user_info)
@@ -55,8 +33,6 @@ class ApiUsers(Resource):
 
 @admin_api_namespace.route('/projects/<int:project_id>/acl')
 class ApiProjectIdACL(Resource):
-    method_decorators = [check_owner_role]
-
     save_acl_parser = reqparse.RequestParser()
     save_acl_parser.add_argument('uid', type=str, required=True, location='form')
     save_acl_parser.add_argument('role', type=str, required=True, location='form',
@@ -111,8 +87,6 @@ class ApiProjectIdACL(Resource):
 
 @admin_api_namespace.route('/projects/<int:project_id>/acl/users/<uid>')
 class ApiProjectIdUserIdACL(Resource):
-    method_decorators = [check_owner_role]
-
     @admin_api_namespace.marshal_with(success_or_not)
     def delete(self, project_id, uid):
         user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
@@ -129,8 +103,6 @@ class ApiProjectIdUserIdACL(Resource):
 
 @admin_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/acl')
 class ApiApplicationIdACL(Resource):
-    method_decorators = [check_owner_role]
-
     save_acl_parser = reqparse.RequestParser()
     save_acl_parser.add_argument('uid', type=str, required=True, location='form')
     save_acl_parser.add_argument('role', type=str, required=True, location='form',
@@ -199,8 +171,6 @@ class ApiApplicationIdACL(Resource):
 
 @admin_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/acl/users/<uid>')
 class ApiApplicationIdUserIdACL(Resource):
-    method_decorators = [check_owner_role]
-
     @admin_api_namespace.marshal_with(success_or_not)
     def delete(self, project_id, application_id, uid):
         user_model = db.session.query(UserModel).filter(UserModel.auth_id == uid).one_or_none()
