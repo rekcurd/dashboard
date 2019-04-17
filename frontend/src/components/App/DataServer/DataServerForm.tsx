@@ -66,12 +66,13 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
         placeholder="Select your data server. For production, selecting online storage is recommended."
         options={modes}
         onChange={this.onChange}
+        disabled={!this.props.canEdit}
         required />
     )
   }
 
   render() {
-    const { onSubmit, onCancel, method } = this.props
+    const { onSubmit, onCancel, method, canEdit } = this.props
     const initialValues = {
       ...this.props.initialValues
     }
@@ -87,6 +88,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               component={FormikInput}
               className="form-control"
               placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
               required />
             <Field
               name="cephSecretKey"
@@ -94,6 +96,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               component={FormikInput}
               className="form-control"
               placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
               required />
             <Field
               name="cephHost"
@@ -101,6 +104,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               component={FormikInput}
               className="form-control"
               placeholder="e.g. '127.0.0.1'"
+              disabled={!canEdit}
               required />
             <Field
               name="cephPort"
@@ -108,6 +112,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               component={FormikInput}
               className="form-control"
               placeholder="e.g. '80'"
+              disabled={!canEdit}
               required />
             <Field
               name="cephIsSecure"
@@ -118,6 +123,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               placeholder="If ceph is secure, then choose 'Yes'."
               options={yesno}
               onChange={()=>{}}
+              disabled={!canEdit}
               required />
             <Field
               name="cephBucketName"
@@ -125,6 +131,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               component={FormikInput}
               className="form-control"
               placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
               required />
           </CardBody>
         </Card>
@@ -139,6 +146,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               component={FormikInput}
               className="form-control"
               placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
               required />
             <Field
               name="awsSecretKey"
@@ -146,6 +154,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               component={FormikInput}
               className="form-control"
               placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
               required />
             <Field
               name="awsBucketName"
@@ -153,6 +162,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
               component={FormikInput}
               className="form-control"
               placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
               required />
           </CardBody>
         </Card>
@@ -180,8 +190,8 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
                 </CardBody>
               </Card>
               {fields}
-              <Card>
-                <CardBody className='text-right'>
+              {canEdit ?
+                <div className='text-right mb-3'>
                   <Button color='success' type='submit' disabled={isSubmitting} >
                     <i className='fas fa-check fa-fw mr-2'></i>
                     {method === 'post' ? 'Submit' : 'Update'}
@@ -191,8 +201,8 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
                     <i className='fas fa-ban fa-fw mr-2'></i>
                     Cancel
                   </Button>
-                </CardBody>
-              </Card>
+                </div> : null
+              }
             </Form>
           )}
         </Formik>
@@ -224,6 +234,7 @@ export interface CustomProps {
   onCancel
   onSubmit
   method: string
+  canEdit: boolean
   initialValues?: {
     dataServerMode: string
     cephAccessKey: string

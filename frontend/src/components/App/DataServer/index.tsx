@@ -4,8 +4,13 @@ import { RouterProps } from 'react-router'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { DataServerParam, FetchDataServerByIdParam } from '@src/apis'
-import { saveDataServerDispatcher, fetchDataServerDispatcher, addNotification } from '@src/actions'
+import { DataServerParam, FetchDataServerByIdParam, UserInfo } from '@src/apis'
+import {
+  saveDataServerDispatcher,
+  fetchDataServerDispatcher,
+  userInfoDispatcher,
+  addNotification
+} from '@src/actions'
 import { DataServerForm } from './DataServerForm'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 
@@ -54,20 +59,12 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
   }
 
   componentDidMount() {
-    this.props.fetchDataServer({
-      projectId: this.props.match.params.projectId
-    })
+    this.props.fetchDataServer(this.props.match.params)
   }
 
   static getDerivedStateFromProps(nextProps: DataServerProps, prevState: DataServerState){
     const { saveDataServerStatus, fetchDataServerStatus } = nextProps
     const { submitting, notified } = prevState
-
-    const chk = (isAPISucceeded<boolean>(fetchDataServerStatus) && !fetchDataServerStatus.result) || isAPIFailed<boolean>(fetchDataServerStatus)
-    if (chk && !notified) {
-      nextProps.addNotification({ color: 'error', message: 'No data server registered. Please register it first.' })
-      return {submitting: false, notified: true}
-    }
 
     // Handling submitted API results
     if (submitting && !notified) {
@@ -85,7 +82,10 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
       }
     } else {
       const failed: boolean = (isAPISucceeded<boolean>(fetchDataServerStatus) && !fetchDataServerStatus.result) || isAPIFailed<boolean>(fetchDataServerStatus)
-      if (failed) {
+      if (failed && !notified) {
+        nextProps.addNotification({color: 'error', message: 'No data server registered. Please register it first.'})
+        return {submitting: false, notified: true, method: 'post'}
+      } else if (failed) {
         return {method: 'post'}
       } else {
         return {method: 'patch'}
@@ -95,33 +95,47 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
   }
 
   render() {
+    const { userInfoStatus } = this.props
     const { method } = this.state
+    const targetStatus = {userInfoStatus}
+
     if (method === 'patch') {
-      return (
-        <APIRequestResultsRenderer
-          APIStatus={{ data_servers: this.props.fetchDataServerStatus }}
-          render={this.renderEditForm}
-        />
-      )
+      targetStatus['data_servers'] = this.props.fetchDataServerStatus
     }
     return (
-      <DataServerForm
-        onCancel={this.onCancel}
-        onSubmit={this.onSubmit}
-        method={this.state.method}
+      <APIRequestResultsRenderer
+        APIStatus={targetStatus}
+        render={this.renderEditForm}
+        projectId={this.props.match.params.projectId}
       />
     )
   }
 
-  renderEditForm(result) {
-    return (
-      <DataServerForm
-        onCancel={this.onCancel}
-        onSubmit={this.onSubmit}
-        method={this.state.method}
-        initialValues={...result.data_servers}
-      />
-    )
+  renderEditForm(result, canEdit) {
+    if (!canEdit) {
+      this.props.addNotification({ color: 'error', message: "You don't have a permission. Contact your Project admin." })
+    }
+
+    if (this.state.method === 'patch') {
+      return (
+        <DataServerForm
+          onCancel={this.onCancel}
+          onSubmit={this.onSubmit}
+          method={this.state.method}
+          canEdit={canEdit}
+          initialValues={...result.data_servers}
+        />
+      )
+    } else {
+      return (
+        <DataServerForm
+          onCancel={this.onCancel}
+          onSubmit={this.onSubmit}
+          method={this.state.method}
+          canEdit={canEdit}
+        />
+      )
+    }
   }
 }
 
@@ -139,6 +153,7 @@ interface DataServerState {
 interface StateProps {
   saveDataServerStatus: APIRequest<boolean>
   fetchDataServerStatus: APIRequest<any>
+  userInfoStatus: APIRequest<UserInfo>
 }
 
 interface CustomProps {}
@@ -147,6 +162,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
     saveDataServerStatus: state.saveDataServerReducer.saveDataServer,
     fetchDataServerStatus: state.fetchDataServerReducer.fetchDataServer,
+    userInfoStatus: state.userInfoReducer.userInfo,
     ...state.form,
     ...extraProps
   }
@@ -155,6 +171,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
 export interface DispatchProps {
   saveDataServer: (params: DataServerParam) => Promise<void>
   fetchDataServer: (params: FetchDataServerByIdParam) => Promise<void>
+  userInfo: () => Promise<void>
   addNotification: (params) => any
 }
 
@@ -162,6 +179,7 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     saveDataServer: (params: DataServerParam) => saveDataServerDispatcher(dispatch, params),
     fetchDataServer: (params: FetchDataServerByIdParam) => fetchDataServerDispatcher(dispatch, params),
+    userInfo: () => userInfoDispatcher(dispatch),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }
