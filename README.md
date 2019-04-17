@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/rekcurd/dashboard/branch/master/graph/badge.svg)](https://codecov.io/gh/rekcurd/dashboard "Non-generated packages only")
 [![pypi supported versions](https://img.shields.io/pypi/pyversions/rekcurd-dashboard.svg)](https://pypi.python.org/pypi/rekcurd-dashboard)
 
-Rekcurd dashboard is the project for managing ML model and deploying ML module. Any Rekcurd service is manageable. It can deploy the Rekcurd service to Kubernetes cluster.
+Rekcurd dashboard is the project for managing ML model and deploying ML module. Any Rekcurd service is manageable. It can deploy the Rekcurd service to Kubernetes cluster and can control traffic weights which Istio manages.
 
 
 ## Parent Project
@@ -14,8 +14,8 @@ https://github.com/rekcurd/community
 
 ## Components
 - [Rekcurd](https://github.com/rekcurd/rekcurd-python): Project for serving ML module.
-- [Rekcurd-dashboard](https://github.com/rekcurd/dashboard) (here): Project for managing ML model and deploying ML module.
-- [Rekcurd-client](https://github.com/rekcurd/python-client): Project for integrating ML module. 
+- [Rekcurd-dashboard](https://github.com/rekcurd/dashboard): Project for managing ML model and deploying ML module.
+- [Rekcurd-client](https://github.com/rekcurd/python-client): Project for integrating ML module.
 
 
 ## Environment
@@ -106,4 +106,4 @@ $ sudo sh e2e_test/cleanup.sh
 
 
 ## Kubernetes support
-Rekcurd can be run on Kubernetes. See [here](https://github.com/rekcurd/community).
+Rekcurd can be run on Kubernetes. See [community repository](https://github.com/rekcurd/community).
