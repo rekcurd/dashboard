@@ -5,10 +5,11 @@ import { Row, Col, Table, Button, Tooltip, Modal, ModalBody, ModalHeader } from 
 
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
-import { Kubernetes, FetchKubernetesByIdParam, IdParam } from '@src/apis'
+import { Kubernetes, FetchKubernetesByIdParam, IdParam, UserInfo } from '@src/apis'
 import {
   fetchAllKubernetesDispatcher,
   deleteKubernetesDispatcher,
+  userInfoDispatcher,
   addNotification,
  } from '@src/actions'
 
@@ -95,20 +96,33 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
   }
 
   render() {
+    const { fetchAllKubernetesStatus, userInfoStatus } = this.props
+    const targetStatus = { hosts: fetchAllKubernetesStatus, userInfoStatus }
+
     return (
       <APIRequestResultsRenderer
-        APIStatus={{ hosts: this.props.fetchAllKubernetesStatus }}
+        APIStatus={targetStatus}
         render={this.renderKubernetes}
+        projectId={this.props.match.params.projectId}
       />
     )
   }
 
-  renderKubernetes(status) {
+  renderKubernetes(status, canEdit) {
     const kubernetesHosts: Kubernetes[] = status.hosts
     const { deletionSubmitted } = this.state
     const submitted = deletionSubmitted
     const { push } = this.props.history
     const { projectId } = this.props.match.params
+
+    const addButton = canEdit ? (
+      <div>
+        <Button color='primary' size='sm' onClick={() => { push(`/projects/${projectId}/kubernetes/add`) }} disabled={submitted}>
+          <i className='fas fa-plus fa-fw mr-2'></i>
+          Add New Kubernetes
+        </Button>
+      </div>
+    ) : null
 
     const title = (
       <div className='d-flex justify-content-between align-items-center mb-4'>
@@ -116,12 +130,7 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
           <i className='fas fa-plug fa-fw mr-3'></i>
           Kubernetes
         </h1>
-        <div>
-          <Button color='primary' size='sm' onClick={() => { push(`/projects/${projectId}/kubernetes/add`) }} disabled={submitted}>
-            <i className='fas fa-plus fa-fw mr-2'></i>
-            Add New Kubernetes
-          </Button>
-        </div>
+        {addButton}
       </div>
     )
 
@@ -129,7 +138,7 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
       <Row className='justify-content-center'>
         <Col xs='10' className='pt-5'>
           {title}
-          {this.renderKubernetesHostListTable(kubernetesHosts)}
+          {this.renderKubernetesHostListTable(kubernetesHosts, canEdit)}
         </Col>
       </Row>
     )
@@ -141,19 +150,17 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
    *
    * @param hosts List of kubernetes
    */
-  renderKubernetesHostListTable(hosts: Kubernetes[]) {
-    const { push } = this.props.history
+  renderKubernetesHostListTable(hosts: Kubernetes[], canEdit) {
     const kubernetesHostListTableBody = (
       hosts.map(
         (value: Kubernetes) => (
           <tr key={value.kubernetesId}>
             <td>
-              <Link
-                to={`/projects/${value.projectId}/kubernetes/${value.kubernetesId}`}
-                className='text-info'
-              >
-                {value.displayName}
-              </Link>
+              {canEdit ?
+                <Link to={`/projects/${value.projectId}/kubernetes/${value.kubernetesId}`}
+                      className='text-info'>
+                  {value.displayName}
+                </Link> : <span>{value.displayName}</span>}
             </td>
             <td>
               {value.description}
@@ -164,17 +171,19 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
             <td>
               {value.registerDate.toUTCString()}
             </td>
-            <td>
-              <i
-                className='fas fa-trash-alt fa-lg text-danger'
-                id={`k8shost-delete-${value.kubernetesId}`}
-                onClick={() => { this.changeDeletionTarget(value.kubernetesId, value.displayName); this.toggleDeleteModal() }}
-              ></i>
-              <Tooltip placement='top' isOpen={this.state.tooltipOpen[`delete-${value.kubernetesId}`]}
+            {canEdit ?
+              <td>
+                <i
+                  className='fas fa-trash-alt fa-lg text-danger'
+                  id={`k8shost-delete-${value.kubernetesId}`}
+                  onClick={() => { this.changeDeletionTarget(value.kubernetesId, value.displayName); this.toggleDeleteModal() }}
+                ></i>
+                <Tooltip placement='top' isOpen={this.state.tooltipOpen[`delete-${value.kubernetesId}`]}
                 target={`k8shost-delete-${value.kubernetesId}`} toggle={this.toggleTooltip(`delete-${value.kubernetesId}`)}>
-                Delete this host
-              </Tooltip>
-            </td>
+                  Delete this host
+                </Tooltip>
+              </td>: null
+            }
           </tr>
         )
       )
@@ -184,18 +193,23 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
       <Table hover id='application-list'>
         <thead>
           <tr className='bg-light text-primary'>
-            <th>Name</th><th>Description</th><th>Exposed Host</th><th>Registered Date</th><th></th>
+            <th>Name</th><th>Description</th><th>Exposed Host</th><th>Registered Date</th>
+            {canEdit ? <th></th> : null}
           </tr>
         </thead>
         <tbody>
           {kubernetesHostListTableBody}
         </tbody>
-        {this.renderConfirmDeleteHostModal()}
+        {this.renderConfirmDeleteHostModal(canEdit)}
       </Table>
     )
   }
 
-  renderConfirmDeleteHostModal() {
+  renderConfirmDeleteHostModal(canEdit) {
+    if (!canEdit) {
+      return null
+    }
+
     const { isDeleteModalOpen, deletionTarget } = this.state
     const { id, displayName } = deletionTarget
 
@@ -239,18 +253,21 @@ interface KubernetesState {
 interface StateProps {
   fetchAllKubernetesStatus: APIRequest<Kubernetes[]>
   deleteKubernetesStatus: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
 }
 
 const mapStateToProps = (state): StateProps => {
   return {
     fetchAllKubernetesStatus: state.fetchAllKubernetesReducer.fetchAllKubernetes,
     deleteKubernetesStatus: state.deleteKubernetesReducer.deleteKubernetes,
+    userInfoStatus: state.userInfoReducer.userInfo,
   }
 }
 
 interface DispatchProps {
   fetchKubernetes: (params: FetchKubernetesByIdParam) => Promise<void>
   deleteKubernetes: (params: IdParam) => Promise<void>
+  userInfo: () => Promise<void>
   addNotification
 }
 
@@ -258,6 +275,7 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     fetchKubernetes: (params: FetchKubernetesByIdParam) => fetchAllKubernetesDispatcher(dispatch, params),
     deleteKubernetes: (params: IdParam) => deleteKubernetesDispatcher(dispatch, params),
+    userInfo: () => userInfoDispatcher(dispatch),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }

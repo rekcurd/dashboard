@@ -4,8 +4,13 @@ import { RouterProps } from 'react-router'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Kubernetes, KubernetesParam, FetchKubernetesByIdParam } from '@src/apis'
-import { saveKubernetesDispatcher, fetchKubernetesByIdDispatcher, addNotification } from '@src/actions'
+import { Kubernetes, KubernetesParam, FetchKubernetesByIdParam, UserInfo } from '@src/apis'
+import {
+  saveKubernetesDispatcher,
+  fetchKubernetesByIdDispatcher,
+  userInfoDispatcher,
+  addNotification
+} from '@src/actions'
 import { HostForm } from './HostForm'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 
@@ -87,34 +92,46 @@ class Host extends React.Component<HostProps, HostState> {
   }
 
   render() {
-    const { method } = this.props
+    const { method, userInfoStatus } = this.props
+    const targetStatus = {userInfoStatus}
+
     if (method === 'patch') {
-      return (
-        <APIRequestResultsRenderer
-          APIStatus={{ host: this.props.fetchKubernetesByIdStatus }}
-          render={this.renderEditForm}
-        />
-      )
+      targetStatus['host'] = this.props.fetchKubernetesByIdStatus
     }
     return (
-      <HostForm
-        onCancel={this.onCancel}
-        onSubmit={this.onSubmit}
-        method={this.props.method}
+      <APIRequestResultsRenderer
+        APIStatus={targetStatus}
+        render={this.renderEditForm}
+        projectId={this.props.match.params.projectId}
       />
     )
   }
 
-  renderEditForm(result) {
-    const properties = { ...result.host }
-    return (
-      <HostForm
-        onCancel={this.onCancel}
-        onSubmit={this.onSubmit}
-        method={this.props.method}
-        initialValues={...properties}
-      />
-    )
+  renderEditForm(result, canEdit) {
+    if (!canEdit) {
+      this.props.history.push(`/projects/${this.props.match.params.projectId}/kubernetes`)
+      this.props.addNotification({ color: 'error', message: "You don't have a permission. Contact your Project admin." })
+    }
+
+    if (this.props.method === 'patch') {
+      const properties = { ...result.host }
+      return (
+        <HostForm
+          onCancel={this.onCancel}
+          onSubmit={this.onSubmit}
+          method={this.props.method}
+          initialValues={...properties}
+        />
+      )
+    } else {
+      return (
+        <HostForm
+          onCancel={this.onCancel}
+          onSubmit={this.onSubmit}
+          method={this.props.method}
+        />
+      )
+    }
   }
 }
 
@@ -131,6 +148,7 @@ interface HostState {
 interface StateProps {
   saveKubernetesStatus: APIRequest<boolean>
   fetchKubernetesByIdStatus: APIRequest<any>
+  userInfoStatus: APIRequest<UserInfo>
 }
 
 interface CustomProps {
@@ -141,6 +159,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
     saveKubernetesStatus: state.saveKubernetesReducer.saveKubernetes,
     fetchKubernetesByIdStatus: state.fetchKubernetesByIdReducer.fetchKubernetesById,
+    userInfoStatus: state.userInfoReducer.userInfo,
     ...state.form,
     ...extraProps
   }
@@ -149,6 +168,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
 export interface DispatchProps {
   saveKubernetes: (params: KubernetesParam) => Promise<void>
   fetchKubernetesById: (params: FetchKubernetesByIdParam) => Promise<void>
+  userInfo: () => Promise<void>
   addNotification: (params) => any
 }
 
@@ -156,6 +176,7 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     saveKubernetes: (params: KubernetesParam) => saveKubernetesDispatcher(dispatch, params),
     fetchKubernetesById: (params: FetchKubernetesByIdParam) => fetchKubernetesByIdDispatcher(dispatch, params),
+    userInfo: () => userInfoDispatcher(dispatch),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }

@@ -38,13 +38,13 @@ class APIRequestResults extends React.Component<Props & RouteComponentProps<{}>,
       const fetchedResults = currentStatus[1]
       if (fetchedResults.userInfoStatus && projectId && applicationId) {
         const canEdit = fetchedResults.userInfoStatus.applicationRoles.some((userRole: UserApplicationRole) => {
-          return String(userRole.applicationId) === applicationId &&
+          return String(userRole.applicationId) === String(applicationId) &&
             (userRole.role === applicationRole.editor || userRole.role === applicationRole.admin)
         })
         return render(fetchedResults, canEdit)
       } else if (fetchedResults.userInfoStatus && projectId) {
         const canEdit = fetchedResults.userInfoStatus.projectRoles.some((userRole: UserProjectRole) => {
-          return Number(userRole.projectId) === projectId &&
+          return Number(userRole.projectId) === Number(projectId) &&
             (userRole.role === projectRole.admin)
         })
         return render(fetchedResults, canEdit)

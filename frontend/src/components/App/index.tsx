@@ -5,7 +5,7 @@ import { Route, BrowserRouter, Redirect, Switch } from 'react-router-dom'
 
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
 import { settingsDispatcher } from '@src/actions'
-import { APIRequest } from "@src/apis/Core";
+import { APIRequest } from '@src/apis/Core'
 
 import Layout from './Layout'
 import Login from './Login'
@@ -29,7 +29,7 @@ import ServiceRouting from './ServiceRouting'
 
 
 interface AppStateProps {
-  settingsState: APIRequest<{}>
+  settingsStatus: APIRequest<{}>
 }
 
 interface AppDispatchProps {
@@ -40,14 +40,13 @@ type AppProps = AppStateProps & AppDispatchProps
 
 class AppComponent extends React.Component<AppProps> {
   componentDidMount() {
-    const { fetchSettings } = this.props
-    fetchSettings()
+    this.props.fetchSettings()
   }
   render() {
-    const { settingsState } = this.props
+    const { settingsStatus } = this.props
     const app = (
       <APIRequestResultsRenderer
-        APIStatus={{ settings: settingsState }}
+        APIStatus={{ settings: settingsStatus }}
         render={this.renderApp.bind(this)}
       />
     )
@@ -71,7 +70,7 @@ class AppComponent extends React.Component<AppProps> {
 }
 export const App = connect<AppStateProps, AppDispatchProps>(
   (state: any): AppStateProps => ({
-    settingsState: state.settingsReducer.settings
+    settingsStatus: state.settingsReducer.settings
   }),
   (dispatch: Dispatch): AppDispatchProps => ({
     fetchSettings: () => settingsDispatcher(dispatch)

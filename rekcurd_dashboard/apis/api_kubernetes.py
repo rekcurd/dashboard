@@ -92,7 +92,7 @@ class ApiKubernetes(Resource):
             role: ProjectUserRoleModel = db.session.query(ProjectUserRoleModel).filter(
                 ProjectUserRoleModel.project_id == project_id,
                 ProjectUserRoleModel.user_id == user_id).one_or_none()
-            if role is None or role.project_role != ProjectRole.admin:
+            if role is None:
                 raise ProjectUserRoleException("Invalid access.")
         return KubernetesModel.query.filter_by(project_id=project_id).all()
 
