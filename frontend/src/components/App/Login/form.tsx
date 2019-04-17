@@ -52,14 +52,12 @@ class LoginFormImpl extends React.Component<LoginFormProps> {
                     required />
                 </CardBody>
               </Card>
-              <Card className='mb-3'>
-                <CardBody className='text-right'>
-                  <Button color='success' type='submit'>
-                    <i className='fas fa-check fa-fw mr-2'></i>
-                    Login
-                  </Button>
-                </CardBody>
-              </Card>
+              <div className='text-right mb-3'>
+                <Button color='success' type='submit'>
+                  <i className='fas fa-check fa-fw mr-2'></i>
+                  Login
+                </Button>
+              </div>
             </Form>
           )}
         </Formik>

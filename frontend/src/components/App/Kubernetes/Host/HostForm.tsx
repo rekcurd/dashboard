@@ -103,19 +103,17 @@ class HostFormImpl extends React.Component<HostFormProps> {
                 </CardBody>
               </Card>
 
-              <Card>
-                <CardBody className='text-right'>
-                  <Button color='success' type='submit' disabled={isSubmitting} >
-                    <i className='fas fa-check fa-fw mr-2'></i>
-                    {isPost ? 'Submit' : 'Update'}
-                  </Button>
-                  {' '}
-                  <Button outline color='info' onClick={onCancel}>
-                    <i className='fas fa-ban fa-fw mr-2'></i>
-                    Cancel
-                  </Button>
-                </CardBody>
-              </Card>
+              <div className='text-right mb-3'>
+                <Button color='success' type='submit' disabled={isSubmitting} >
+                  <i className='fas fa-check fa-fw mr-2'></i>
+                  {isPost ? 'Submit' : 'Update'}
+                </Button>
+                {' '}
+                <Button outline color='info' onClick={onCancel}>
+                  <i className='fas fa-ban fa-fw mr-2'></i>
+                  Cancel
+                </Button>
+              </div>
             </Form>
           )}
         </Formik>
