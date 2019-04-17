@@ -8,13 +8,14 @@ import * as Yup from "yup";
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Service, Model, FetchServiceByIdParam,
-  FetchModelByIdParam, ServiceDeploymentParam, UpdateServiceParam
+  FetchModelByIdParam, ServiceDeploymentParam, UpdateServiceParam, UserInfo
 } from '@src/apis'
 import {
   fetchServiceByIdDispatcher,
   fetchAllModelsDispatcher,
   saveServiceDeploymentDispatcher,
   updateServiceDispatcher,
+  userInfoDispatcher,
   addNotification
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
@@ -95,21 +96,36 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
   }
 
   render() {
-    const { method, fetchServiceByIdStatus, fetchAllModelsStatus } = this.props
-    const targetStatus = (method === 'patch') ?
+    const { method, fetchServiceByIdStatus, fetchAllModelsStatus, userInfoStatus, settings } = this.props
+    const targetStatus: any = (method === 'patch') ?
       {service: fetchServiceByIdStatus, models: fetchAllModelsStatus} :
       {models: fetchAllModelsStatus}
 
+    if (isAPISucceeded(settings) && settings.result.auth) {
+      targetStatus.userInfoStatus = userInfoStatus
+    }
     return(
       <APIRequestResultsRenderer
         render={this.renderForm}
         APIStatus={targetStatus}
+        projectId={this.props.match.params.projectId}
+        applicationId={this.props.match.params.applicationId}
       />
     )
   }
 
-  renderForm(params) {
+  renderForm(params, canEdit) {
+    const { projectId, applicationId } = this.props.match.params
     const { kubernetesMode, method } = this.props
+
+    if (!canEdit) {
+      this.props.history.push(`/projects/${projectId}/applications/${applicationId}`)
+      this.props.addNotification({ color: 'error', message: "You don't have a permission. Contact your Project admin." })
+    }
+    if (params.models.length === 0) {
+      this.props.history.push(`/projects/${projectId}/applications/${applicationId}`)
+      this.props.addNotification({ color: 'error', message: 'No models available. Please add your model firstly.' })
+    }
 
     const ValidationSchema = this.setValidationSchema(kubernetesMode, method)
     const InitialValues = this.setInitialValues(kubernetesMode, method, params)
@@ -372,6 +388,8 @@ interface StateProps {
   fetchAllModelsStatus: APIRequest<Model[]>
   saveServiceDeploymentStatus: APIRequest<boolean>
   updateServiceStatus: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
+  settings: APIRequest<any>
 }
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
@@ -380,6 +398,8 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     fetchAllModelsStatus: state.fetchAllModelsReducer.fetchAllModels,
     saveServiceDeploymentStatus: state.saveServiceDeploymentReducer.saveServiceDeployment,
     updateServiceStatus: state.updateServiceReducer.updateService,
+    userInfoStatus: state.userInfoReducer.userInfo,
+    settings: state.settingsReducer.settings,
     ...state.form,
     ...extraProps
   }
@@ -390,6 +410,7 @@ export interface DispatchProps {
   fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
   saveServiceDeployment: (params: ServiceDeploymentParam) => Promise<void>
   updateServiceDeployment: (params: UpdateServiceParam) => Promise<void>
+  userInfo: () => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
@@ -399,6 +420,7 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
     fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
     saveServiceDeployment: (params: ServiceDeploymentParam) => saveServiceDeploymentDispatcher(dispatch, params),
     updateServiceDeployment: (params: UpdateServiceParam) => updateServiceDispatcher(dispatch, params),
+    userInfo: () => userInfoDispatcher(dispatch),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }
