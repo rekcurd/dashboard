@@ -95,28 +95,26 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
   }
 
   render() {
-    const {
-      fetchApplicationByIdStatus,
-      fetchApplicationAccessControlListStatus,
-      userInfoStatus } = this.props
+    const { fetchApplicationByIdStatus, fetchApplicationAccessControlListStatus, userInfoStatus } = this.props
+    const targetStatus = {fetchApplicationByIdStatus, fetchApplicationAccessControlListStatus, userInfoStatus}
+
     return (
       <APIRequestResultsRenderer
-        APIStatus={{
-          fetchApplicationByIdStatus, fetchApplicationAccessControlListStatus,
-          userInfoStatus
-        }}
+        APIStatus={targetStatus}
         render={this.renderApplicationAccessControlList}
+        projectId={this.props.match.params.projectId}
+        applicationId={this.props.match.params.applicationId}
       />
     )
   }
-  renderApplicationAccessControlList(results) {
+  renderApplicationAccessControlList(results, canEdit) {
     const application: Application = results.fetchApplicationByIdStatus
     const applicationAcl: ApplicationAccessControlList[] = results.fetchApplicationAccessControlListStatus
     const userInfo: UserInfo = results.userInfoStatus
-    return this.renderContent(application, applicationAcl, userInfo)
+    return this.renderContent(application, applicationAcl, userInfo, canEdit)
   }
   renderContent(application: Application, applicationAcl: ApplicationAccessControlList[],
-                userInfo: UserInfo) {
+                userInfo: UserInfo, canEdit: boolean) {
     const { match, saveApplicationAccessControl } = this.props
     const {
       isAddUserApplicationRoleModalOpen, isEditUserApplicationRoleModalOpen, editUserApplicationRoleTarget
@@ -132,16 +130,18 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
       return (
         <tr key={i}>
           <td>
-            <div
-              className={isMyself ? '' : 'text-info'}
-              style={isMyself ? {} : { cursor: 'pointer' }}
-              onClick={isMyself ? null : this.onClickEditUser(e)}>
-              {e.userUid}
-            </div>
+            {canEdit ?
+              <div
+                className={isMyself ? '' : 'text-info'}
+                style={isMyself ? {} : {cursor: 'pointer'}}
+                onClick={isMyself ? null : this.onClickEditUser(e)}>
+                {e.userUid}
+              </div> : <div>{e.userUid}</div>
+            }
           </td>
           <td>{e.userName}</td>
           <td>{typeof e.role === "boolean" ? null : e.role.replace(/ApplicationRole./, '')}</td>
-          <td>{isMyself ? null : removeButton}</td>
+          {(!canEdit || isMyself) ? null : <td>{removeButton}</td>}
         </tr>
       )
     })
@@ -154,35 +154,41 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
               {application.name}
             </h1>
           </Col>
-          <Col xs='5' className='text-right'>
-            <Button
-              color='primary'
-              size='sm'
-              onClick={this.toggleAddUserApplicationRoleModalOpen}
-            >
-              <i className='fas fa-user-plus fa-fw mr-2'></i>
-              Add User
-            </Button>
-          </Col>
+          {canEdit ?
+            <Col xs='5' className='text-right'>
+              <Button
+                color='primary'
+                size='sm'
+                onClick={this.toggleAddUserApplicationRoleModalOpen}
+              >
+                <i className='fas fa-user-plus fa-fw mr-2'></i>
+                Add User
+              </Button>
+            </Col> : null
+          }
         </Row>
-        <AddUserApplicationRoleModal
-          isModalOpen={isAddUserApplicationRoleModalOpen}
-          toggle={this.toggleAddUserApplicationRoleModalOpen}
-          reload={this.reload}
-          acl={applicationAcl}
-        />
-        <EditUserApplicationRoleModal
-          projectId={match.params.projectId}
-          applicationId={match.params.applicationId}
-          isModalOpen={isEditUserApplicationRoleModalOpen}
-          toggle={this.toggleEditUserApplicationRoleModalOpen}
-          reload={this.reload}
-          target={editUserApplicationRoleTarget}
-          saveApplicationAccessControl={saveApplicationAccessControl}
-          saveApplicationAccessControlStatus={this.props.saveApplicationAccessControlStatus}
-          addNotification={this.props.addNotification}
-        />
-        {this.renderConfirmRemoveUserModal()}
+        {canEdit ?
+          <React.Fragment>
+            <AddUserApplicationRoleModal
+              isModalOpen={isAddUserApplicationRoleModalOpen}
+              toggle={this.toggleAddUserApplicationRoleModalOpen}
+              reload={this.reload}
+              acl={applicationAcl}
+            />
+            <EditUserApplicationRoleModal
+              projectId={match.params.projectId}
+              applicationId={match.params.applicationId}
+              isModalOpen={isEditUserApplicationRoleModalOpen}
+              toggle={this.toggleEditUserApplicationRoleModalOpen}
+              reload={this.reload}
+              target={editUserApplicationRoleTarget}
+              saveApplicationAccessControl={saveApplicationAccessControl}
+              saveApplicationAccessControlStatus={this.props.saveApplicationAccessControlStatus}
+              addNotification={this.props.addNotification}
+            />
+            {this.renderConfirmRemoveUserModal()}
+          </React.Fragment> : null
+        }
         <h3>
           <i className='fas fa-unlock fa-fw mr-2'></i>
           Application Access Control List
@@ -191,7 +197,8 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
         <Table hover className='mb-3'>
           <thead>
           <tr className='bg-light text-primary'>
-            <th>ID</th><th>Name</th><th>Role</th><th></th>
+            <th>ID</th><th>Name</th><th>Role</th>
+            {canEdit ? <th></th> : null}
           </tr>
           </thead>
           <tbody>{tableBody}</tbody>
