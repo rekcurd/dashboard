@@ -23,6 +23,7 @@ Application is the management unit of Machine Learning service. See [here](#appl
 
 This UI is for managing Kubernetes clusters. If you want to use Kubernetes as backend, you need to register your Kubernetes cluster here. When you deploy your ML service by dashboard, dashboard deploys every Kubernetes cluster you registered automatically.
 
+##### Add/Edit Kubernetes
 <img src="./img/project-kubernetes-edit.png" width="480">
 
 This UI is for adding/editing Kubernetes cluster information. You need to upload your `kubeconfig` file to access your Kubernetes cluster. `Exposed Host` is the access point of your Kubernetes cluster. `Exposed Port` is the port number which Istio specify, and default port number is `31380`.
@@ -46,6 +47,7 @@ Application has 5 UIs; [Dashboard](#dashboard), [Services](#services), [Models](
 
 Dashboard manages all ML services. You can find which model is used on ML services. If you check the box, you can delete your ML services and models.
 
+##### Switch Models
 <img src="./img/application-dashboard-switch.png" width="480">
 
 "Switch Models" provides model switching functionality. You can switch models of ML service. If you use Kubernetes as backend, rolling-deployment is performed by dashboard.
@@ -55,6 +57,7 @@ Dashboard manages all ML services. You can find which model is used on ML servic
 
 This UI is the list of your ML services. You can delete ML service by checking the box.
 
+##### Add/Edit Service
 <img src="./img/application-services-add.png" width="480">
 
 You can register your new ML service by "Add Service" button. If you use Kubernetes as backend, dashboard deploys it to Kubernetes. You can refer the parameters below.
@@ -91,6 +94,7 @@ You can register your new ML service by "Add Service" button. If you use Kuberne
 
 This UI is the list of your models. You can delete model by checking the box.
 
+##### Add/Edit Model
 <img src="./img/application-models-add.png" width="480">
 
 You can register your new model by "Add Model" button. Write the description of your model on `Description` field.
@@ -100,6 +104,7 @@ You can register your new model by "Add Model" button. Write the description of 
 
 This UI is for managing traffic control. You can manage your traffic on service level basis. You can make an AB testing by this functionality.
 
+##### Edit Routing
 <img src="./img/application-routing-edit.png" width="480">
 
 You can change the traffic weight by this UI. Value must be integer, and summation of values must be 100.

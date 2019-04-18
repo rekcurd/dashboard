@@ -23,6 +23,7 @@ Applicationとは機械学習サービスの管理単位です。Applicationの�
 
 Kubernetesクラスタの管理画面です。バックエンドにKubernetesを用いる場合に利用します。Dashboardは複数のKubernetesクラスタを登録できます。Dashboardから機械学習サービスをdeployした場合、自動的にすべてのKubernetesクラスタに機械学習サービスをdeployします。
 
+##### Add/Edit Kubernetes
 <img src="./img/project-kubernetes-edit.png" width="480">
 
 Kubernetesクラスタの登録および編集画面です。Kubernetesにアクセスするため、`kubeconfig`ファイルを登録します。`Exposed Host`はKubernetesクラスタへのアクセスポイントです。`Exposed Port`はIstioが設定したport numberで、デフォルトでは`31380`になります。
@@ -46,6 +47,7 @@ Applicationには、Dashboard, Services, Models, Routing, Adminの5つの管理�
 
 Dashboardは機械学習サービスを一元管理します。機械学習サービスがどのモデルで動いているかを確認できます。チェックボックスをクリックすると、チェックした機械学習サービスやモデルを削除できます。
 
+##### Switch Models
 <img src="./img/application-dashboard-switch.png" width="480">
 
 "Switch Models"から機械学習モデルの切り替えができます。複数の機械学習サービスのモデルを一気に切り替えることができます。バックエンドがKubernetesの場合は、Rolling-deploymentが実行されます。
@@ -55,6 +57,7 @@ Dashboardは機械学習サービスを一元管理します。機械学習サ�
 
 機械学習サービスの一覧画面です。チェックボックスをクリックすると、チェックした機械学習サービスを削除できます。
 
+##### Add/Edit Service
 <img src="./img/application-services-add.png" width="480">
 
 "Add Service"からサービスの登録ができます。バックエンドにKubernetesを使う場合は、Kubernetesに新規サービスをdeployします。各種パラメータの説明は以下を確認ください。
@@ -91,6 +94,7 @@ Dashboardは機械学習サービスを一元管理します。機械学習サ�
 
 機械学習モデルの一覧画面です。チェックボックスをクリックすると、チェックした機械学習モデルを削除できます。
 
+##### Add/Edit Model
 <img src="./img/application-models-add.png" width="480">
 
 "Add Model"からモデルの登録ができます。`Description`にモデルの説明を書きましょう。
@@ -101,6 +105,7 @@ Dashboardは機械学習サービスを一元管理します。機械学習サ�
 
 RoutingはTraffic Controlの管理画面です。Service Levelごとに管理します。主にABテストで用います。
 
+##### Edit Routing
 <img src="./img/application-routing-edit.png" width="480">
 
 複数のモデルを配信した場合、任意の割合でTrafficをroutingできます。設定値はIntegerで合計は100です。
