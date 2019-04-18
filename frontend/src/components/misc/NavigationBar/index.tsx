@@ -43,7 +43,7 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
     if (auth) {
       user = (
         <APIRequestResultsRenderer
-          APIStatus={{ userInfo: userInfoStatus }}
+          APIStatus={{ userInfoStatus }}
           render={this.renderUserInfo.bind(this)}
           renderFailed={() => null}
         />
@@ -74,7 +74,6 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
               Applications
             </NavLink>
           </NavItem>
-          {projectAdmin}
           <NavItem>
             <NavLink className='text-info nav-link' to={kubelink}>
               <i className='fas fa-ship fa-fw mr-1'></i>
@@ -87,6 +86,7 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
               Data Servers
             </NavLink>
           </NavItem>
+          {projectAdmin}
         </React.Fragment>
       )
     }
@@ -112,7 +112,7 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
   }
   renderUserInfo(result) {
     const { dropdownOpen } = this.state
-    const userInfo: UserInfo = result.userInfo
+    const userInfo: UserInfo = result.userInfoStatus
     const userName: string = userInfo.user.userName
     return (
       <Dropdown isOpen={dropdownOpen} toggle={this.toggle.bind(this)}>
