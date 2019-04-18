@@ -10,7 +10,6 @@ import {
 } from '@src/apis'
 import {
   addNotification,
-  fetchIsKubernetesModeDispatcher,
   fetchApplicationByIdDispatcher,
   fetchAllModelsDispatcher,
   deleteModelsDispatcher
@@ -52,7 +51,6 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
   }
 
   componentDidMount() {
-    this.props.fetchIsKubernetesMode(this.props.match.params)
     this.props.fetchApplicationById(this.props.match.params)
     this.props.fetchAllModels(this.props.match.params)
   }
@@ -311,7 +309,6 @@ const mapStateToProps = (state): StateProps => {
 
 export interface DispatchProps {
   addNotification
-  fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => Promise<void>
   fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
   deleteModels: (params: IdParam[]) => Promise<void>
@@ -320,7 +317,6 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
-    fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => fetchIsKubernetesModeDispatcher(dispatch, params),
     fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
     deleteModels: (params: IdParam[]) => deleteModelsDispatcher(dispatch, params),

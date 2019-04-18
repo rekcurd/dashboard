@@ -10,7 +10,6 @@ import {
 } from '@src/apis'
 import {
   addNotification,
-  fetchIsKubernetesModeDispatcher,
   fetchApplicationByIdDispatcher,
   fetchAllServicesDispatcher,
   deleteServicesDispatcher,
@@ -54,7 +53,6 @@ class Services extends React.Component<ServicesStatusProps, ServicesStatusState>
   }
 
   componentDidMount() {
-    this.props.fetchIsKubernetesMode(this.props.match.params)
     this.props.fetchApplicationById(this.props.match.params)
     this.props.fetchAllServices(this.props.match.params)
   }
@@ -350,7 +348,6 @@ const mapStateToProps = (state): StateProps => {
 export interface DispatchProps {
   addNotification
   syncKubernetes: (params: SyncKubernetesParam) => Promise<void>
-  fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => Promise<void>
   fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   fetchAllServices: (params: FetchServiceParam) => Promise<void>
   deleteServices: (params: IdParam[]) => Promise<void>
@@ -360,7 +357,6 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
     syncKubernetes: (params: SyncKubernetesParam) => syncKubernetesDispatcher(dispatch, params),
-    fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => fetchIsKubernetesModeDispatcher(dispatch, params),
     fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     fetchAllServices: (params: FetchServiceParam) => fetchAllServicesDispatcher(dispatch, params),
     deleteServices: (params: IdParam[]) => deleteServicesDispatcher(dispatch, params),

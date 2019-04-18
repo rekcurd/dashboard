@@ -8,9 +8,9 @@ import {
   Navbar, NavbarBrand, Nav, NavItem,
   Dropdown, DropdownToggle, DropdownMenu, DropdownItem
 } from 'reactstrap'
-import { userInfoDispatcher } from '@src/actions'
+import { userInfoDispatcher, fetchIsKubernetesModeDispatcher } from '@src/actions'
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
-import { UserInfo } from '@src/apis'
+import { FetchKubernetesByIdParam, UserInfo } from '@src/apis'
 import { JWT_TOKEN_KEY, APIRequest } from '@src/apis/Core'
 
 interface Istate {
@@ -29,9 +29,12 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
     }
   }
   componentDidMount() {
-    const { fetchUserInfo, auth } = this.props
+    const { fetchIsKubernetesMode, fetchUserInfo, auth } = this.props
     if (auth) {
       fetchUserInfo()
+    }
+    if (this.props.match.params.projectId) {
+      fetchIsKubernetesMode({projectId: this.props.match.params.projectId})
     }
   }
   render() {
@@ -149,11 +152,13 @@ const mapStateToProps = (state): StateProps => {
 }
 
 interface DispatchProps {
+  fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => Promise<void>
   fetchUserInfo: () => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
+    fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => fetchIsKubernetesModeDispatcher(dispatch, params),
     fetchUserInfo: () => userInfoDispatcher(dispatch),
   }
 }

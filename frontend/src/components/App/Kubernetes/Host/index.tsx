@@ -6,6 +6,7 @@ import { withRouter, RouteComponentProps } from 'react-router-dom'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import { Kubernetes, KubernetesParam, FetchKubernetesByIdParam, UserInfo } from '@src/apis'
 import {
+  fetchIsKubernetesModeDispatcher,
   saveKubernetesDispatcher,
   fetchKubernetesByIdDispatcher,
   addNotification
@@ -81,6 +82,7 @@ class Host extends React.Component<HostProps, HostState> {
       if (succeeded) {
         push(`/projects/${nextProps.match.params.projectId}/kubernetes`)
         nextProps.addNotification({ color: 'success', message: 'Successfully saved host' })
+        nextProps.fetchIsKubernetesMode(nextProps.match.params)
         return { submitting: false, notified: true }
       } else if (failed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
@@ -169,6 +171,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
 )
 
 export interface DispatchProps {
+  fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => Promise<void>
   saveKubernetes: (params: KubernetesParam) => Promise<void>
   fetchKubernetesById: (params: FetchKubernetesByIdParam) => Promise<void>
   addNotification: (params) => any
@@ -176,6 +179,7 @@ export interface DispatchProps {
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
+    fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => fetchIsKubernetesModeDispatcher(dispatch, params),
     saveKubernetes: (params: KubernetesParam) => saveKubernetesDispatcher(dispatch, params),
     fetchKubernetesById: (params: FetchKubernetesByIdParam) => fetchKubernetesByIdDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))

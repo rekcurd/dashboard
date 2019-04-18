@@ -11,8 +11,7 @@ import {
 import {
   fetchApplicationByIdDispatcher,
   saveServiceDeploymentDispatcher,
-  addNotification,
-  fetchIsKubernetesModeDispatcher
+  addNotification
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import ServiceDeployment from './ServiceDeployment'
@@ -37,9 +36,7 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
     const { userInfoStatus, history } = this.props
     const { applicationId } = this.props.match.params
 
-    this.props.fetchIsKubernetesMode(this.props.match.params)
     this.props.fetchApplicationById(this.props.match.params)
-
     const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
     if (userInfo) {
       const canEdit: boolean = userInfo.applicationRoles.some((userRole: UserApplicationRole) => {
@@ -145,7 +142,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
 )
 
 export interface DispatchProps {
-  fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => Promise<void>
   fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   saveServiceDeployment: (params: ServiceDeploymentParam) => Promise<void>
   addNotification: (params) => Promise<void>
@@ -153,7 +149,6 @@ export interface DispatchProps {
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => fetchIsKubernetesModeDispatcher(dispatch, params),
     fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     saveServiceDeployment: (params: ServiceDeploymentParam) => saveServiceDeploymentDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))

@@ -10,7 +10,6 @@ import {
 } from '@src/apis'
 import {
   addNotification,
-  fetchIsKubernetesModeDispatcher,
   fetchServiceRoutingDispatcher,
   updateServiceRoutingDispatcher
 } from '@src/actions'
@@ -43,7 +42,6 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
   }
 
   componentDidMount(): void {
-    this.props.fetchIsKubernetesMode(this.props.match.params)
     this.props.fetchServiceRouting(this.props.match.params)
   }
 
@@ -165,7 +163,6 @@ const mapStateToProps = (state): StateProps => {
 
 export interface DispatchProps {
   addNotification
-  fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => Promise<void>
   fetchServiceRouting: (params: FetchServiceRoutingParam) => Promise<void>
   updateServiceRouting: (params: ServiceRoutingParam) => Promise<void>
 }
@@ -173,7 +170,6 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
-    fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => fetchIsKubernetesModeDispatcher(dispatch, params),
     fetchServiceRouting: (params: FetchServiceRoutingParam) => fetchServiceRoutingDispatcher(dispatch, params),
     updateServiceRouting: (params: ServiceRoutingParam) => updateServiceRoutingDispatcher(dispatch, params),
   }
