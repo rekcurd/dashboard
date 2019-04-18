@@ -1,11 +1,9 @@
-from functools import wraps
 from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Resource, Namespace, fields, reqparse
 
-from rekcurd_dashboard.auth import fetch_project_role, fetch_application_role, ProjectUserRoleException, ApplicationUserRoleException
-from rekcurd_dashboard.models import db, UserModel, ProjectRole, ApplicationRole, ProjectUserRoleModel, ApplicationUserRoleModel
+from rekcurd_dashboard.models import db, UserModel, ApplicationRole, ProjectUserRoleModel, ApplicationUserRoleModel
 from rekcurd_dashboard.utils import RekcurdDashboardException
-from . import api, status_model
+from . import status_model
 
 
 admin_api_namespace = Namespace('admin', description='Admin API Endpoint.')
