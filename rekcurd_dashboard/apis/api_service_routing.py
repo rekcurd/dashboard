@@ -2,6 +2,7 @@ from flask_restplus import Namespace, fields, Resource, reqparse
 
 from . import status_model, load_istio_routing, apply_new_route_weight
 from rekcurd_dashboard.models import db, KubernetesModel, ApplicationModel, ServiceModel
+from rekcurd_dashboard.utils import RekcurdDashboardException
 
 
 service_routing_api_namespace = Namespace('service_routings', description='Service Routing API Endpoint.')
@@ -87,6 +88,15 @@ class ApiServiceRouting(Resource):
             KubernetesModel.project_id == project_id).first()
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
+        service_models = db.session.query(ServiceModel).filter(
+            ServiceModel.application_id == application_id,
+            ServiceModel.service_level == service_level).all()
+        if not service_models:
+            raise RekcurdDashboardException("No services available.")
+
+        service_id_name = dict()
+        for service_model in service_models:
+            service_id_name[service_model.service_id] = service_model.display_name
         routes = load_istio_routing(kubernetes_model, application_model, service_level)
         response_body = dict()
         response_body["application_name"] = application_model.application_name
@@ -95,13 +105,17 @@ class ApiServiceRouting(Resource):
         response_body["service_weights"] = service_weights
         for route in routes:
             service_id = route["destination"]["host"][4:]
+            display_name = service_id_name.pop(service_id)
             weight = route["weight"]
-            service_model: ServiceModel = db.session.query(ServiceModel).filter(
-                ServiceModel.service_id == service_id).first_or_404()
             service_weights.append({
-                "display_name": service_model.display_name,
+                "display_name": display_name,
                 "service_id": service_id,
                 "service_weight": weight})
+        for service_id, display_name in service_id_name.items():
+            service_weights.append({
+                "display_name": display_name,
+                "service_id": service_id,
+                "service_weight": 0})
         return response_body
 
     @service_routing_api_namespace.marshal_with(success_or_not)

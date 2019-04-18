@@ -115,7 +115,7 @@ class ServiceRoutingForm extends React.Component<ServiceRoutingFormProps, Servic
   }
 
   renderTableFoot = (values) => {
-    const sumWeight = Number(values.serviceWeights.map((serviceWeight) => serviceWeight.serviceWeight).reduce((a: number, v: number) => a + v, 0))
+    const sumWeight = Number(values.serviceWeights.map((serviceWeight) => serviceWeight.serviceWeight).reduce((a: number, v: number) => Number(a) + Number(v), 0))
     const warningMessage = (sumWeight !== 100) ? (<div style={{color: 'red'}}>Total weight must be "100"</div>) : null
     return (
       <tfoot>

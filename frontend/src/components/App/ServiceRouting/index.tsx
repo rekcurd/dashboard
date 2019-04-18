@@ -56,6 +56,7 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
       const failed: boolean = (isAPISucceeded<boolean>(updateServiceRoutingStatus) && !updateServiceRoutingStatus.result) || isAPIFailed<boolean>(updateServiceRoutingStatus)
       if (succeeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully saved host' })
+        nextProps.fetchServiceRouting(nextProps.match.params)
         return { submitted: false, notified: true }
       } else if (failed) {
         nextProps.addNotification({ color: 'error', message: updateServiceRoutingStatus['error']['message'] })
