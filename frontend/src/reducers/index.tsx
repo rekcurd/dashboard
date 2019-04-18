@@ -201,6 +201,9 @@ export function notificationReducer(state: AppState = initialState, action): App
         ...state.notification,
         toasts: state.notification.toasts.filter(
           (toast) => toast.id !== action.id
+        ),
+        ids: state.notification.ids.filter(
+          (id) => id !== action.id
         )
       }
       return {
