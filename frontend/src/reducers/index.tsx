@@ -45,7 +45,7 @@ export class AppState {
     public saveApplicationAccessControl: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     public deleteApplicationAccessControl: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     // Notification status
-    public notification = { toasts: [], id: -1 },
+    public notification = { toasts: [], id: -1, ids: [] },
     public navigation = { login: false }
   ) { }
 }
@@ -178,12 +178,18 @@ export function notificationReducer(state: AppState = initialState, action): App
     case 'NOTIFICATION_OPEN':
       const nextId = state.notification.id + 1
       const toastProp = {
+        id: nextId,
         ...action.properties,
-        id: nextId
       }
-      const openNextNotification = {
-        toasts: [toastProp].concat(state.notification.toasts),
-        id: nextId
+      let openNextNotification
+      if (state.notification.ids.indexOf(toastProp.id) === -1) {
+        openNextNotification = {
+          id: nextId,
+          toasts: [toastProp].concat(state.notification.toasts),
+          ids: [toastProp.id].concat(state.notification.ids)
+        }
+      } else {
+        openNextNotification = state.notification
       }
       return {
         ...state,
