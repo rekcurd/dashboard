@@ -74,7 +74,6 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
   }
 
   render(): JSX.Element {
-    const { projectId, applicationId } = this.props.match.params
     const { kubernetesMode, routings, userInfoStatus, settings } = this.props
     const statuses: any = { kubernetesMode }
     if (isAPISucceeded(settings) && settings.result.auth) {
@@ -87,8 +86,6 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
       <APIRequestResultsRenderer
         APIStatus={statuses}
         render={this.renderContent}
-        projectId={projectId}
-        applicationId={applicationId}
       />
     )
   }

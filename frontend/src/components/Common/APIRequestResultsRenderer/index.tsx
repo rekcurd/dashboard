@@ -1,26 +1,18 @@
 import * as React from 'react'
-import { withRouter, RouteComponentProps } from 'react-router-dom'
-import { isAPISucceeded, APIRequestStatusList } from '@src/apis/Core'
-import { UserProjectRole, UserApplicationRole } from "@src/apis";
-import { projectRole, applicationRole } from "@components/Common/Enum";
+import { connect } from 'react-redux'
+import { RouteComponentProps, withRouter } from 'react-router-dom'
+import { APIRequestStatusList, isAPISucceeded } from '@src/apis/Core'
+import { UserApplicationRole, UserProjectRole } from "@src/apis";
+import { applicationRole, projectRole } from "@components/Common/Enum";
+import { addNotification } from "@src/actions";
+
 
 /**
  * Render component with API requests
  *
  *
  */
-
-interface Props {
-  APIStatus: {}
-  render: (result: any, canEdit: boolean) => JSX.Element
-  renderFailed?: () => JSX.Element
-  projectId?: number
-  applicationId?: string
-}
-
-type RequestResultsPair = [APIRequestStatusList, any]
-
-class APIRequestResults extends React.Component<Props & RouteComponentProps<{}>, {}> {
+class APIRequestResults extends React.Component<APIRequestResultsProps, APIRequestResultsState> {
   componentDidUpdate() {
     const { location } = this.props
     const { push } = this.props.history
@@ -31,28 +23,51 @@ class APIRequestResults extends React.Component<Props & RouteComponentProps<{}>,
   }
 
   render() {
-    const { render, renderFailed, projectId, applicationId } = this.props
+    const { render, renderFailed, addNotification } = this.props
+    const { push } = this.props.history
+    const { projectId, applicationId } = this.props.match.params
     const currentStatus: RequestResultsPair = this.checkAllRequestResults()
 
     if (currentStatus[0] === APIRequestStatusList.success) {
       const fetchedResults = currentStatus[1]
-      if (fetchedResults.userInfoStatus && projectId && applicationId) {
-        const canEdit = fetchedResults.userInfoStatus.applicationRoles.some((userRole: UserApplicationRole) => {
-          return String(userRole.applicationId) === String(applicationId) &&
-            (userRole.role === applicationRole.editor || userRole.role === applicationRole.admin)
+      if (fetchedResults.userInfoStatus && projectId) {
+        const isProjectMember = fetchedResults.userInfoStatus.projectRoles.some((userRole: UserProjectRole) => {
+          return Number(userRole.projectId) === Number(projectId)
         })
-        return render(fetchedResults, canEdit)
-      } else if (fetchedResults.userInfoStatus && projectId) {
-        const canEdit = fetchedResults.userInfoStatus.projectRoles.some((userRole: UserProjectRole) => {
-          return Number(userRole.projectId) === Number(projectId) &&
-            (userRole.role === projectRole.admin)
-        })
-        return render(fetchedResults, canEdit)
+        if (!isProjectMember) {
+          addNotification({ id: 'isProjectMember', color: 'error', message: "You don't have a permission. Contact your Project admin." })
+          push(`/projects`)
+          return null
+        } else if (applicationId) {
+          const canEdit = fetchedResults.userInfoStatus.applicationRoles.some((userRole: UserApplicationRole) => {
+            return String(userRole.applicationId) === String(applicationId) &&
+              (userRole.role === applicationRole.editor || userRole.role === applicationRole.admin)
+          })
+          return render(fetchedResults, canEdit)
+        } else {
+          const canEdit = fetchedResults.userInfoStatus.projectRoles.some((userRole: UserProjectRole) => {
+            return Number(userRole.projectId) === Number(projectId) &&
+              (userRole.role === projectRole.admin)
+          })
+          return render(fetchedResults, canEdit)
+        }
       } else {
         return render(fetchedResults, true)
       }
     } else if (currentStatus[0] === APIRequestStatusList.fetching) {
       return (<div>Loading...</div>)
+    } else if (currentStatus[0] === APIRequestStatusList.failue) {
+      const fetchedResults = currentStatus[1]
+      if (fetchedResults.userInfoStatus && projectId) {
+        const isProjectMember = fetchedResults.userInfoStatus.projectRoles.some((userRole: UserProjectRole) => {
+          return Number(userRole.projectId) === Number(projectId)
+        })
+        if (!isProjectMember) {
+          addNotification({ id: 'isProjectMember', color: 'error', message: "You don't have a permission. Contact your Project admin." })
+          push(`/projects`)
+          return null
+        }
+      }
     }
     if (renderFailed) {
       return renderFailed()
@@ -85,7 +100,7 @@ class APIRequestResults extends React.Component<Props & RouteComponentProps<{}>,
       accumerator[0] === APIRequestStatusList.failue ||
       currentValue[0] === APIRequestStatusList.failue
     ) {
-      return [APIRequestStatusList.failue, {}]
+      return [APIRequestStatusList.failue, Object.assign(accumerator[1], currentValue[1])]
     }
     if (
       accumerator[0] === APIRequestStatusList.unauhorized ||
@@ -106,4 +121,37 @@ class APIRequestResults extends React.Component<Props & RouteComponentProps<{}>,
   }
 }
 
-export const APIRequestResultsRenderer = withRouter(APIRequestResults)
+type RequestResultsPair = [APIRequestStatusList, any]
+
+type APIRequestResultsProps = StateProps & DispatchProps
+  & RouteComponentProps<{projectId?: number, applicationId?: string}> & CustomProps
+
+interface APIRequestResultsState {}
+
+interface CustomProps {
+  APIStatus: {}
+  render: (result: any, canEdit: boolean) => JSX.Element
+  renderFailed?: () => JSX.Element
+}
+
+export interface StateProps {}
+
+const mapStateToProps = (state) => {
+  return {}
+}
+
+export interface DispatchProps {
+  addNotification: (params) => Promise<void>
+}
+
+const mapDispatchToProps = (dispatch): DispatchProps => {
+  return {
+    addNotification: (params) => dispatch(addNotification(params))
+  }
+}
+
+export const APIRequestResultsRenderer = withRouter(
+  connect<StateProps, DispatchProps, RouteComponentProps<{projectId?: number, applicationId?: string}>>(
+    mapStateToProps, mapDispatchToProps
+  )(APIRequestResults)
+)

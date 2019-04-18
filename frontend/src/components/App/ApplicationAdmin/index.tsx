@@ -15,7 +15,6 @@ import {
   fetchApplicationAccessControlListDispatcher,
   fetchApplicationByIdDispatcher,
   deleteApplicationAccessControlDispatcher,
-  userInfoDispatcher,
 } from '@src/actions'
 
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
@@ -36,7 +35,6 @@ interface DispatchProps {
   saveApplicationAccessControl: (params: AccessControlParam) => Promise<void>
   fetchApplicationAccessControlList: (params: AccessControlParam) => Promise<void>
   fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
-  userInfo: () => Promise<void>
   deleteApplicationAccessControl: (params: AccessControlParam) => Promise<void>
 }
 
@@ -102,8 +100,6 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
       <APIRequestResultsRenderer
         APIStatus={targetStatus}
         render={this.renderApplicationAccessControlList}
-        projectId={this.props.match.params.projectId}
-        applicationId={this.props.match.params.applicationId}
       />
     )
   }
@@ -302,7 +298,6 @@ export default withRouter(
         saveApplicationAccessControl: (params: AccessControlParam) => saveApplicationAccessControlDispatcher(dispatch, params),
         fetchApplicationAccessControlList: (params: AccessControlParam) => fetchApplicationAccessControlListDispatcher(dispatch, params),
         fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
-        userInfo: () => userInfoDispatcher(dispatch),
         deleteApplicationAccessControl: (params: AccessControlParam) => deleteApplicationAccessControlDispatcher(dispatch, params)
       }
     }

@@ -15,7 +15,6 @@ import {
   fetchProjectAccessControlListDispatcher,
   fetchProjectByIdDispatcher,
   deleteProjectAccessControlDispatcher,
-  userInfoDispatcher,
 } from '@src/actions'
 
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
@@ -36,7 +35,6 @@ interface DispatchProps {
   saveProjectAccessControl: (params: AccessControlParam) => Promise<void>
   fetchProjectAccessControlList: (params: AccessControlParam) => Promise<void>
   fetchProjectById: (params: FetchProjectByIdParam) => Promise<void>
-  userInfo: () => Promise<void>
   deleteProjectAccessControl: (params: AccessControlParam) => Promise<void>
 }
 
@@ -101,7 +99,6 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
       <APIRequestResultsRenderer
         APIStatus={targetStatus}
         render={this.renderProjectAccessControlList}
-        projectId={this.props.match.params.projectId}
       />
     )
   }
@@ -293,7 +290,6 @@ export default withRouter(
         saveProjectAccessControl: (params: AccessControlParam) => saveProjectAccessControlDispatcher(dispatch, params),
         fetchProjectAccessControlList: (params: AccessControlParam) => fetchProjectAccessControlListDispatcher(dispatch, params),
         fetchProjectById: (params: FetchProjectByIdParam) => fetchProjectByIdDispatcher(dispatch, params),
-        userInfo: () => userInfoDispatcher(dispatch),
         deleteProjectAccessControl: (params: AccessControlParam) => deleteProjectAccessControlDispatcher(dispatch, params)
       }
     }

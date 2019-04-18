@@ -6,14 +6,14 @@ import { Button } from 'reactstrap'
 
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
 import {
-  Application, FetchApplicationByIdParam, FetchKubernetesByIdParam, SyncKubernetesParam
+  Application, FetchApplicationByIdParam, FetchKubernetesByIdParam, SyncKubernetesParam, UserInfo
 } from '@src/apis'
 import {
   fetchAllApplicationsDispatcher,
   fetchIsKubernetesModeDispatcher,
   syncKubernetesDispatcher,
   addNotification
- } from '@src/actions'
+} from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 
 
@@ -65,8 +65,11 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
   }
 
   render() {
-    const { kubernetesMode, applications } = this.props
-    const targetStatus = { kubernetesMode, applications }
+    const { kubernetesMode, applications, userInfoStatus, settings } = this.props
+    const targetStatus: any = { kubernetesMode, applications }
+    if (isAPISucceeded(settings) && settings.result.auth) {
+      targetStatus.userInfoStatus = userInfoStatus
+    }
 
     return (
       <APIRequestResultsRenderer
@@ -172,13 +175,17 @@ export interface StateProps {
   applications: APIRequest<Application[]>
   kubernetesMode: APIRequest<boolean>
   syncKubernetes: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
+  settings: APIRequest<any>
 }
 
 const mapStateToProps = (state) => {
   return {
     applications: state.fetchAllApplicationsReducer.fetchAllApplications,
     kubernetesMode: state.fetchIsKubernetesModeReducer.fetchIsKubernetesMode,
-    syncKubernetes: state.syncKubernetesReducer.syncKubernetes
+    syncKubernetes: state.syncKubernetesReducer.syncKubernetes,
+    userInfoStatus: state.userInfoReducer.userInfo,
+    settings: state.settingsReducer.settings,
   }
 }
 

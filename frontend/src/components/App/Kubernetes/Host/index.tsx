@@ -8,7 +8,6 @@ import { Kubernetes, KubernetesParam, FetchKubernetesByIdParam, UserInfo } from 
 import {
   saveKubernetesDispatcher,
   fetchKubernetesByIdDispatcher,
-  userInfoDispatcher,
   addNotification
 } from '@src/actions'
 import { HostForm } from './HostForm'
@@ -105,7 +104,6 @@ class Host extends React.Component<HostProps, HostState> {
       <APIRequestResultsRenderer
         APIStatus={targetStatus}
         render={this.renderEditForm}
-        projectId={this.props.match.params.projectId}
       />
     )
   }
@@ -173,7 +171,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
 export interface DispatchProps {
   saveKubernetes: (params: KubernetesParam) => Promise<void>
   fetchKubernetesById: (params: FetchKubernetesByIdParam) => Promise<void>
-  userInfo: () => Promise<void>
   addNotification: (params) => any
 }
 
@@ -181,7 +178,6 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     saveKubernetes: (params: KubernetesParam) => saveKubernetesDispatcher(dispatch, params),
     fetchKubernetesById: (params: FetchKubernetesByIdParam) => fetchKubernetesByIdDispatcher(dispatch, params),
-    userInfo: () => userInfoDispatcher(dispatch),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }

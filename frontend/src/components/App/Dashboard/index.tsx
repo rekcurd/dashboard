@@ -176,7 +176,6 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
   // Render methods
 
   render(): JSX.Element {
-    const { projectId, applicationId } = this.props.match.params
     const { kubernetesMode, application, models, services, userInfoStatus, settings } = this.props
     const statuses: any = { models, services, application, kubernetesMode }
     if (isAPISucceeded(settings) && settings.result.auth) {
@@ -186,8 +185,6 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
       <APIRequestResultsRenderer
         APIStatus={statuses}
         render={this.renderDashboardStatus}
-        projectId={projectId}
-        applicationId={applicationId}
       />
     )
   }

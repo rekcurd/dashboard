@@ -15,7 +15,6 @@ import {
   fetchAllModelsDispatcher,
   saveServiceDeploymentDispatcher,
   updateServiceDispatcher,
-  userInfoDispatcher,
   addNotification
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
@@ -108,8 +107,6 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
       <APIRequestResultsRenderer
         render={this.renderForm}
         APIStatus={targetStatus}
-        projectId={this.props.match.params.projectId}
-        applicationId={this.props.match.params.applicationId}
       />
     )
   }
@@ -410,7 +407,6 @@ export interface DispatchProps {
   fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
   saveServiceDeployment: (params: ServiceDeploymentParam) => Promise<void>
   updateServiceDeployment: (params: UpdateServiceParam) => Promise<void>
-  userInfo: () => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
@@ -420,7 +416,6 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
     fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
     saveServiceDeployment: (params: ServiceDeploymentParam) => saveServiceDeploymentDispatcher(dispatch, params),
     updateServiceDeployment: (params: UpdateServiceParam) => updateServiceDispatcher(dispatch, params),
-    userInfo: () => userInfoDispatcher(dispatch),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }

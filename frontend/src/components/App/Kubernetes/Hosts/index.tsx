@@ -9,7 +9,6 @@ import { Kubernetes, FetchKubernetesByIdParam, IdParam, UserInfo } from '@src/ap
 import {
   fetchAllKubernetesDispatcher,
   deleteKubernetesDispatcher,
-  userInfoDispatcher,
   addNotification,
  } from '@src/actions'
 
@@ -106,7 +105,6 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
       <APIRequestResultsRenderer
         APIStatus={targetStatus}
         render={this.renderKubernetes}
-        projectId={this.props.match.params.projectId}
       />
     )
   }
@@ -272,7 +270,6 @@ const mapStateToProps = (state): StateProps => {
 interface DispatchProps {
   fetchKubernetes: (params: FetchKubernetesByIdParam) => Promise<void>
   deleteKubernetes: (params: IdParam) => Promise<void>
-  userInfo: () => Promise<void>
   addNotification
 }
 
@@ -280,7 +277,6 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     fetchKubernetes: (params: FetchKubernetesByIdParam) => fetchAllKubernetesDispatcher(dispatch, params),
     deleteKubernetes: (params: IdParam) => deleteKubernetesDispatcher(dispatch, params),
-    userInfo: () => userInfoDispatcher(dispatch),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }

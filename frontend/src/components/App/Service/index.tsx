@@ -83,8 +83,6 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
       <APIRequestResultsRenderer
         render={this.renderForm}
         APIStatus={targetStatus}
-        projectId={projectId}
-        applicationId={applicationId}
       />
     )
   }

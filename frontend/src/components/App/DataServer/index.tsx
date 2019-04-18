@@ -8,7 +8,6 @@ import { DataServerParam, FetchDataServerByIdParam, UserInfo } from '@src/apis'
 import {
   saveDataServerDispatcher,
   fetchDataServerDispatcher,
-  userInfoDispatcher,
   addNotification
 } from '@src/actions'
 import { DataServerForm } from './DataServerForm'
@@ -109,7 +108,6 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
       <APIRequestResultsRenderer
         APIStatus={targetStatus}
         render={this.renderEditForm}
-        projectId={this.props.match.params.projectId}
       />
     )
   }
@@ -176,7 +174,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
 export interface DispatchProps {
   saveDataServer: (params: DataServerParam) => Promise<void>
   fetchDataServer: (params: FetchDataServerByIdParam) => Promise<void>
-  userInfo: () => Promise<void>
   addNotification: (params) => any
 }
 
@@ -184,7 +181,6 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     saveDataServer: (params: DataServerParam) => saveDataServerDispatcher(dispatch, params),
     fetchDataServer: (params: FetchDataServerByIdParam) => fetchDataServerDispatcher(dispatch, params),
-    userInfo: () => userInfoDispatcher(dispatch),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }

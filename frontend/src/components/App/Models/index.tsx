@@ -103,8 +103,6 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
       <APIRequestResultsRenderer
         APIStatus={statuses}
         render={this.renderModels}
-        projectId={projectId}
-        applicationId={applicationId}
       />
     )
   }

@@ -128,8 +128,6 @@ class Services extends React.Component<ServicesStatusProps, ServicesStatusState>
       <APIRequestResultsRenderer
         APIStatus={statuses}
         render={this.renderServices}
-        projectId={projectId}
-        applicationId={applicationId}
       />
     )
   }
