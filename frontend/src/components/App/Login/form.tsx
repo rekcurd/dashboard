@@ -31,7 +31,7 @@ class LoginFormImpl extends React.Component<LoginFormProps> {
           }}
           validationSchema={LoginSchema}
           onSubmit={onSubmit}>
-          {({ errors, touched }) => (
+          {() => (
             <Form>
               <Card className='mb-3'>
                 <CardBody>

@@ -6,7 +6,9 @@ import { Row, Col } from 'reactstrap'
 import { loginDispatcher, userInfoDispatcher, addNotification } from '@src/actions'
 
 import { LoginForm } from './form'
-import { isAPISucceeded, APIRequest, APIStatusSuccess, JWT_TOKEN_KEY, isAPIFailed, isAPIUnauthorized } from '@src/apis/Core'
+import {
+  isAPISucceeded, APIRequest, APIStatusSuccess, JWT_TOKEN_KEY, isAPIFailed, isAPIUnauthorized
+} from '@src/apis/Core'
 import { AuthToken, LoginParam } from '@src/apis'
 
 class Login extends React.Component<LoginProps, LoginState> {
@@ -24,9 +26,9 @@ class Login extends React.Component<LoginProps, LoginState> {
     return submitLogin({ ...parameters })
   }
 
-  componentWillReceiveProps(nextProps: LoginProps) {
+  static getDerivedStateFromProps(nextProps: LoginProps, prevState: LoginState){
     const { loginStatus, history, fetchUserInfo } = nextProps
-    const { submitting } = this.state
+    const { submitting } = prevState
     if (submitting) {
       const succeeded: boolean = isAPISucceeded<AuthToken>(loginStatus)
       const failed: boolean = isAPIFailed<AuthToken>(loginStatus) || isAPIUnauthorized<AuthToken>(loginStatus)
@@ -39,14 +41,16 @@ class Login extends React.Component<LoginProps, LoginState> {
         window.localStorage.setItem(JWT_TOKEN_KEY, result.jwt)
         history.goBack()
         fetchUserInfo()
-      }
-      if (failed) {
+        return {submitting: false}
+      } else if (failed) {
         nextProps.addNotification({
           color: 'error',
           message: 'Login failed'
         })
+        return {submitting: false}
       }
     }
+    return null
   }
 
   render() {
