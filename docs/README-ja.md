@@ -1,8 +1,6 @@
 # How to use
 Dashboardを起動したら、あなたの[Rekcurd](https://github.com/rekcurd/rekcurd-python)をdashboardから管理することができます。バックエンドにKubernetesを用いる場合は、dashboardからKubernetesにあなたの機械学習サービスをdeployします。
 
-<img src="./img/application-dashboard.png" width="480">
-
 
 ## Top
 <img src="./img/projects-top.png" width="480">

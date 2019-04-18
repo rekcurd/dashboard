@@ -18,6 +18,10 @@ https://github.com/rekcurd/community
 - [Rekcurd-client](https://github.com/rekcurd/python-client): Project for integrating ML module.
 
 
+## Screen shot
+<img src="./docs/img/application-dashboard.png" width="480">
+
+
 ## Environment
 - Python 3.6
 - flask 1.0.x

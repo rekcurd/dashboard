@@ -1,8 +1,6 @@
 # How to use
 After booting Rekcurd dashboard, you can manage your [Rekcurd](https://github.com/rekcurd/rekcurd-python) service using dashboard. If you have a Kubernetes, you can deploy your service to Kubernetes via dashboard.
 
-<img src="./img/application-dashboard.png" width="480">
-
 
 ## Top
 <img src="./img/projects-top.png" width="480">
