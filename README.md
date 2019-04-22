@@ -46,21 +46,19 @@ $ pip install rekcurd-dashboard
 ```
 
 
-## How to boot
-### Preparation
-You need to create [`settings.yml`](rekcurd_dashboard/settings.yml).
+## How to use
+Check the belows in detail.
+- [Backend](./rekcurd_dashboard/README.md)
+- [Frontend](./frontend/README.md)
 
-### General users
-Launched on `http://0.0.0.0:18080` as a default.
-
-#### command line
+##### Boot command
 ```bash
 $ rekcurd_dashboard --settings settings.yml db init
 $ rekcurd_dashboard --settings settings.yml db migrate
 $ rekcurd_dashboard --settings settings.yml server
 ```
 
-#### docker-compose (Deprecated)
+##### docker-compose (Deprecated)
 ```bash
 # For dev
 $ docker-compose -f docker-compose/docker-compose.develop.yaml up
@@ -68,7 +66,7 @@ $ docker-compose -f docker-compose/docker-compose.develop.yaml up
 $ docker-compose -f docker-compose/docker-compose.production.yaml up
 ```
 
-### For AWS users
+##### For AWS users
 If you run this on AWS (such as EKS), you need to configure aws-cli setting.  
 Follow the [official document](https://docs.aws.amazon.com/streams/latest/dev/kinesis-tutorial-cli-installation.html).  
 
@@ -82,27 +80,19 @@ $ docker-compose -f docker-compose/aws/docker-compose.develop.yaml up
 $ docker-compose -f docker-compose/aws/docker-compose.production.yaml up
 ```
 
+## How to use WebUI
+See [docs](./docs/README.md) in detail.
 
-## How to use
-See [docs](./docs/README.md).
 
-
-## Unittest
-### Prerequisites
+## Test
+### Unittest
 ```bash
-$ pip install -r requirements.txt
-$ pip install -r test-requirements.txt
+$ python -m unittest test/*/test_*
 ```
 
-If you don't have VirtualBox, run it.
+### e2e test
 ```bash
-$ sudo yum install -y kernel-devel kernel-headers make patch gcc
-$ sudo wget https://download.virtualbox.org/virtualbox/rpm/el/virtualbox.repo -P /etc/yum.repos.d
-$ sudo yum install -y VirtualBox-5.2
-```
-
-### Test
-```bash
+## sudo sh scripts/kube-init.sh
 $ sudo sh e2e_test/startup.sh
 $ python -m unittest
 $ sudo sh e2e_test/cleanup.sh
