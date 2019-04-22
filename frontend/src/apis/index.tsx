@@ -340,10 +340,6 @@ export interface FetchKubernetesByIdParam {
   kubernetesId?: number
   projectId: number
 }
-export async function fetchIsKubernetesMode(params: FetchKubernetesByIdParam): Promise<boolean> {
-  const convert = (result) => result.is_target
-  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/is_kubernetes_mode`, convert)
-}
 export async function fetchAllKubernetes(params: FetchKubernetesByIdParam): Promise<Kubernetes[]> {
   const convert =
     (results) =>
