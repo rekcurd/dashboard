@@ -17,8 +17,9 @@ const convertKeys = (params, func) => Object.keys(params)
 
 // POST or PATCH
 export interface ProjectParam {
-  projectId?: number,
+  projectId?: number
   displayName: string
+  useKubernetes: boolean
   description: string
   registerDate?: Date
   method: string
@@ -256,8 +257,9 @@ export async function updateModel(params: UpdateModelParam): Promise<boolean> {
 // GET APIs
 export class Project {
   constructor(
-    public name: string,
     public projectId: string,
+    public name: string,
+    public useKubernetes: boolean,
     public description: string = '',
     public registerDate: Date = null
   ) { }
@@ -268,9 +270,10 @@ export function fetchAllProjects(): Promise<Project[]> {
       results.map(
         (result): Project => {
           return {
-            ...result,
             projectId: result.project_id,
             name: result.display_name,
+            useKubernetes: result.use_kubernetes,
+            description: result.description,
             registerDate: new Date(result.register_date * 1000)
           }
         }
@@ -284,9 +287,8 @@ export async function fetchProjectById(params: FetchProjectByIdParam): Promise<P
   const convert =
     (result) => (
       {
-        ...result,
+        ...convertKeys(result, camelize),
         name: result.display_name,
-        projectId: result.project_id,
         registerDate: new Date(result.register_date * 1000)
       }
     )
@@ -628,6 +630,7 @@ export interface IdParam {
   serviceId?: string
   modelId?: number
 }
+
 export async function deleteKubernetes(params: IdParam): Promise<any> {
   const convert = (result) => result.status
 
