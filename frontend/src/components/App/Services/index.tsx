@@ -6,7 +6,7 @@ import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Service, SyncKubernetesParam, Application, UserInfo,
-  FetchApplicationByIdParam, FetchServiceParam, IdParam, FetchKubernetesByIdParam
+  FetchApplicationByIdParam, FetchServiceParam, IdParam, Project
 } from '@src/apis'
 import {
   addNotification,
@@ -116,9 +116,8 @@ class Services extends React.Component<ServicesStatusProps, ServicesStatusState>
   // Render methods
 
   render(): JSX.Element {
-    const { projectId, applicationId } = this.props.match.params
-    const { kubernetesMode, application, services, userInfoStatus, settings } = this.props
-    const statuses: any = { kubernetesMode, application, services }
+    const { fetchProjectByIdStatus, application, services, userInfoStatus, settings } = this.props
+    const statuses: any = { fetchProjectByIdStatus, application, services }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
     }
@@ -138,7 +137,7 @@ class Services extends React.Component<ServicesStatusProps, ServicesStatusState>
    * @param canEdit Boolean value of user's editor permission
    */
   renderServices(fetchedResults, canEdit) {
-    const kubernetesMode = fetchedResults.kubernetesMode
+    const project: Project = fetchedResults.fetchProjectByIdStatus
     const applicationName = fetchedResults.application.name
     const { projectId, applicationId } = this.props.match.params
     const services: Service[] = fetchedResults.services
@@ -154,7 +153,7 @@ class Services extends React.Component<ServicesStatusProps, ServicesStatusState>
           canEdit={canEdit}
         />,
         applicationName,
-        kubernetesMode,
+        project.useKubernetes,
         canEdit
       )
     )
@@ -324,7 +323,7 @@ class Services extends React.Component<ServicesStatusProps, ServicesStatusState>
 
 export interface StateProps {
   syncKubernetesStatus: APIRequest<boolean>
-  kubernetesMode: APIRequest<boolean>
+  fetchProjectByIdStatus: APIRequest<Project>
   application: APIRequest<Application>
   services: APIRequest<Service[]>
   deleteServicesStatus: APIRequest<boolean[]>
@@ -335,7 +334,7 @@ export interface StateProps {
 const mapStateToProps = (state): StateProps => {
   const props = {
     syncKubernetesStatus: state.syncKubernetesReducer.syncKubernetes,
-    kubernetesMode: state.fetchIsKubernetesModeReducer.fetchIsKubernetesMode,
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     services: state.fetchAllServicesReducer.fetchAllServices,
     deleteServicesStatus: state.deleteServicesReducer.deleteServices,

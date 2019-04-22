@@ -2,7 +2,7 @@ import * as React from 'react'
 import { NavLink, withRouter, RouteComponentProps } from 'react-router-dom'
 import { connect } from 'react-redux'
 
-import { UserInfo } from '@src/apis'
+import { Project, UserInfo } from '@src/apis'
 import { APIRequest, APIRequestStatusList } from '@src/apis/Core'
 import { serviceLevel } from '@components/Common/Enum'
 
@@ -13,13 +13,8 @@ interface Props {
 
 class SideMenu extends React.Component<SideMenuProps> {
   render() {
-    const { userInfoStatus, projectId, applicationId　} = this.props
-    const serviceLevels = Object.values(serviceLevel).map((serviceLevelName: string) => {
-      return {
-        text: serviceLevelName,
-        path: `routing/${serviceLevelName}`
-      }
-    })
+    const { fetchProjectByIdStatus, userInfoStatus, projectId, applicationId　} = this.props
+
     const menuContents = [
       {
         title: 'Orchestration',
@@ -27,27 +22,38 @@ class SideMenu extends React.Component<SideMenuProps> {
           {
             text: 'Dashboard',
             path: 'dashboard',
-            icon: 'chart-line'
+            icon: 'chart-line',
+            items: []
           },
           {
             text: 'Services',
             path: 'services',
-            icon: 'server'
+            icon: 'server',
+            items: []
           },
           {
             text: 'Models',
             path: 'models',
-            icon: 'database'
-          },
-          {
-            text: 'Routing',
-            path: 'routing',
-            icon: 'route',
-            items: serviceLevels
+            icon: 'database',
+            items: []
           },
         ]
       }
     ]
+    if (fetchProjectByIdStatus.status === APIRequestStatusList.success && fetchProjectByIdStatus.result.useKubernetes) {
+      const serviceLevels = Object.values(serviceLevel).map((serviceLevelName: string) => {
+        return {
+          text: serviceLevelName,
+          path: `routing/${serviceLevelName}`
+        }
+      })
+      menuContents[0]['items'].push({
+        text: 'Routing',
+        path: 'routing',
+        icon: 'route',
+        items: serviceLevels
+      })
+    }
     if (userInfoStatus.status === APIRequestStatusList.success) {
       menuContents.push({
         title: 'Application',
@@ -55,7 +61,8 @@ class SideMenu extends React.Component<SideMenuProps> {
           {
             text: 'Admin',
             path: 'admin',
-            icon: 'user-lock'
+            icon: 'user-lock',
+            items: []
           }
         ]
       })
@@ -122,7 +129,8 @@ class SideMenu extends React.Component<SideMenuProps> {
 }
 
 interface StateProps {
-  userInfoStatus: APIRequest<UserInfo>,
+  fetchProjectByIdStatus: APIRequest<Project>
+  userInfoStatus: APIRequest<UserInfo>
 }
 
 type SideMenuProps = StateProps & Props & RouteComponentProps<any>
@@ -130,6 +138,7 @@ type SideMenuProps = StateProps & Props & RouteComponentProps<any>
 export default withRouter(connect(
   (state: any): StateProps => {
     return {
+      fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
       userInfoStatus: state.userInfoReducer.userInfo
     }
   }
