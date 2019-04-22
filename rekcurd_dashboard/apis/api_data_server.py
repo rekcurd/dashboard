@@ -1,4 +1,4 @@
-from flask_restplus import Namespace, fields, Resource, reqparse
+from flask_restplus import Namespace, fields, Resource, reqparse, inputs
 
 from . import status_model
 from rekcurd_dashboard.models import db, DataServerModel, DataServerModeEnum
@@ -77,7 +77,7 @@ data_server_parser.add_argument(
     'ceph_port', location='form', type=int, required=False,
     help='Ceph S3 API port number.')
 data_server_parser.add_argument(
-    'ceph_is_secure', location='form', type=bool, required=False,
+    'ceph_is_secure', location='form', type=inputs.boolean, required=False,
     help='Ceph S3 API is SSL or not.')
 data_server_parser.add_argument(
     'ceph_bucket_name', location='form', type=str, required=False,

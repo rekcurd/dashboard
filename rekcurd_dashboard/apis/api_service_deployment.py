@@ -1,7 +1,7 @@
 import datetime
 import math
 
-from flask_restplus import Namespace, fields, Resource, reqparse
+from flask_restplus import Namespace, fields, Resource, reqparse, inputs
 
 from . import status_model, apply_rekcurd_to_kubernetes, load_kubernetes_deployment_info
 from rekcurd_dashboard.core import RekcurdDashboardClient
@@ -279,7 +279,7 @@ class ApiServiceDeployment(Resource):
         'resource_limit_memory', location='form', type=str, required=False,
         help='Upper limit of memory reservation. Default is "resource_request_memory".')
     service_deployment_parser.add_argument(
-        'debug_mode', location='form', type=bool, default=False, required=False,
+        'debug_mode', location='form', type=inputs.boolean, default=False, required=False,
         help='Debug mode.')
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
@@ -376,7 +376,7 @@ class ApiServiceIdDeployment(Resource):
         'resource_limit_memory', location='form', type=str, required=True,
         help='Upper limit of memory reservation. Default is "resource_request_memory".')
     patch_parser.add_argument(
-        'debug_mode', location='form', type=bool, default=False, required=False,
+        'debug_mode', location='form', type=inputs.boolean, default=False, required=False,
         help='Debug mode.')
 
     @service_deployment_api_namespace.marshal_with(service_deployment_params)
