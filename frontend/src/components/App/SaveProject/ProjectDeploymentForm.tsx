@@ -23,7 +23,6 @@ class ProjectDeploymentFormImpl extends React.Component<SaveProjectFormProps> {
    */
   render() {
     const { onSubmit, onCancel } = this.props
-
     const yesno = [{value: true, label: "Yes"}, {value: false, label: "No"}]
 
     return (

@@ -6,11 +6,10 @@ import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Service, SyncKubernetesParam, Application, UserInfo,
-  FetchApplicationByIdParam, FetchServiceParam, IdParam, Project
+  FetchServiceParam, IdParam, Project
 } from '@src/apis'
 import {
   addNotification,
-  fetchApplicationByIdDispatcher,
   fetchAllServicesDispatcher,
   deleteServicesDispatcher,
   syncKubernetesDispatcher
@@ -53,7 +52,6 @@ class Services extends React.Component<ServicesStatusProps, ServicesStatusState>
   }
 
   componentDidMount() {
-    this.props.fetchApplicationById(this.props.match.params)
     this.props.fetchAllServices(this.props.match.params)
   }
 
@@ -347,7 +345,6 @@ const mapStateToProps = (state): StateProps => {
 export interface DispatchProps {
   addNotification
   syncKubernetes: (params: SyncKubernetesParam) => Promise<void>
-  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   fetchAllServices: (params: FetchServiceParam) => Promise<void>
   deleteServices: (params: IdParam[]) => Promise<void>
 }
@@ -356,7 +353,6 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
     syncKubernetes: (params: SyncKubernetesParam) => syncKubernetesDispatcher(dispatch, params),
-    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     fetchAllServices: (params: FetchServiceParam) => fetchAllServicesDispatcher(dispatch, params),
     deleteServices: (params: IdParam[]) => deleteServicesDispatcher(dispatch, params),
   }

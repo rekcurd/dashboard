@@ -1,23 +1,35 @@
 import * as React from 'react'
-import { NavLink, withRouter, RouteComponentProps } from 'react-router-dom'
+import { NavLink, RouteComponentProps, withRouter } from 'react-router-dom'
 import { connect } from 'react-redux'
 
-import { Project, UserInfo } from '@src/apis'
+import { Application, FetchApplicationByIdParam, Project, UserInfo } from '@src/apis'
+import { fetchApplicationByIdDispatcher } from '@src/actions'
 import { APIRequest, APIRequestStatusList } from '@src/apis/Core'
 import { serviceLevel } from '@components/Common/Enum'
 
-interface Props {
-  projectId: number
-  applicationId: string
-}
 
-class SideMenu extends React.Component<SideMenuProps> {
+class SideMenu extends React.Component<SideMenuProps, SideMenuState> {
+  constructor(props, context) {
+    super(props, context)
+  }
+
+  componentDidMount() {
+    this.props.fetchApplicationById(this.props.match.params)
+  }
+
+  componentDidUpdate(prevProps: Readonly<SideMenuProps>, prevState: Readonly<SideMenuState>, snapshot?: any): void {
+    if (this.props.match.params.applicationId !== prevProps.match.params.applicationId) {
+      this.props.fetchApplicationById(this.props.match.params)
+    }
+  }
+
   render() {
-    const { fetchProjectByIdStatus, userInfoStatus, projectId, applicationId　} = this.props
+    const { fetchProjectByIdStatus, application, userInfoStatus } = this.props
+    const { projectId, applicationId } = this.props.match.params
 
     const menuContents = [
       {
-        title: 'Orchestration',
+        title: 'Application',
         items: [
           {
             text: 'Dashboard',
@@ -47,7 +59,19 @@ class SideMenu extends React.Component<SideMenuProps> {
           path: `routing/${serviceLevelName}`
         }
       })
-      menuContents[0]['items'].push({
+      menuContents.push({
+        title: 'Kubernetes',
+        items: []
+      })
+      if (application.status === APIRequestStatusList.success && application.result.useGitKey) {
+        menuContents[1]['items'].push({
+          text: 'Git Key',
+          path: 'secret',
+          icon: 'key',
+          items: []
+        })
+      }
+      menuContents[1]['items'].push({
         text: 'Routing',
         path: 'routing',
         icon: 'route',
@@ -56,7 +80,7 @@ class SideMenu extends React.Component<SideMenuProps> {
     }
     if (userInfoStatus.status === APIRequestStatusList.success) {
       menuContents.push({
-        title: 'Application',
+        title: 'Access Control',
         items: [
           {
             text: 'Admin',
@@ -128,18 +152,35 @@ class SideMenu extends React.Component<SideMenuProps> {
   }
 }
 
+type SideMenuProps = DispatchProps & StateProps & RouteComponentProps<{projectId: number, applicationId: string}>
+
+interface SideMenuState {}
+
 interface StateProps {
   fetchProjectByIdStatus: APIRequest<Project>
+  application: APIRequest<Application>
   userInfoStatus: APIRequest<UserInfo>
 }
 
-type SideMenuProps = StateProps & Props & RouteComponentProps<any>
-
-export default withRouter(connect(
-  (state: any): StateProps => {
-    return {
-      fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
-      userInfoStatus: state.userInfoReducer.userInfo
-    }
+const mapStateToProps = (state): StateProps => {
+  return {
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    application: state.fetchApplicationByIdReducer.fetchApplicationById,
+    userInfoStatus: state.userInfoReducer.userInfo
   }
-)(SideMenu))
+}
+
+export interface DispatchProps {
+  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
+}
+
+const mapDispatchToProps = (dispatch): DispatchProps => {
+  return {
+    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params)
+  }
+}
+
+export default withRouter(
+  connect<StateProps, DispatchProps, RouteComponentProps<{projectId: number, applicationId: string}>>(
+    mapStateToProps, mapDispatchToProps
+  )(SideMenu))

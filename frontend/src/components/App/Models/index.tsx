@@ -6,11 +6,10 @@ import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Model, Application, UserInfo, Project,
-  FetchApplicationByIdParam, FetchModelByIdParam, IdParam
+  FetchModelByIdParam, IdParam
 } from '@src/apis'
 import {
   addNotification,
-  fetchApplicationByIdDispatcher,
   fetchAllModelsDispatcher,
   deleteModelsDispatcher
 } from '@src/actions'
@@ -51,7 +50,6 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
   }
 
   componentDidMount() {
-    this.props.fetchApplicationById(this.props.match.params)
     this.props.fetchAllModels(this.props.match.params)
   }
 
@@ -277,7 +275,6 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
 
   complete(param) {
     this.props.addNotification(param)
-    this.props.fetchAllModels(this.props.match.params)
     this.setState({
       submitted: false,
       selectedData: []
@@ -308,7 +305,6 @@ const mapStateToProps = (state): StateProps => {
 
 export interface DispatchProps {
   addNotification
-  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
   deleteModels: (params: IdParam[]) => Promise<void>
 }
@@ -316,7 +312,6 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
-    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
     deleteModels: (params: IdParam[]) => deleteModelsDispatcher(dispatch, params),
   }
