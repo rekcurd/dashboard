@@ -100,8 +100,9 @@ export async function saveKubernetes(params: KubernetesParam) {
 export interface ApplicationParam {
   applicationId?: string,
   projectId: number
-  description: string
   applicationName: string
+  useGitKey: boolean
+  description: string
   registerDate?: Date
   method: string
 }
@@ -376,8 +377,9 @@ export async function fetchKubernetesById(params: FetchKubernetesByIdParam): Pro
 
 export class Application {
   constructor(
-    public name: string,
     public applicationId: string,
+    public name: string,
+    public useGitKey: boolean,
     public description: string = '',
     public registerDate: Date = null,
     public projectId: number
@@ -395,6 +397,7 @@ export function fetchAllApplications(params: FetchApplicationByIdParam): Promise
           return {
             applicationId: result.application_id,
             name: result.application_name,
+            useGitKey: result.use_git_key,
             description: result.description,
             registerDate: new Date(result.register_date * 1000),
             projectId: result.project_id
@@ -409,7 +412,6 @@ export async function fetchApplicationById(params: FetchApplicationByIdParam): P
       {
         ...convertKeys(result, camelize),
         name: result.application_name,
-        applicationId: result.application_id,
         registerDate: new Date(result.register_date * 1000)
       }
     )

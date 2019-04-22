@@ -1,10 +1,10 @@
 import uuid
 
 from flask_jwt_simple import get_jwt_identity
-from flask_restplus import Namespace, fields, Resource, reqparse
+from flask_restplus import Namespace, fields, Resource, reqparse, inputs
 
 from . import api, status_model, delete_kubernetes_deployment
-from rekcurd_dashboard.models import db, ApplicationModel, ApplicationUserRoleModel, ApplicationRole, KubernetesModel, ServiceModel
+from rekcurd_dashboard.models import db, ProjectModel, ApplicationModel, ApplicationUserRoleModel, ApplicationRole, KubernetesModel, ServiceModel
 from rekcurd_dashboard.utils import RekcurdDashboardException
 from rekcurd_dashboard.apis import DatetimeToTimestamp
 
@@ -20,6 +20,11 @@ application_model_params = application_api_namespace.model('Application', {
         required=True,
         description='Application name.',
         example='rekcurd-sample'
+    ),
+    'use_git_key': fields.Boolean(
+        required=True,
+        description='Do you use git SSH key?',
+        default=False
     ),
     'project_id': fields.Integer(
         required=False,
@@ -41,6 +46,7 @@ application_model_params = application_api_namespace.model('Application', {
 class ApiApplications(Resource):
     add_application_parser = reqparse.RequestParser()
     add_application_parser.add_argument('application_name', type=str, required=True, location='form')
+    add_application_parser.add_argument('use_git_key', type=inputs.boolean, required=True, default=False, location='form')
     add_application_parser.add_argument('description', type=str, required=False, location='form')
 
     @application_api_namespace.marshal_list_with(application_model_params)
@@ -54,6 +60,7 @@ class ApiApplications(Resource):
         """add_application"""
         args = self.add_application_parser.parse_args()
         application_name = args['application_name']
+        use_git_key = args['use_git_key']
         description = args['description']
 
         application_model = db.session.query(ApplicationModel).filter(
@@ -64,7 +71,7 @@ class ApiApplications(Resource):
         application_id = uuid.uuid4().hex
         application_model = ApplicationModel(
             project_id=project_id, application_id=application_id,
-            application_name=application_name, description=description)
+            application_name=application_name, use_git_key=use_git_key, description=description)
         db.session.add(application_model)
         db.session.flush()
 
@@ -89,7 +96,8 @@ class ApiApplications(Resource):
 @application_api_namespace.route('/projects/<int:project_id>/applications/<application_id>')
 class ApiApplicationId(Resource):
     edit_application_parser = reqparse.RequestParser()
-    edit_application_parser.add_argument('description', type=str, required=True, location='form')
+    edit_application_parser.add_argument('use_git_key', type=inputs.boolean, required=False, location='form')
+    edit_application_parser.add_argument('description', type=str, required=False, location='form')
 
     @application_api_namespace.marshal_with(application_model_params)
     def get(self, project_id: int, application_id: str):
@@ -101,25 +109,36 @@ class ApiApplicationId(Resource):
     def patch(self, project_id: int, application_id: str):
         """update_application"""
         args = self.edit_application_parser.parse_args()
+        use_git_key = args['use_git_key']
         description = args['description']
+
         application_model = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
-        application_model.description = description
-        db.session.commit()
+        is_update = False
+        if use_git_key is not None and use_git_key != application_model.use_git_key:
+            application_model.use_git_key = use_git_key
+            is_update = True
+        if description is not None and description != application_model.description:
+            application_model.description = description
+            is_update = True
+        if is_update:
+            db.session.commit()
         db.session.close()
         return {"status": True, "message": "Success."}
 
     @application_api_namespace.marshal_with(success_or_not)
     def delete(self, project_id: int, application_id: str):
         """delete_application"""
-        kubernetes_models = db.session.query(KubernetesModel).filter(
-            KubernetesModel.project_id == project_id).all()
+        project_model = db.session.query(ProjectModel).filter(
+            ProjectModel.project_id == project_id).first_or_404()
         application_model = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
         service_models = db.session.query(ServiceModel).filter(
             ServiceModel.application_id == application_id).all()
-        if len(kubernetes_models):
+        if project_model.use_kubernetes:
             """If Kubernetes mode, then request deletion to Kubernetes WebAPI"""
+            kubernetes_models = db.session.query(KubernetesModel).filter(
+                KubernetesModel.project_id == project_id).all()
             for service_model in service_models:
                 delete_kubernetes_deployment(kubernetes_models, application_id, service_model.service_id)
             db.session.flush()
