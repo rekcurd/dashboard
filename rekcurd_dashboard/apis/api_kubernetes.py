@@ -9,7 +9,8 @@ from werkzeug.datastructures import FileStorage
 from . import (
     api, DatetimeToTimestamp, status_model, update_kubernetes_deployment_info,
     save_kubernetes_access_file, remove_kubernetes_access_file, backup_kubernetes_deployment,
-    backup_istio_routing, load_kubernetes_deployment_info, apply_rekcurd_to_kubernetes, get_full_config_path
+    backup_istio_routing, load_kubernetes_deployment_info, apply_rekcurd_to_kubernetes,
+    check_kubernetes_configfile
 )
 from rekcurd_dashboard.models import (
     db, KubernetesModel, ProjectUserRoleModel, ProjectRole, ApplicationModel, ServiceModel
@@ -219,11 +220,7 @@ class ApiKubernetesId(Resource):
             kubernetes_model.config_path = config_path
             save_kubernetes_access_file(file, config_path)
             try:
-                full_config_path = get_full_config_path(kubernetes_model.config_path)
-                from kubernetes import client, config
-                config.load_kube_config(full_config_path)
-                v1_api = client.AppsV1Api()
-                v1_api.list_deployment_for_all_namespaces(watch=False)
+                check_kubernetes_configfile(kubernetes_model.config_path)
                 remove_kubernetes_access_file(prev_config_path)
             except Exception as error:
                 remove_kubernetes_access_file(config_path)

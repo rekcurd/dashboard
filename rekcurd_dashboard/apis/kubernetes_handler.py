@@ -47,6 +47,15 @@ def remove_kubernetes_access_file(config_path):
     return
 
 
+def check_kubernetes_configfile(config_path: str):
+    full_config_path = get_full_config_path(config_path)
+    from kubernetes import client, config
+    config.load_kube_config(full_config_path)
+    v1_api = client.AppsV1Api()
+    v1_api.list_deployment_for_all_namespaces(watch=False)
+    return
+
+
 def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel):
     """
     Load the latest deployment info from Kubernetes, and set them to dashboard DB tables.

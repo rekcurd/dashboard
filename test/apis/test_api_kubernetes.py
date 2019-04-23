@@ -16,6 +16,8 @@ def mock_decorator():
             with patch('builtins.open', new_callable=mock_open) as _, \
                     patch('rekcurd_dashboard.apis.api_kubernetes.update_kubernetes_deployment_info',
                           new=Mock(return_value=True)) as _, \
+                    patch('rekcurd_dashboard.apis.api_kubernetes.check_kubernetes_configfile',
+                          new=Mock(return_value=True)) as _, \
                     patch('rekcurd_dashboard.apis.api_kubernetes.save_kubernetes_access_file',
                           new=Mock(return_value=True)) as _, \
                     patch('rekcurd_dashboard.apis.api_kubernetes.remove_kubernetes_access_file',
