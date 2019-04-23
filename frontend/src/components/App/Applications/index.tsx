@@ -87,7 +87,7 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
       this.setState({syncSubmitted: true, syncNotified: false})
     }
 
-    const syncKubernetes = project.useKubernetes ? (
+    const kubeSyncButton = (
       <React.Fragment>
         {` `}
         <Button color='success' size='sm' onClick={submitSync}>
@@ -95,7 +95,7 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
           Sync All
         </Button>
       </React.Fragment>
-    ) : null
+    )
 
     const title = (
       <div className='d-flex justify-content-between align-items-center mb-4'>
@@ -108,7 +108,7 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
             <i className='fas fa-plus fa-fw mr-2'></i>
             Add Application
           </Button>
-          {syncKubernetes}
+          {project.useKubernetes ? null : null}
         </div>
       </div>
     )

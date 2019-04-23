@@ -199,7 +199,7 @@ class Services extends React.Component<ServicesStatusProps, ServicesStatusState>
           <i className='fas fa-box fa-fw mr-2'></i>
           Add Service
         </Button>
-        {kubernetesMode ? kubeSyncButton : null}
+        {kubernetesMode ? null : null}
       </Col>
     )
 
