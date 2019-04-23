@@ -128,8 +128,7 @@ class ApiKubernetes(Resource):
                             datetime.datetime.utcnow())
                         apply_rekcurd_to_kubernetes(
                             project_id=project_id, application_id=application_model.application_id,
-                            service_id=service_model.service_id, kubernetes_models=[kubernetes_model],
-                            is_creation_mode=True, **deployment_info)
+                            kubernetes_models=[kubernetes_model], is_creation_mode=True, **deployment_info)
             else:
                 update_kubernetes_deployment_info(kubernetes_model)
             db.session.commit()
