@@ -122,7 +122,8 @@ class ApiKubernetes(Resource):
                 for application_model in ApplicationModel.query.filter_by(project_id=project_id).all():
                     for service_model in ServiceModel.query.filter_by(application_id=application_model.application_id).all():
                         deployment_info = load_kubernetes_deployment_info(
-                            project_id, application_model.application_id, service_model.service_id)
+                            project_id, application_model.application_id, service_model.service_id,
+                            kubernetes_models[0])
                         deployment_info['commit_message'] = "Update at {0:%Y%m%d%H%M%S}".format(
                             datetime.datetime.utcnow())
                         apply_rekcurd_to_kubernetes(

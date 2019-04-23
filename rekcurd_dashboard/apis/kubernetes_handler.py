@@ -747,16 +747,19 @@ def apply_new_route_weight(
     return
 
 
-def load_kubernetes_deployment_info(project_id: int, application_id: str, service_id: str) -> dict:
+def load_kubernetes_deployment_info(project_id: int, application_id: str, service_id: str,
+                                    kubernetes_model: KubernetesModel = None) -> dict:
     """
     Load deployment info from Kubernetes.
     :param project_id:
     :param application_id:
     :param service_id:
+    :param kubernetes_model:
     :return:
     """
-    kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
-        KubernetesModel.project_id == project_id).first()
+    if kubernetes_model is None:
+        kubernetes_model = db.session.query(KubernetesModel).filter(
+            KubernetesModel.project_id == project_id).first()
     service_model: ServiceModel = db.session.query(ServiceModel).filter(
         ServiceModel.service_id == service_id).first_or_404()
 
