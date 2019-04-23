@@ -131,8 +131,8 @@ class ApiKubernetes(Resource):
                             is_creation_mode=True, **deployment_info)
             else:
                 update_kubernetes_deployment_info(kubernetes_model)
-                db.session.commit()
-                db.session.close()
+            db.session.commit()
+            db.session.close()
         except Exception as error:
             remove_kubernetes_access_file(config_path)
             raise error
