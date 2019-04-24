@@ -51,7 +51,10 @@ api = RekcurdDashboardApi(
 )
 
 
-from .common import DatetimeToTimestamp, kubernetes_cpu_to_float, status_model
+from .common import (
+    DatetimeToTimestamp, kubernetes_cpu_to_float, status_model,
+    GIT_SSH_MODE, GIT_CONFIG, GIT_ID_RSA, GIT_SSH_MOUNT_DIR, GIT_SECRET_PREFIX
+)
 from .kubernetes_handler import (
     get_full_config_path, save_kubernetes_access_file, remove_kubernetes_access_file,
     update_kubernetes_deployment_info, apply_rekcurd_to_kubernetes, load_kubernetes_deployment_info,

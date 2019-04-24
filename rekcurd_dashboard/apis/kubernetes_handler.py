@@ -5,8 +5,10 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-from . import api, RekcurdDashboardException
-from .common import kubernetes_cpu_to_float
+from . import (
+    api, RekcurdDashboardException, kubernetes_cpu_to_float,
+    GIT_SECRET_PREFIX, GIT_ID_RSA, GIT_CONFIG, GIT_SSH_MODE, GIT_SSH_MOUNT_DIR
+)
 from rekcurd_dashboard.models import (
     db, DataServerModel, KubernetesModel, ApplicationModel,
     ServiceModel, ModelModel
@@ -47,7 +49,7 @@ def remove_kubernetes_access_file(config_path):
 
 def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel):
     """
-    Update Kubernetes deployment info.
+    Load the latest deployment info from Kubernetes, and set them to dashboard DB tables.
     :param kubernetes_model:
     :return:
     """

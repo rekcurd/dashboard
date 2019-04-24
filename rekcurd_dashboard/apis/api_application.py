@@ -3,11 +3,10 @@ import uuid
 from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse, inputs
 
-from . import api, status_model, delete_kubernetes_deployment, delete_secret
+from . import api, status_model, delete_kubernetes_deployment, delete_secret, GIT_SECRET_PREFIX
 from rekcurd_dashboard.models import db, ProjectModel, ApplicationModel, ApplicationUserRoleModel, ApplicationRole, KubernetesModel, ServiceModel
 from rekcurd_dashboard.utils import RekcurdDashboardException
 from rekcurd_dashboard.apis import DatetimeToTimestamp
-from rekcurd_dashboard.apis.api_kubernetes_secret import GIT_SECRET_PREFIX
 
 
 application_api_namespace = Namespace('applications', description='Application API Endpoint.')

@@ -1,14 +1,8 @@
 from flask_restplus import Namespace, fields, Resource, reqparse
 
-from . import status_model, load_secret, apply_secret
+from . import status_model, load_secret, apply_secret, GIT_SECRET_PREFIX, GIT_ID_RSA, GIT_CONFIG
 from rekcurd_dashboard.utils import RekcurdDashboardException
 
-
-GIT_SSH_MOUNT_DIR: str = "/root/.ssh"
-GIT_SSH_MODE: int = 384  # equals to "0600"
-GIT_SECRET_PREFIX = "git"
-GIT_ID_RSA: str = "git_id_rsa"
-GIT_CONFIG: str = "config"
 
 kubernetes_secret_api_namespace = Namespace('kubernetes_secret', description='Kubernetes Secret API Endpoint.')
 success_or_not = kubernetes_secret_api_namespace.model('Success', status_model)
