@@ -233,6 +233,9 @@ def stop_worker(config_path, namespaces=('development', 'beta')):
             custom_object_api.delete_namespaced_custom_object(
                 group="networking.istio.io", version="v1alpha3",
                 namespace=ns, plural="virtualservices", name=istio["metadata"]["name"], body=body)
+        # Delete Secret
+        for secret in core_v1.list_namespaced_secret(ns).items:
+            core_v1.delete_namespaced_secret(name=secret.metadata.name, namespace=ns, body=body)
 
 
 def create_project_model(project_id=TEST_PROJECT_ID, save=False) -> ProjectModel:
