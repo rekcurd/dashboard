@@ -33,7 +33,7 @@ export enum APIRequestStatusList {
   fetching,
   failure,
   success,
-  unauhorized,
+  unauthorized,
 }
 
 export interface APIStatusFailue {
@@ -55,7 +55,7 @@ export interface APIStatusSuccess<T> {
 }
 
 export interface APIStatusUnauthorized<T> {
-  status: APIRequestStatusList.unauhorized
+  status: APIRequestStatusList.unauthorized
 }
 
 export function isAPISucceeded<T>(status: APIRequest<T>): status is APIStatusSuccess<T> {
@@ -75,7 +75,7 @@ export function isAPINotStarted<T>(status: APIRequest<T>): status is APIStatusNo
 }
 
 export function isAPIUnauthorized<T>(status: APIRequest<T>): status is APIStatusUnauthorized<T> {
-  return status.status === APIRequestStatusList.unauhorized
+  return status.status === APIRequestStatusList.unauthorized
 }
 
 export type APIRequest<T> = APIStatusFailue | APIStatusFetching | APIStatusNotStarted | APIStatusUnauthorized<T> | APIStatusSuccess<T>

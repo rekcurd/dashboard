@@ -17,7 +17,7 @@ class APIRequestResults extends React.Component<APIRequestResultsProps, APIReque
     const { location } = this.props
     const { push } = this.props.history
     const currentStatus: RequestResultsPair = this.checkAllRequestResults()
-    if (location.pathname !== '/login' && currentStatus[0] === APIRequestStatusList.unauhorized) {
+    if (location.pathname !== '/login' && currentStatus[0] === APIRequestStatusList.unauthorized) {
       push(`/login`)
     }
   }
@@ -103,10 +103,10 @@ class APIRequestResults extends React.Component<APIRequestResultsProps, APIReque
       return [APIRequestStatusList.failure, Object.assign(accumerator[1], currentValue[1])]
     }
     if (
-      accumerator[0] === APIRequestStatusList.unauhorized ||
-      currentValue[0] === APIRequestStatusList.unauhorized
+      accumerator[0] === APIRequestStatusList.unauthorized ||
+      currentValue[0] === APIRequestStatusList.unauthorized
     ) {
-      return [APIRequestStatusList.unauhorized, {}]
+      return [APIRequestStatusList.unauthorized, {}]
     }
 
     const isLoading = (status: APIRequestStatusList) => (

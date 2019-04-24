@@ -75,7 +75,7 @@ function APIRequestReducerCreator<P = {}, S = {}, F = {}>(
     } else if (isSuccess(action)) {
       nextState[statePropertyName] = { status: APIRequestStatusList.success, result: action.result }
     } else if (isUnauthorized(action)) {
-      nextState[statePropertyName] = { status: APIRequestStatusList.unauhorized, error: action.error }
+      nextState[statePropertyName] = { status: APIRequestStatusList.unauthorized, error: action.error }
     } else {
       return state
     }
