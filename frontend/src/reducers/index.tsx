@@ -71,7 +71,7 @@ function APIRequestReducerCreator<P = {}, S = {}, F = {}>(
     if (isStarted(action)) {
       nextState[statePropertyName] = { status: APIRequestStatusList.fetching }
     } else if (isFailed(action)) {
-      nextState[statePropertyName] = { status: APIRequestStatusList.failue, error: action.error }
+      nextState[statePropertyName] = { status: APIRequestStatusList.failure, error: action.error }
     } else if (isSuccess(action)) {
       nextState[statePropertyName] = { status: APIRequestStatusList.success, result: action.result }
     } else if (isUnauthorized(action)) {

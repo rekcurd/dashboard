@@ -31,13 +31,13 @@ export class APIError implements Error {
 export enum APIRequestStatusList {
   notStarted,
   fetching,
-  failue,
+  failure,
   success,
   unauhorized,
 }
 
 export interface APIStatusFailue {
-  status: APIRequestStatusList.failue
+  status: APIRequestStatusList.failure
   error: any
 }
 
@@ -63,7 +63,7 @@ export function isAPISucceeded<T>(status: APIRequest<T>): status is APIStatusSuc
 }
 
 export function isAPIFailed<T>(status: APIRequest<T>): status is APIStatusFailue {
-  return status.status === APIRequestStatusList.failue
+  return status.status === APIRequestStatusList.failure
 }
 
 export function isAPIFetching<T>(status: APIRequest<T>): status is APIStatusFetching {

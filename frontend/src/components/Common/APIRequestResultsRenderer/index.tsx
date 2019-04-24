@@ -56,7 +56,7 @@ class APIRequestResults extends React.Component<APIRequestResultsProps, APIReque
       }
     } else if (currentStatus[0] === APIRequestStatusList.fetching) {
       return (<div>Loading...</div>)
-    } else if (currentStatus[0] === APIRequestStatusList.failue) {
+    } else if (currentStatus[0] === APIRequestStatusList.failure) {
       const fetchedResults = currentStatus[1]
       if (fetchedResults.userInfoStatus && projectId) {
         const isProjectMember = fetchedResults.userInfoStatus.projectRoles.some((userRole: UserProjectRole) => {
@@ -97,10 +97,10 @@ class APIRequestResults extends React.Component<APIRequestResultsProps, APIReque
 
   accumerate(accumerator: RequestResultsPair, currentValue: RequestResultsPair): RequestResultsPair {
     if (
-      accumerator[0] === APIRequestStatusList.failue ||
-      currentValue[0] === APIRequestStatusList.failue
+      accumerator[0] === APIRequestStatusList.failure ||
+      currentValue[0] === APIRequestStatusList.failure
     ) {
-      return [APIRequestStatusList.failue, Object.assign(accumerator[1], currentValue[1])]
+      return [APIRequestStatusList.failure, Object.assign(accumerator[1], currentValue[1])]
     }
     if (
       accumerator[0] === APIRequestStatusList.unauhorized ||
