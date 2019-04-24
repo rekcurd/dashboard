@@ -3,7 +3,7 @@ import { APIError, APIErrorType } from '@src/apis/Core'
 import * as Apis from '@src/apis'
 
 export type Actions = APIActions<any> | NotificationActions
-export type APIActions<P = {}, S = {}, F = APIError> = APIRequestStartAction<P> | APIRequestSuccessAction<S> | APIRequestFailueAction<F>
+export type APIActions<P = {}, S = {}, F = APIError> = APIRequestStartAction<P> | APIRequestSuccessAction<S> | APIRequestFailureAction<F>
 
 export interface APIRequestStartAction<P = {}> extends Action {
   type: string
@@ -15,7 +15,7 @@ export interface APIRequestSuccessAction<S = {}> extends Action {
   result: S
 }
 
-export interface APIRequestFailueAction<F = APIError> extends Action {
+export interface APIRequestFailureAction<F = APIError> extends Action {
   type: string
   error: F
 }
@@ -37,7 +37,7 @@ export class APIRequestActionCreators<P = {}, S = {}, F = APIError> {
   ) {
     this.apiType = apiType
     const suffix = apiType
-    this.failure = (error: F): APIRequestFailueAction<F> => {
+    this.failure = (error: F): APIRequestFailureAction<F> => {
       return {type: `${suffix}_FAILURE`, error}
     }
     this.request = (params: P): APIRequestStartAction<P> => {

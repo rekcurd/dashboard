@@ -61,7 +61,7 @@ function APIRequestReducerCreator<P = {}, S = {}, F = {}>(
 
     const isStarted = (item: any): item is Actions.APIRequestStartAction =>
       item.type === `${suffix}_REQUEST_START`
-    const isFailed = (item: any): item is Actions.APIRequestFailueAction =>
+    const isFailed = (item: any): item is Actions.APIRequestFailureAction =>
       item.type === `${suffix}_FAILURE`
     const isSuccess = (item: any): item is Actions.APIRequestSuccessAction =>
       item.type === `${suffix}_SUCCESS`
