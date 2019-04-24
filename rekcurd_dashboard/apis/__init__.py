@@ -57,7 +57,7 @@ from .kubernetes_handler import (
     update_kubernetes_deployment_info, apply_rekcurd_to_kubernetes, load_kubernetes_deployment_info,
     switch_model_assignment, backup_kubernetes_deployment, delete_kubernetes_deployment,
     backup_istio_routing, load_istio_routing, apply_new_route_weight,
-    load_secret, apply_secret
+    load_secret, apply_secret, delete_secret
 )
 from .api_admin import admin_api_namespace
 from .api_project import project_api_namespace

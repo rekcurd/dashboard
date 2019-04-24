@@ -1,11 +1,14 @@
 from flask_restplus import Namespace, fields, Resource, reqparse
 
 from . import status_model, load_secret, apply_secret
+from rekcurd_dashboard.utils import RekcurdDashboardException
 
 
-GIT_SSH_DIR = "/root/.ssh"
-GIT_ID_RSA = "git_id_rsa"
-GIT_CONFIG = "config"
+GIT_SSH_MOUNT_DIR: str = "/root/.ssh"
+GIT_SSH_MODE: int = 384  # equals to "0600"
+GIT_SECRET_PREFIX = "git"
+GIT_ID_RSA: str = "git_id_rsa"
+GIT_CONFIG: str = "config"
 
 kubernetes_secret_api_namespace = Namespace('kubernetes_secret', description='Kubernetes Secret API Endpoint.')
 success_or_not = kubernetes_secret_api_namespace.model('Success', status_model)
@@ -43,7 +46,7 @@ class ApiGitKey(Resource):
         """Get git key."""
         args = self.get_parser.parse_args()
         service_level = args["service_level"]
-        string_data = load_secret(project_id, application_id, service_level)
+        string_data = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
 
         GIT_ID_RSA_TEMPLATE = "-----BEGIN RSA PRIVATE KEY-----\n" \
                               "YOUR-RSA-PRIVATE-KEY\n" \
@@ -67,10 +70,13 @@ class ApiGitKey(Resource):
         """Save git key."""
         args = self.git_key_parser.parse_args()
         service_level = args["service_level"]
-        string_data = load_secret(project_id, application_id, service_level)
+        string_data = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
+        if (GIT_ID_RSA in string_data and string_data[GIT_ID_RSA]) \
+                or (GIT_CONFIG in string_data and string_data[GIT_CONFIG]):
+            raise RekcurdDashboardException("Fields already exist.")
         string_data[GIT_ID_RSA] = args[GIT_ID_RSA]
         string_data[GIT_CONFIG] = args[GIT_CONFIG]
-        apply_secret(project_id, application_id, service_level, is_creation_mode=True, string_data=string_data)
+        apply_secret(project_id, application_id, service_level, string_data, GIT_SECRET_PREFIX)
         return {"status": True, "message": "Success."}
 
     @kubernetes_secret_api_namespace.marshal_with(success_or_not)
@@ -79,10 +85,10 @@ class ApiGitKey(Resource):
         """Update git key."""
         args = self.git_key_parser.parse_args()
         service_level = args["service_level"]
-        string_data = load_secret(project_id, application_id, service_level)
+        string_data = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
         string_data[GIT_ID_RSA] = args[GIT_ID_RSA]
         string_data[GIT_CONFIG] = args[GIT_CONFIG]
-        apply_secret(project_id, application_id, service_level, is_creation_mode=False, string_data=string_data)
+        apply_secret(project_id, application_id, service_level, string_data, GIT_SECRET_PREFIX)
         return {"status": True, "message": "Success."}
 
 
@@ -91,9 +97,9 @@ class ApiGitKeyDelete(Resource):
     @kubernetes_secret_api_namespace.marshal_with(success_or_not)
     def delete(self, project_id: int, application_id: str, service_level: str):
         """Delete git key."""
-        string_data = load_secret(project_id, application_id, service_level)
+        string_data = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
         if string_data:
             string_data[GIT_ID_RSA] = ""
             string_data[GIT_CONFIG] = ""
-            apply_secret(project_id, application_id, service_level, is_creation_mode=False, string_data=string_data)
+            apply_secret(project_id, application_id, service_level, string_data, GIT_SECRET_PREFIX)
         return {"status": True, "message": "Success."}

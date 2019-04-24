@@ -877,7 +877,9 @@ def backup_istio_routing(kubernetes_model: KubernetesModel, application_model: A
     return
 
 
-def load_secret(project_id: int, application_id: str, service_level: str):
+def load_secret(project_id: int, application_id: str, service_level: str, name_prefix: str):
+    if len(name_prefix) > 3:
+        raise RekcurdDashboardException("name_prefix must be up to 3 characters.")
     kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
         KubernetesModel.project_id == project_id).first_or_404()
     full_config_path = get_full_config_path(kubernetes_model.config_path)
@@ -885,8 +887,9 @@ def load_secret(project_id: int, application_id: str, service_level: str):
     config.load_kube_config(full_config_path)
     core_v1_api = client.CoreV1Api()
     try:
+        name = "sec-{}-{}".format(name_prefix, application_id)
         secret_body = core_v1_api.read_namespaced_secret(
-            name="secret-{0}".format(application_id),
+            name=name,
             namespace=service_level,
             exact=True,
             export=True
@@ -899,7 +902,9 @@ def load_secret(project_id: int, application_id: str, service_level: str):
         return dict()
 
 
-def apply_secret(project_id: int, application_id: str, service_level: str, is_creation_mode: bool, string_data: dict):
+def apply_secret(project_id: int, application_id: str, service_level: str, string_data: dict, name_prefix: str):
+    if len(name_prefix) > 3:
+        raise RekcurdDashboardException("name_prefix must be up to 3 characters.")
     application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
         ApplicationModel.application_id == application_id).first_or_404()
     for kubernetes_model in db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all():
@@ -907,17 +912,28 @@ def apply_secret(project_id: int, application_id: str, service_level: str, is_cr
         from kubernetes import client, config
         config.load_kube_config(full_config_path)
         core_v1_api = client.CoreV1Api()
+        name = "sec-{}-{}".format(name_prefix, application_id)
         v1_secret = client.V1Secret(
             api_version="v1",
             kind="Secret",
             metadata=client.V1ObjectMeta(
-                name="secret-{0}".format(application_model.application_id),
+                name=name,
                 namespace=service_level,
                 labels={"rekcurd-worker": "True", "id": application_model.application_id,
                         "name": application_model.application_name}
             ),
             string_data=string_data,
             type="Opaque")
+        try:
+            core_v1_api.read_namespaced_secret(
+                name=name,
+                namespace=service_level,
+                exact=True,
+                export=True
+            )
+            is_creation_mode = False
+        except:
+            is_creation_mode = True
         if is_creation_mode:
             api.logger.info("Secret created")
             core_v1_api.create_namespaced_secret(
@@ -926,7 +942,34 @@ def apply_secret(project_id: int, application_id: str, service_level: str, is_cr
         else:
             api.logger.info("Secret patched")
             core_v1_api.patch_namespaced_secret(
-                name="secret-{0}".format(application_model.application_id),
+                name=name,
                 namespace=service_level,
                 body=v1_secret)
     return
+
+
+def delete_secret(project_id: int, application_id: str, service_level: str, name_prefix: str):
+    if len(name_prefix) > 3:
+        raise RekcurdDashboardException("name_prefix must be up to 3 characters.")
+    kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
+        KubernetesModel.project_id == project_id).first_or_404()
+    full_config_path = get_full_config_path(kubernetes_model.config_path)
+    from kubernetes import client, config
+    config.load_kube_config(full_config_path)
+    core_v1_api = client.CoreV1Api()
+    try:
+        name = "sec-{}-{}".format(name_prefix, application_id)
+        core_v1_api.read_namespaced_secret(
+            name=name,
+            namespace=service_level,
+            exact=True,
+            export=True
+        )
+        core_v1_api.delete_namespaced_secret(
+            name=name,
+            namespace=service_level,
+            body=client.V1DeleteOptions()
+        )
+        return
+    except:
+        return

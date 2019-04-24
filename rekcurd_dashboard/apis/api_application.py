@@ -3,10 +3,11 @@ import uuid
 from flask_jwt_simple import get_jwt_identity
 from flask_restplus import Namespace, fields, Resource, reqparse, inputs
 
-from . import api, status_model, delete_kubernetes_deployment
+from . import api, status_model, delete_kubernetes_deployment, delete_secret
 from rekcurd_dashboard.models import db, ProjectModel, ApplicationModel, ApplicationUserRoleModel, ApplicationRole, KubernetesModel, ServiceModel
 from rekcurd_dashboard.utils import RekcurdDashboardException
 from rekcurd_dashboard.apis import DatetimeToTimestamp
+from rekcurd_dashboard.apis.api_kubernetes_secret import GIT_SECRET_PREFIX
 
 
 application_api_namespace = Namespace('applications', description='Application API Endpoint.')
@@ -140,6 +141,7 @@ class ApiApplicationId(Resource):
             kubernetes_models = db.session.query(KubernetesModel).filter(
                 KubernetesModel.project_id == project_id).all()
             for service_model in service_models:
+                delete_secret(project_id, application_id, service_model.service_level, GIT_SECRET_PREFIX)
                 delete_kubernetes_deployment(kubernetes_models, application_id, service_model.service_id)
             db.session.flush()
         else:
