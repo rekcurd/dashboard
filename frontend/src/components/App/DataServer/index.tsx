@@ -4,7 +4,7 @@ import { RouterProps } from 'react-router'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { DataServerParam, FetchDataServerByIdParam, UserInfo } from '@src/apis'
+import { DataServerParam, FetchDataServerByIdParam, Project, UserInfo } from '@src/apis'
 import {
   saveDataServerDispatcher,
   fetchDataServerDispatcher,
@@ -94,9 +94,9 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
   }
 
   render() {
-    const { userInfoStatus, settings } = this.props
+    const { fetchProjectByIdStatus, userInfoStatus, settings } = this.props
     const { method } = this.state
-    const targetStatus: any = {}
+    const targetStatus: any = {fetchProjectByIdStatus}
 
     if (isAPISucceeded(settings) && settings.result.auth) {
       targetStatus.userInfoStatus = userInfoStatus
@@ -152,6 +152,7 @@ interface DataServerState {
 }
 
 interface StateProps {
+  fetchProjectByIdStatus: APIRequest<Project>
   saveDataServerStatus: APIRequest<boolean>
   fetchDataServerStatus: APIRequest<any>
   userInfoStatus: APIRequest<UserInfo>
@@ -162,6 +163,7 @@ interface CustomProps {}
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
     saveDataServerStatus: state.saveDataServerReducer.saveDataServer,
     fetchDataServerStatus: state.fetchDataServerReducer.fetchDataServer,
     userInfoStatus: state.userInfoReducer.userInfo,
