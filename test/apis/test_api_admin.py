@@ -54,7 +54,7 @@ class ApiAccessControlTest(BaseTestCase):
         token = self._get_token(TEST_AUTH_ID_1)
         headers = {'Authorization': 'Bearer {}'.format(token)}
 
-        data = {'application_name': 'new_app'}
+        data = {'application_name': 'new_app', 'use_git_key': False}
         response = self.client.post('/api/projects/{}/applications'.format(TEST_PROJECT_ID),
                                     headers=headers, data=data)
         self.assertEqual(200, response.status_code)
