@@ -186,9 +186,48 @@ def apply_rekcurd_to_kubernetes(
     model_model: ModelModel = db.session.query(ModelModel).filter(
         ModelModel.model_id == service_model_assignment).first_or_404()
 
+    from kubernetes import client
+    git_secret = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
+    volume_mounts = dict()
+    volumes = dict()
+    if git_secret:
+        connector_name = "sec-git-name"
+        secret_name = "sec-{}-{}".format(GIT_SECRET_PREFIX, application_id)
+        volume_mounts = {
+            'volume_mounts': [
+                client.V1VolumeMount(
+                    name=connector_name,
+                    mount_path=GIT_SSH_MOUNT_DIR,
+                    read_only=True
+                )
+            ]
+        }
+        volumes = {
+            'volumes': [
+                client.V1Volume(
+                    name=connector_name,
+                    secret=client.V1SecretVolumeSource(
+                        secret_name=secret_name,
+                        items=[
+                            client.V1KeyToPath(
+                                key=GIT_ID_RSA,
+                                path=GIT_ID_RSA,
+                                mode=GIT_SSH_MODE
+                            ),
+                            client.V1KeyToPath(
+                                key=GIT_CONFIG,
+                                path=GIT_CONFIG,
+                                mode=GIT_SSH_MODE
+                            )
+                        ]
+                    )
+                )
+            ]
+        }
+
     for kubernetes_model in db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all():
         full_config_path = get_full_config_path(kubernetes_model.config_path)
-        from kubernetes import client, config
+        from kubernetes import config
         config.load_kube_config(full_config_path)
 
         pod_env = [
@@ -376,10 +415,12 @@ def apply_rekcurd_to_kubernetes(
                                 ),
                                 security_context=client.V1SecurityContext(
                                     privileged=True
-                                )
+                                ),
+                                **volume_mounts
                             )
                         ],
-                        node_selector={"host": service_level}
+                        node_selector={"host": service_level},
+                        **volumes
                     )
                 )
             )
