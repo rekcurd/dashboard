@@ -53,9 +53,9 @@ Check the belows in detail.
 
 ##### Boot command
 ```bash
-$ rekcurd_dashboard --settings settings.yml db init
-$ rekcurd_dashboard --settings settings.yml db migrate
-$ rekcurd_dashboard --settings settings.yml server
+$ rekcurd_dashboard db --settings settings.yml init
+$ rekcurd_dashboard db --settings settings.yml migrate
+$ rekcurd_dashboard server --settings settings.yml
 ```
 
 ##### docker-compose (Deprecated)
