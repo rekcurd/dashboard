@@ -1,3 +1,4 @@
+import base64
 import json
 import uuid
 
@@ -6,7 +7,10 @@ from pathlib import Path
 
 from . import api, RekcurdDashboardException
 from .common import kubernetes_cpu_to_float
-from rekcurd_dashboard.models import db, DataServerModel, KubernetesModel, ApplicationModel, ServiceModel, ModelModel
+from rekcurd_dashboard.models import (
+    db, DataServerModel, KubernetesModel, ApplicationModel,
+    ServiceModel, ModelModel
+)
 
 
 def get_full_config_path(filename: str):
@@ -481,8 +485,7 @@ def apply_rekcurd_to_kubernetes(
                 "apiVersion": "networking.istio.io/v1alpha3",
                 "kind": "VirtualService",
                 "metadata": {
-                    "labels": {"rekcurd-worker": "True", "id": application_id,
-                               "name": application_name, "sel": service_id},
+                    "labels": {"rekcurd-worker": "True", "id": application_id, "name": application_name},
                     "name": "ing-vs-{0}".format(application_id),
                     "namespace": service_level
                 },
@@ -871,4 +874,59 @@ def backup_istio_routing(kubernetes_model: KubernetesModel, application_model: A
     json.dump(ingress_virtual_service_body,
               Path(save_dir, "ing-vs-{0}.json".format(
                   application_model.application_id)).open("w", encoding='utf-8'), ensure_ascii=False, indent=2)
+    return
+
+
+def load_secret(project_id: int, application_id: str, service_level: str):
+    kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
+        KubernetesModel.project_id == project_id).first_or_404()
+    full_config_path = get_full_config_path(kubernetes_model.config_path)
+    from kubernetes import client, config
+    config.load_kube_config(full_config_path)
+    core_v1_api = client.CoreV1Api()
+    try:
+        secret_body = core_v1_api.read_namespaced_secret(
+            name="secret-{0}".format(application_id),
+            namespace=service_level,
+            exact=True,
+            export=True
+        )
+        string_data: dict = secret_body.data
+        for key in string_data.keys():
+            string_data[key] = base64.b64decode(string_data[key]).decode()
+        return string_data
+    except:
+        return dict()
+
+
+def apply_secret(project_id: int, application_id: str, service_level: str, is_creation_mode: bool, string_data: dict):
+    application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
+        ApplicationModel.application_id == application_id).first_or_404()
+    for kubernetes_model in db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all():
+        full_config_path = get_full_config_path(kubernetes_model.config_path)
+        from kubernetes import client, config
+        config.load_kube_config(full_config_path)
+        core_v1_api = client.CoreV1Api()
+        v1_secret = client.V1Secret(
+            api_version="v1",
+            kind="Secret",
+            metadata=client.V1ObjectMeta(
+                name="secret-{0}".format(application_model.application_id),
+                namespace=service_level,
+                labels={"rekcurd-worker": "True", "id": application_model.application_id,
+                        "name": application_model.application_name}
+            ),
+            string_data=string_data,
+            type="Opaque")
+        if is_creation_mode:
+            api.logger.info("Secret created")
+            core_v1_api.create_namespaced_secret(
+                namespace=service_level,
+                body=v1_secret)
+        else:
+            api.logger.info("Secret patched")
+            core_v1_api.patch_namespaced_secret(
+                name="secret-{0}".format(application_model.application_id),
+                namespace=service_level,
+                body=v1_secret)
     return
