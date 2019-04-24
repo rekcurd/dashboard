@@ -4,16 +4,13 @@ import { Dispatch } from 'redux'
 import { withRouter, RouteComponentProps } from 'react-router'
 import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
 
-import {
-  ProjectAccessControlList, Project, UserInfo, AccessControlParam, FetchProjectByIdParam
-} from '@src/apis'
-import {APIRequest, isAPIFailed, isAPISucceeded} from '@src/apis/Core'
+import { ProjectAccessControlList, UserInfo, AccessControlParam } from '@src/apis'
+import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
 import {
   addNotification,
   AddNotificationAction,
   saveProjectAccessControlDispatcher,
   fetchProjectAccessControlListDispatcher,
-  fetchProjectByIdDispatcher,
   deleteProjectAccessControlDispatcher,
 } from '@src/actions'
 
@@ -25,7 +22,6 @@ import { EditUserProjectRoleModal } from './EditUserProjectRoleModal'
 interface StateProps {
   saveProjectAccessControlStatus: APIRequest<boolean>
   fetchProjectAccessControlListStatus: APIRequest<ProjectAccessControlList[]>
-  fetchProjectByIdStatus: APIRequest<Project>
   userInfoStatus: APIRequest<UserInfo>
   deleteProjectAccessControlStatus: APIRequest<boolean>
 }
@@ -34,7 +30,6 @@ interface DispatchProps {
   addNotification: (params) => AddNotificationAction
   saveProjectAccessControl: (params: AccessControlParam) => Promise<void>
   fetchProjectAccessControlList: (params: AccessControlParam) => Promise<void>
-  fetchProjectById: (params: FetchProjectByIdParam) => Promise<void>
   deleteProjectAccessControl: (params: AccessControlParam) => Promise<void>
 }
 
@@ -69,7 +64,6 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
       projectId: this.props.match.params.projectId,
     }
     this.props.fetchProjectAccessControlList(params)
-    this.props.fetchProjectById(params)
   }
 
   static getDerivedStateFromProps(nextProps: ProjectAdminProps, prevState: ProjectAdminState){
@@ -92,8 +86,8 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
   }
 
   render() {
-    const { fetchProjectByIdStatus, fetchProjectAccessControlListStatus, userInfoStatus } = this.props
-    const targetStatus = {fetchProjectByIdStatus, fetchProjectAccessControlListStatus, userInfoStatus}
+    const { fetchProjectAccessControlListStatus, userInfoStatus } = this.props
+    const targetStatus = {fetchProjectAccessControlListStatus, userInfoStatus}
 
     return (
       <APIRequestResultsRenderer
@@ -103,13 +97,11 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
     )
   }
   renderProjectAccessControlList(results, canEdit) {
-    const project: Project = results.fetchProjectByIdStatus
     const projectAcl: ProjectAccessControlList[] = results.fetchProjectAccessControlListStatus
     const userInfo: UserInfo = results.userInfoStatus
-    return this.renderContent(project, projectAcl, userInfo, canEdit)
+    return this.renderContent(projectAcl, userInfo, canEdit)
   }
-  renderContent(project: Project, projectAcl: ProjectAccessControlList[],
-                userInfo: UserInfo, canEdit: boolean) {
+  renderContent(projectAcl: ProjectAccessControlList[], userInfo: UserInfo, canEdit: boolean) {
     const { match, saveProjectAccessControl } = this.props
     const {
       isAddUserProjectRoleModalOpen, isEditUserProjectRoleModalOpen, editUserProjectRoleTarget
@@ -279,7 +271,6 @@ export default withRouter(
       return {
         saveProjectAccessControlStatus: state.saveProjectAccessControlReducer.saveProjectAccessControl,
         fetchProjectAccessControlListStatus: state.fetchProjectAccessControlListReducer.fetchProjectAccessControlList,
-        fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
         userInfoStatus: state.userInfoReducer.userInfo,
         deleteProjectAccessControlStatus: state.deleteProjectAccessControlReducer.deleteProjectAccessControl
       }
@@ -289,7 +280,6 @@ export default withRouter(
         addNotification: (params) => dispatch(addNotification(params)),
         saveProjectAccessControl: (params: AccessControlParam) => saveProjectAccessControlDispatcher(dispatch, params),
         fetchProjectAccessControlList: (params: AccessControlParam) => fetchProjectAccessControlListDispatcher(dispatch, params),
-        fetchProjectById: (params: FetchProjectByIdParam) => fetchProjectByIdDispatcher(dispatch, params),
         deleteProjectAccessControl: (params: AccessControlParam) => deleteProjectAccessControlDispatcher(dispatch, params)
       }
     }

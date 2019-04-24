@@ -22,7 +22,7 @@ const DataServerSchema = Yup.object().shape({
   cephPort: Yup.number()
     .positive()
     .integer(),
-  cephIsSecure: Yup.bool(),
+  cephIsSecure: Yup.boolean(),
   cephBucketName: Yup.string()
     .max(128),
   awsAccessKey: Yup.string()

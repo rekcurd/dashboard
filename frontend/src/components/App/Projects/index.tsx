@@ -91,6 +91,9 @@ class ProjectList extends React.Component<StateProps & DispatchProps & RouterPro
               </Link>
             </td>
             <td>
+              {value.useKubernetes ? 'Yes' : 'No'}
+            </td>
+            <td>
               {value.description}
             </td>
             <td>
@@ -105,7 +108,7 @@ class ProjectList extends React.Component<StateProps & DispatchProps & RouterPro
       <table className='table table-hover' id='project-list'>
         <thead>
           <tr className='bg-light text-primary'>
-            <th>Name</th><th>Description</th><th>Date</th>
+            <th>Name</th><th>Kubernetes</th><th>Description</th><th>Date</th>
           </tr>
         </thead>
         <tbody>
@@ -127,7 +130,7 @@ const mapStateToProps = (state) => {
 }
 
 export interface DispatchProps {
-  fetchProjects: () => Promise<void>,
+  fetchProjects: () => Promise<void>
   addNotification
 }
 

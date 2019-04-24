@@ -6,7 +6,7 @@ import { Row, Col } from 'reactstrap'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   UserInfo, ServiceRouting,
-  FetchServiceRoutingParam, ServiceRoutingParam, FetchKubernetesByIdParam
+  FetchServiceRoutingParam, ServiceRoutingParam
 } from '@src/apis'
 import {
   addNotification,
@@ -73,8 +73,8 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
   }
 
   render(): JSX.Element {
-    const { kubernetesMode, routings, userInfoStatus, settings } = this.props
-    const statuses: any = { kubernetesMode }
+    const { routings, userInfoStatus, settings } = this.props
+    const statuses: any = { }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
     }
@@ -143,7 +143,6 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
 }
 
 export interface StateProps {
-  kubernetesMode: APIRequest<boolean>
   routings: APIRequest<ServiceRouting>
   updateServiceRoutingStatus: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
@@ -152,7 +151,6 @@ export interface StateProps {
 
 const mapStateToProps = (state): StateProps => {
   const props = {
-    kubernetesMode: state.fetchIsKubernetesModeReducer.fetchIsKubernetesMode,
     routings: state.fetchServiceRoutingReducer.fetchServiceRouting,
     updateServiceRoutingStatus: state.updateServiceRoutingReducer.updateServiceRouting,
     userInfoStatus: state.userInfoReducer.userInfo,

@@ -45,7 +45,7 @@ class ApiAccessControlTest(BaseTestCase):
         token = self._get_token(TEST_AUTH_ID_1)
         headers = {'Authorization': 'Bearer {}'.format(token)}
 
-        data = {'display_name': 'new_project'}
+        data = {'display_name': 'new_project', 'use_kubernetes': False}
         response = self.client.post('/api/projects',
                                     headers=headers, data=data)
         self.assertEqual(200, response.status_code)

@@ -30,7 +30,11 @@ class ApiProjectsTest(BaseTestCase):
 
     def test_post(self):
         display_name = 'new_project'
-        response = self.client.post(self.__URL, data={'display_name': display_name, 'description': 'test'})
+        description = 'test'
+        use_kubernetes = False
+        response = self.client.post(
+            self.__URL,
+            data={'display_name': display_name, 'description': description, 'use_kubernetes': use_kubernetes})
         project_model = db.session.query(ProjectModel).filter(
             ProjectModel.display_name == display_name).one_or_none()
         self.assertEqual(200, response.status_code)
@@ -51,7 +55,11 @@ class ApiProjectIdTest(BaseTestCase):
 
     def test_patch(self):
         display_name = 'new_project'
-        response = self.client.patch(self.__URL, data={'display_name': display_name})
+        description = 'test'
+        use_kubernetes = True
+        response = self.client.patch(
+            self.__URL,
+            data={'display_name': display_name, 'description': description, 'use_kubernetes': use_kubernetes})
         project_model = db.session.query(ProjectModel).filter(
             ProjectModel.project_id == TEST_PROJECT_ID, ProjectModel.display_name == display_name).one_or_none()
         self.assertEqual(200, response.status_code)

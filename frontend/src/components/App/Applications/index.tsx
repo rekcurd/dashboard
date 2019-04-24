@@ -6,7 +6,7 @@ import { Button } from 'reactstrap'
 
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
 import {
-  Application, FetchApplicationByIdParam, FetchKubernetesByIdParam, SyncKubernetesParam, UserInfo
+  Application, FetchApplicationByIdParam, Project, SyncKubernetesParam, UserInfo
 } from '@src/apis'
 import {
   fetchAllApplicationsDispatcher,
@@ -63,8 +63,8 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
   }
 
   render() {
-    const { kubernetesMode, applications, userInfoStatus, settings } = this.props
-    const targetStatus: any = { kubernetesMode, applications }
+    const { fetchProjectByIdStatus, applications, userInfoStatus, settings } = this.props
+    const targetStatus: any = { fetchProjectByIdStatus, applications }
     if (isAPISucceeded(settings) && settings.result.auth) {
       targetStatus.userInfoStatus = userInfoStatus
     }
@@ -80,14 +80,14 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
 
   renderApplications(result) {
     const applications: Application[] = result.applications
-    const kubernetesMode: boolean = result.kubernetesMode
+    const project: Project = result.fetchProjectByIdStatus
     const { push } = this.props.history
     const submitSync = () => {
       this.props.syncKubernetes({projectId: this.props.match.params.projectId})
       this.setState({syncSubmitted: true, syncNotified: false})
     }
 
-    const syncKubernetes = kubernetesMode ? (
+    const syncKubernetes = project.useKubernetes ? (
       <React.Fragment>
         {` `}
         <Button color='success' size='sm' onClick={submitSync}>
@@ -171,7 +171,7 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
 
 export interface StateProps {
   applications: APIRequest<Application[]>
-  kubernetesMode: APIRequest<boolean>
+  fetchProjectByIdStatus: APIRequest<Project>
   syncKubernetes: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
   settings: APIRequest<any>
@@ -180,7 +180,7 @@ export interface StateProps {
 const mapStateToProps = (state) => {
   return {
     applications: state.fetchAllApplicationsReducer.fetchAllApplications,
-    kubernetesMode: state.fetchIsKubernetesModeReducer.fetchIsKubernetesMode,
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
     syncKubernetes: state.syncKubernetesReducer.syncKubernetes,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,

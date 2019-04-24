@@ -8,9 +8,9 @@ import {
   Navbar, NavbarBrand, Nav, NavItem,
   Dropdown, DropdownToggle, DropdownMenu, DropdownItem
 } from 'reactstrap'
-import { userInfoDispatcher, fetchIsKubernetesModeDispatcher } from '@src/actions'
+import { userInfoDispatcher, fetchProjectByIdDispatcher } from '@src/actions'
 import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
-import { FetchKubernetesByIdParam, UserInfo } from '@src/apis'
+import { FetchProjectByIdParam, Project, UserInfo } from '@src/apis'
 import { JWT_TOKEN_KEY, APIRequest } from '@src/apis/Core'
 
 interface Istate {
@@ -28,17 +28,25 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
       dropdownOpen: false
     }
   }
+
   componentDidMount() {
-    const { fetchIsKubernetesMode, fetchUserInfo, auth } = this.props
+    const { fetchProjectById, fetchUserInfo, auth } = this.props
     if (auth) {
       fetchUserInfo()
     }
     if (this.props.match.params.projectId) {
-      fetchIsKubernetesMode({projectId: this.props.match.params.projectId})
+      fetchProjectById({projectId: this.props.match.params.projectId})
     }
   }
+
+  componentDidUpdate(prevProps: Readonly<NavigationBarProps>, prevState: Readonly<Istate>, snapshot?: any): void {
+    if (this.props.match.params.projectId && this.props.match.params.projectId !== prevProps.match.params.projectId) {
+      this.props.fetchProjectById({projectId: this.props.match.params.projectId})
+    }
+  }
+
   render() {
-    const { userInfoStatus, auth } = this.props
+    const { userInfoStatus, fetchProjectByIdStatus, auth } = this.props
     const { projectId } = this.props.match.params
 
     let user: React.ReactNode
@@ -63,11 +71,20 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
         )
       }
     }
+    let kubernetesMenu: React.ReactNode
+    if (projectId) {
+      kubernetesMenu = (
+        <APIRequestResultsRenderer
+          APIStatus={{ fetchProjectByIdStatus }}
+          render={this.renderKubernetesMenu.bind(this)}
+          renderFailed={() => null}
+        />
+      )
+    }
 
     let projectMenu: React.ReactNode
     if (projectId) {
       const applicationslink = `/projects/${projectId}/applications`
-      const kubelink = `/projects/${projectId}/kubernetes`
       const dataserverlink = `/projects/${projectId}/data_servers`
       projectMenu = (
         <React.Fragment>
@@ -77,12 +94,7 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
               Applications
             </NavLink>
           </NavItem>
-          <NavItem>
-            <NavLink className='text-info nav-link' to={kubelink}>
-              <i className='fas fa-ship fa-fw mr-1'></i>
-              Kubernetes
-            </NavLink>
-          </NavItem>
+          {kubernetesMenu}
           <NavItem>
             <NavLink className='text-info nav-link' to={dataserverlink}>
               <i className='fas fa-archive fa-fw mr-1'></i>
@@ -130,6 +142,24 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
       </Dropdown>
     )
   }
+  renderKubernetesMenu(result) {
+    const project: Project = result.fetchProjectByIdStatus
+    const projectId = project.projectId
+    const kubernetesMode = project.useKubernetes
+    const kubelink = `/projects/${projectId}/kubernetes`
+    if (kubernetesMode) {
+      return (
+        <NavItem>
+          <NavLink className='text-info nav-link' to={kubelink}>
+            <i className='fas fa-ship fa-fw mr-1'></i>
+            Kubernetes
+          </NavLink>
+        </NavItem>
+      )
+    } else {
+      return null
+    }
+  }
   onLogout(ev: Event) {
     ev.preventDefault()
     const { fetchUserInfo, history } = this.props
@@ -140,25 +170,27 @@ class NavigationBar extends React.Component<NavigationBarProps, Istate> {
 }
 
 interface StateProps {
-  userInfoStatus: APIRequest<UserInfo>,
-  settings,
+  fetchProjectByIdStatus: APIRequest<Project>
+  userInfoStatus: APIRequest<UserInfo>
+  settings
 }
 
 const mapStateToProps = (state): StateProps => {
   return {
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings
   }
 }
 
 interface DispatchProps {
-  fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => Promise<void>
+  fetchProjectById: (params: FetchProjectByIdParam) => Promise<void>
   fetchUserInfo: () => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => {
   return {
-    fetchIsKubernetesMode: (params: FetchKubernetesByIdParam) => fetchIsKubernetesModeDispatcher(dispatch, params),
+    fetchProjectById: (params: FetchProjectByIdParam) => fetchProjectByIdDispatcher(dispatch, params),
     fetchUserInfo: () => userInfoDispatcher(dispatch),
   }
 }

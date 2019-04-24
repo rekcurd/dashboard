@@ -6,7 +6,7 @@ import { Row, Col } from 'reactstrap'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Service, Application, UserInfo, UserApplicationRole,
-  FetchApplicationByIdParam, ServiceDeploymentParam, FetchKubernetesByIdParam
+  FetchApplicationByIdParam, ServiceDeploymentParam, Project
 } from '@src/apis'
 import {
   fetchApplicationByIdDispatcher,
@@ -72,9 +72,8 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
   }
 
   render() {
-    const { projectId, applicationId } = this.props.match.params
-    const { kubernetesMode, application } = this.props
-    const targetStatus = { kubernetesMode, application }
+    const { fetchProjectByIdStatus, application } = this.props
+    const targetStatus = { fetchProjectByIdStatus, application }
 
     return(
       <APIRequestResultsRenderer
@@ -87,7 +86,7 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
   renderForm(result, canEdit) {
     const { method } = this.props
     const { projectId, applicationId } = this.props.match.params
-    const kubernetesMode = result.kubernetesMode
+    const project: Project = result.fetchProjectByIdStatus
 
     if (!canEdit) {
       this.props.history.push(`/projects/${projectId}/applications/${applicationId}`)
@@ -100,7 +99,7 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
             <i className='fas fa-box fa-fw mr-2'></i>
             {method === 'patch' ? 'Edit' : 'Add'} Service
           </h1>
-          <ServiceDeployment kubernetesMode={kubernetesMode} method={method} />
+          <ServiceDeployment kubernetesMode={project.useKubernetes} method={method} />
         </Col>
       </Row>
     )
@@ -118,7 +117,7 @@ interface ServiceState {
 }
 
 interface StateProps {
-  kubernetesMode: APIRequest<boolean>
+  fetchProjectByIdStatus: APIRequest<Project>
   application: APIRequest<Application>
   service: APIRequest<Service>
   saveServiceDeploymentStatus: APIRequest<boolean>
@@ -131,7 +130,7 @@ interface CustomProps {
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
-    kubernetesMode: state.fetchIsKubernetesModeReducer.fetchIsKubernetesMode,
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     service: state.fetchServiceByIdReducer.fetchServiceById,
     saveServiceDeploymentStatus: state.saveServiceDeploymentReducer.saveServiceDeployment,

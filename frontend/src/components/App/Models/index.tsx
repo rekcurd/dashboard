@@ -5,8 +5,8 @@ import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
-  Model, Application, UserInfo,
-  FetchApplicationByIdParam, FetchModelByIdParam, IdParam, FetchKubernetesByIdParam
+  Model, Application, UserInfo, Project,
+  FetchApplicationByIdParam, FetchModelByIdParam, IdParam
 } from '@src/apis'
 import {
   addNotification,
@@ -91,9 +91,8 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
   // Render methods
 
   render(): JSX.Element {
-    const { projectId, applicationId } = this.props.match.params
-    const { kubernetesMode, application, models, userInfoStatus, settings } = this.props
-    const statuses: any = { kubernetesMode, application, models }
+    const { fetchProjectByIdStatus, application, models, userInfoStatus, settings } = this.props
+    const statuses: any = { fetchProjectByIdStatus, application, models }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
     }
@@ -115,7 +114,7 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
   renderModels(fetchedResults, canEdit) {
     const { onSubmitDelete, onCancel } = this
 
-    const kubernetesMode = fetchedResults.kubernetesMode
+    const project: Project = fetchedResults.fetchProjectByIdStatus
     const applicationName = fetchedResults.application.name
     const { projectId, applicationId } = this.props.match.params
     const models: Model[] = fetchedResults.models
@@ -131,7 +130,7 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
           canEdit={canEdit}
         />,
         applicationName,
-        kubernetesMode,
+        project.useKubernetes,
         canEdit
       )
     )
@@ -287,7 +286,7 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
 }
 
 export interface StateProps {
-  kubernetesMode: APIRequest<boolean>
+  fetchProjectByIdStatus: APIRequest<Project>
   application: APIRequest<Application>
   models: APIRequest<Model[]>
   deleteModelsStatus: APIRequest<boolean[]>
@@ -297,7 +296,7 @@ export interface StateProps {
 
 const mapStateToProps = (state): StateProps => {
   const props = {
-    kubernetesMode: state.fetchIsKubernetesModeReducer.fetchIsKubernetesMode,
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     models: state.fetchAllModelsReducer.fetchAllModels,
     deleteModelsStatus: state.deleteModelsReducer.deleteModels,

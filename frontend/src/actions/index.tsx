@@ -158,13 +158,6 @@ export const fetchDataServerDispatcher = asyncAPIRequestDispatcherCreator<Apis.F
   Apis.fetchDataServer
 )
 
-export const fetchIsKubernetesModeActionCreators =
-  new APIRequestActionCreators<Apis.FetchKubernetesByIdParam, boolean>('FETCH_IS_KUBERNETES_MODE')
-export const fetchIsKubernetesModeDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchKubernetesByIdParam, boolean>(
-  fetchIsKubernetesModeActionCreators,
-  Apis.fetchIsKubernetesMode
-)
-
 export const fetchAllKubernetesActionCreators =
   new APIRequestActionCreators<Apis.FetchKubernetesByIdParam, Apis.Kubernetes[]>('FETCH_ALL_KUBERNETES')
 export const fetchAllKubernetesDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes[]>(

@@ -8,7 +8,7 @@ import {
   Model, Service, SwitchModelParam, SyncKubernetesParam,
   Application, UserInfo,
   FetchApplicationByIdParam, FetchModelByIdParam, FetchServiceParam,
-  IdParam, FetchKubernetesByIdParam
+  IdParam, Project
 } from '@src/apis'
 import {
   addNotification,
@@ -174,8 +174,8 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
   // Render methods
 
   render(): JSX.Element {
-    const { kubernetesMode, application, models, services, userInfoStatus, settings } = this.props
-    const statuses: any = { models, services, application, kubernetesMode }
+    const { fetchProjectByIdStatus, application, models, services, userInfoStatus, settings } = this.props
+    const statuses: any = { models, services, application, fetchProjectByIdStatus }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
     }
@@ -196,7 +196,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
    */
   renderDashboardStatus(fetchedResults, canEdit): JSX.Element {
     const { onSubmit, onCancel, toggleSwitchMode } = this
-    const kubernetesMode = fetchedResults.kubernetesMode
+    const project: Project = fetchedResults.fetchProjectByIdStatus
     const applicationName = fetchedResults.application.name
     const { projectId, applicationId } = this.props.match.params
 
@@ -219,7 +219,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
           onSubmit={onSubmit}
           onCancel={onCancel} />,
         applicationName,
-        kubernetesMode,
+        project.useKubernetes,
         canEdit
       )
     )
@@ -484,7 +484,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
 }
 
 export interface StateProps {
-  kubernetesMode: APIRequest<boolean>
+  fetchProjectByIdStatus: APIRequest<Project>
   application: APIRequest<Application>
   models: APIRequest<Model[]>
   services: APIRequest<Service[]>
@@ -498,7 +498,7 @@ export interface StateProps {
 
 const mapStateToProps = (state): StateProps => {
   return {
-    kubernetesMode: state.fetchIsKubernetesModeReducer.fetchIsKubernetesMode,
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     models: state.fetchAllModelsReducer.fetchAllModels,
     services: state.fetchAllServicesReducer.fetchAllServices,

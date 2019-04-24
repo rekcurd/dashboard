@@ -1,5 +1,5 @@
 from flask_jwt_simple import get_jwt_identity
-from flask_restplus import Namespace, fields, Resource, reqparse
+from flask_restplus import Namespace, fields, Resource, reqparse, inputs
 
 from . import api, status_model, update_kubernetes_deployment_info
 from rekcurd_dashboard.utils import RekcurdDashboardException
@@ -19,6 +19,11 @@ project_model_params = project_api_namespace.model('Project', {
         description='Project name.',
         example='Sample project.'
     ),
+    'use_kubernetes': fields.Boolean(
+        required=True,
+        description='Do you use Kubernetes?',
+        example='False'
+    ),
     'description': fields.String(
         required=False,
         description='Description.',
@@ -35,6 +40,7 @@ project_model_params = project_api_namespace.model('Project', {
 class ApiProjects(Resource):
     project_model_parser = reqparse.RequestParser()
     project_model_parser.add_argument('display_name', type=str, required=True, location='form', default='sample', help='Sample project.')
+    project_model_parser.add_argument('use_kubernetes', type=inputs.boolean, required=True, location='form', default=False, help='Do you use Kubernetes?')
     project_model_parser.add_argument('description', type=str, required=False, location='form', help='Description.')
 
     @project_api_namespace.marshal_list_with(project_model_params)
@@ -49,11 +55,13 @@ class ApiProjects(Resource):
         args = self.project_model_parser.parse_args()
         display_name = args['display_name']
         description = args['description']
+        use_kubernetes = args['use_kubernetes']
 
         project_model = db.session.query(ProjectModel).filter(
             ProjectModel.display_name == display_name).one_or_none()
         if project_model is None:
-            project_model = ProjectModel(display_name=display_name, description=description)
+            project_model = ProjectModel(
+                display_name=display_name, description=description, use_kubernetes=use_kubernetes)
             db.session.add(project_model)
             db.session.flush()
         else:
@@ -76,6 +84,7 @@ class ApiProjects(Resource):
 class ApiProjectId(Resource):
     project_model_parser = reqparse.RequestParser()
     project_model_parser.add_argument('display_name', type=str, required=False, location='form', help='Sample project.')
+    project_model_parser.add_argument('use_kubernetes', type=bool, required=False, location='form', help='Do you use Kubernetes?')
     project_model_parser.add_argument('description', type=str, required=False, location='form', help='Description.')
 
     @project_api_namespace.marshal_with(project_model_params)
@@ -90,6 +99,7 @@ class ApiProjectId(Resource):
         args = self.project_model_parser.parse_args()
         display_name = args['display_name']
         description = args['description']
+        use_kubernetes = args['use_kubernetes']
 
         project_model = db.session.query(ProjectModel).filter(ProjectModel.project_id == project_id).first_or_404()
         is_update = False
@@ -98,6 +108,9 @@ class ApiProjectId(Resource):
             is_update = True
         if description is not None:
             project_model.description = description
+            is_update = True
+        if use_kubernetes is not None:
+            project_model.use_kubernetes = use_kubernetes
             is_update = True
         if is_update:
             db.session.commit()

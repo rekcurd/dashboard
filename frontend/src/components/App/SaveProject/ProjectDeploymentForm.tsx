@@ -11,6 +11,8 @@ const ProjectSchema = Yup.object().shape({
   displayName: Yup.string()
     .required('Required')
     .max(128),
+  useKubernetes: Yup.boolean()
+    .required('Required'),
   description: Yup.string(),
 });
 
@@ -22,6 +24,8 @@ class ProjectDeploymentFormImpl extends React.Component<SaveProjectFormProps> {
   render() {
     const { onSubmit, onCancel } = this.props
 
+    const yesno = [{value: true, label: "Yes"}, {value: false, label: "No"}]
+
     return (
       <React.Fragment>
         <h1 className='mb-3'>
@@ -32,6 +36,7 @@ class ProjectDeploymentFormImpl extends React.Component<SaveProjectFormProps> {
         <Formik
           initialValues={{
             displayName: '',
+            useKubernetes: false,
             description: '',
           }}
           validationSchema={ProjectSchema}
@@ -47,6 +52,16 @@ class ProjectDeploymentFormImpl extends React.Component<SaveProjectFormProps> {
                     component={FormikInput}
                     className='form-control'
                     placeholder="Display name"
+                    required />
+                  <Field
+                    name="useKubernetes"
+                    label="Do you use Kubernetes?"
+                    component={FormikInput}
+                    type="select"
+                    className="form-control"
+                    placeholder="If you use Kubernetes, then choose 'Yes'."
+                    options={yesno}
+                    onChange={()=>{}}
                     required />
                   <Field
                     name="description"

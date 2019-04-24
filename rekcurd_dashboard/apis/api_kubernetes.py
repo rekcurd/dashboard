@@ -123,18 +123,6 @@ class ApiKubernetes(Resource):
         return {"status": True, "message": "Success."}
 
 
-@kubernetes_api_namespace.route('/projects/<int:project_id>/is_kubernetes_mode')
-class ApiIsKubernetesMode(Resource):
-    @kubernetes_api_namespace.marshal_with(true_or_false)
-    def get(self, project_id: int):
-        """is Kubernetes mode?"""
-        kubernetes_models = KubernetesModel.query.filter_by(project_id=project_id).all()
-        if kubernetes_models:
-            return {'is_target': True}
-        else:
-            return {'is_target': False}
-
-
 @kubernetes_api_namespace.route('/projects/<int:project_id>/backup')
 class ApiKubernetesBackup(Resource):
     @kubernetes_api_namespace.marshal_with(success_or_not)
