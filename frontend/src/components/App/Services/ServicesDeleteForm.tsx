@@ -75,7 +75,7 @@ class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, Servic
       return (
         <Row>
           { canEdit ?
-            <Checkbox name='delete_services' value={serviceId} label='' />
+            <Checkbox id={serviceId} name='delete_services' value={serviceId} label='' />
             : null }
           <Link className='text-info' to={`/projects/${projectId}/applications/${applicationId}/services/${serviceId}/edit`}>
             {serviceName}

@@ -84,7 +84,7 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
       return (
         <Row>
           { canEdit && !isSwitchMode ?
-            <Checkbox name='delete_services' value={serviceId} label='' />
+            <Checkbox id={serviceId} name='delete_services' value={serviceId} label='' />
             : null }
           <Link className='text-info' to={`/projects/${projectId}/applications/${applicationId}/services/${serviceId}/edit`}>
             {serviceName}
@@ -120,7 +120,7 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
 
     const deleteCheckButton = (modelName: string, modelId: string) => {
       const checkBox = (
-        <Checkbox name='delete_models' value={modelId} label='' />
+        <Checkbox id={modelId} name='delete_models' value={modelId} label='' />
       )
       return (
         <Row>

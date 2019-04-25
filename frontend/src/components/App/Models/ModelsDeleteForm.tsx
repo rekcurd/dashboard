@@ -71,6 +71,7 @@ class ModelsDeleteForm extends React.Component<ModelsDeleteFormProps, ModelsDele
         <Row>
           { canEdit ?
             <Checkbox
+              id={modelId.toString()}
               name='delete_models'
               value={modelId.toString()}
               label='' />

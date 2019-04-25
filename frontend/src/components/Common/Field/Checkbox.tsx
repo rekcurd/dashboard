@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
+import { CustomInput } from 'reactstrap'
 import { Field } from "formik";
 
 
@@ -12,24 +13,23 @@ class CheckboxImpl extends React.Component<CheckboxProps, CheckboxState> {
     return (
       <Field name={this.props.name}>
         {({ field, form }) => (
-          <label>
-            <input
-              type="checkbox"
-              checked={field.value.includes(this.props.value)}
-              onChange={() => {
-                if (field.value.includes(this.props.value)) {
-                  const nextValue = field.value.filter(
-                    value => value !== this.props.value
-                  );
-                  form.setFieldValue(this.props.name, nextValue);
-                } else {
-                  const nextValue = field.value.concat(this.props.value);
-                  form.setFieldValue(this.props.name, nextValue);
-                }
-                }}
-            />
-            {this.props.label}
-          </label>
+          <CustomInput
+            type='checkbox'
+            checked={field.value.includes(this.props.value)}
+            id={this.props.id}
+            label={this.props.label}
+            onChange={() => {
+              if (field.value.includes(this.props.value)) {
+                const nextValue = field.value.filter(
+                  value => value !== this.props.value
+                );
+                form.setFieldValue(this.props.name, nextValue);
+              } else {
+                const nextValue = field.value.concat(this.props.value);
+                form.setFieldValue(this.props.name, nextValue);
+              }
+            }}
+          />
         )}
       </Field>
     )
@@ -41,6 +41,7 @@ type CheckboxProps = CustomProps
 interface CheckboxState {}
 
 interface CustomProps {
+  id: string
   name: string
   value
   label: string
