@@ -131,6 +131,7 @@ def apply_rekcurd_to_kubernetes(
         resource_limit_memory: str, commit_message: str, service_model_assignment: int,
         service_git_url: str = "", service_git_branch: str = "", service_boot_script: str = "",
         debug_mode: bool = False, service_id: str = None,
+        display_name: str = None, description: str = None,
         **kwargs) -> str:
     """
     kubectl apply
@@ -159,6 +160,8 @@ def apply_rekcurd_to_kubernetes(
     :param service_boot_script:
     :param debug_mode:
     :param service_id:
+    :param display_name:
+    :param description:
     :param kwargs:
     :return:
     """
@@ -536,11 +539,12 @@ def apply_rekcurd_to_kubernetes(
             )
 
         """Add service model."""
-        display_name = "{0}-{1}".format(service_level, service_id)
         if is_creation_mode:
+            if display_name is None:
+                display_name = "{0}-{1}".format(service_level, service_id)
             service_model = ServiceModel(
                 service_id=service_id, application_id=application_id, display_name=display_name,
-                description=commit_message, service_level=service_level, version=version,
+                description=description, service_level=service_level, version=version,
                 model_id=service_model_assignment, insecure_host=insecure_host,
                 insecure_port=insecure_port)
             db.session.add(service_model)
@@ -760,7 +764,7 @@ def switch_model_assignment(project_id: int, application_id: str, service_id: st
     deployment_info["commit_message"] = "model_id={0} on {1:%Y%m%d%H%M%S}".format(model_id, datetime.utcnow())
 
     apply_rekcurd_to_kubernetes(
-        project_id=project_id, application_id=application_id, service_id=service_id, **deployment_info)
+        project_id=project_id, application_id=application_id, **deployment_info)
 
     service_model.model_id = model_id
     db.session.flush()

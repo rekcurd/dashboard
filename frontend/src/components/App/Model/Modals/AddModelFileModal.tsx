@@ -1,122 +1,118 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { reduxForm, Field, InjectedFormProps  } from 'redux-form'
 
 import { uploadModelDispatcher, addNotification } from '@src/actions/index'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core/index'
-import { SingleFormField } from '@common/Field/SingleFormField'
-import { FileUploadInputField } from '@common/Field/FileUploadInputField'
-import { required } from '@common/Field/Validateors'
+import { UploadModelParam } from '@src/apis'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
-class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, {fileName: string}> {
+import * as Yup from "yup";
+import { Field, Form, Formik } from "formik";
+
+import { FileUpload, FormikInput } from '@common/Field'
+
+
+const AddModelFileSchema = Yup.object().shape({
+  description: Yup.string()
+    .required('Required'),
+  filepath: Yup.mixed()
+    .required('Required')
+});
+
+class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddModelFileFormState> {
   constructor(props, context) {
     super(props, context)
 
-    this.onChange = this.onChange.bind(this)
+    this.state = {
+      submitting: false
+    }
+
     this.onSubmit = this.onSubmit.bind(this)
     this.onCancel = this.onCancel.bind(this)
-    this.state = {
-      fileName: null
-    }
   }
 
   onSubmit(params) {
-    const { applicationId, uploadModel } = this.props
+    const { projectId, applicationId, uploadModel } = this.props
     const request = {
+      projectId,
       applicationId,
-      ...params.upload.model
+      ...params
     }
+    this.setState({submitting: true})
     return uploadModel(request)
   }
 
-  componentWillReceiveProps(nextProps) {
+  static getDerivedStateFromProps(nextProps: AddModelFileFormProps, prevState: AddModelFileFormState){
     const {
-      uploadModelFileStatus, toggle, isModalOpen,
-      submitting, reset, reload
+      uploadModelStatus, toggle, isModalOpen, reload
     } = nextProps
 
-    // Close modal when API successfully connected
-    // Close modal when API successfully connected
-    if (isModalOpen && submitting) {
-      const succeeded: boolean = isAPISucceeded<boolean>(uploadModelFileStatus) && uploadModelFileStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(uploadModelFileStatus) && !uploadModelFileStatus.result) ||
-                                isAPIFailed<boolean>(uploadModelFileStatus)
+    if (isModalOpen && prevState.submitting) {
+      const succeeded: boolean = isAPISucceeded<boolean>(uploadModelStatus) && uploadModelStatus.result
+      const failed: boolean = (isAPISucceeded<boolean>(uploadModelStatus) && !uploadModelStatus.result) || isAPIFailed<boolean>(uploadModelStatus)
       if (succeeded) {
-        reset()
         toggle()
         reload({color: 'success', message: 'Successfully added model'})
+        return {submitting: false}
       } else if (failed) {
-        nextProps.addNotification({color: 'error', message: 'Something went wrong. Try again later'})
+        nextProps.addNotification({color: 'error', message: 'Something went wrong with uploading model. Try again later'})
+        return {submitting: false}
       }
     }
+    return null
   }
 
   onCancel(event) {
-    const { reset, submitting, toggle } = this.props
-    if (!submitting) {
-      this.setState({fileName: null})
-      reset()
-      toggle()
-    }
-  }
-
-  onChange(event) {
-    if (event.target.files[0]) {
-      this.setState({fileName: event.target.files[0].name})
+    if (!this.state.submitting) {
+      this.props.toggle()
     }
   }
 
   render() {
     const {
-      handleSubmit, isModalOpen
+      isModalOpen
     } = this.props
 
     return (
       <Modal isOpen={isModalOpen} toggle={this.onCancel}>
-        <form onSubmit={handleSubmit(this.onSubmit)}>
-          <ModalHeader toggle={this.onCancel}>
-            <i className='fas fa-robot fa-fw mr-2'></i>
-            Add Model
-          </ModalHeader>
-          {this.renderBodyForm()}
-          {this.renderFooterButtons()}
-        </form>
+        <Formik
+          initialValues={{
+            description: '',
+            filepath: null
+          }}
+          validationSchema={AddModelFileSchema}
+          onSubmit={this.onSubmit}
+          onReset={this.onCancel}>
+          {({ errors, touched, setFieldValue, isSubmitting }) => (
+            <Form>
+              <ModalHeader toggle={this.onCancel}>
+                <i className='fas fa-robot fa-fw mr-2'></i>
+                Add Model
+              </ModalHeader>
+              <ModalBody>
+                <Field
+                  name="description"
+                  label="Description"
+                  component={FormikInput}
+                  className="form-control"
+                  type="textarea"
+                  placeholder="e.g. sklearn linearSVC C=0.01"
+                  required />
+                <FileUpload
+                  errors={errors}
+                  touched={touched}
+                  setFieldValue={setFieldValue}
+                  name="filepath"
+                  label="Model File"
+                  className="form-control"
+                  placeholder="Upload your machine learning model file."
+                  required />
+              </ModalBody>
+              {this.renderFooterButtons(isSubmitting)}
+            </Form>
+          )}
+        </Formik>
       </Modal>
-    )
-  }
-
-  renderBodyForm() {
-    const { fileName } = this.state
-    const uploadForm = (
-      <Field
-        label='Model File'
-        formText='Choose ML model file'
-        name='upload.model.file'
-        component={FileUploadInputField}
-        id='uploadModelFile'
-        onChange={this.onChange}
-        fileName={fileName}
-        validate={required}
-        required
-      />
-    )
-
-    const descriptionForm = (
-      <Field
-        label='Description'
-        name='upload.model.description'
-        component={SingleFormField} type='text'
-        className='form-control' id='modelDescription'
-        formText='Short description of your new model'
-      />
-    )
-
-    return (
-      <ModalBody>
-        {uploadForm}
-        {descriptionForm}
-      </ModalBody>
     )
   }
 
@@ -125,10 +121,8 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, {fileN
    *
    * Put on footer of this modal
    */
-  renderFooterButtons() {
-    const { submitting } = this.props
-
-    if (submitting) {
+  renderFooterButtons(isSubmitting) {
+    if (isSubmitting) {
       return(
         <ModalFooter>
           <div className='loader loader-primary loader-xs mr-2'/>
@@ -144,7 +138,7 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, {fileN
           Submit
         </Button>
         {' '}
-        <Button outline color='info' onClick={this.onCancel}>
+        <Button outline color='info' type='reset'>
           <i className='fas fa-ban fa-fw mr-2'></i>
           Cancel
         </Button>
@@ -153,45 +147,44 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, {fileN
   }
 }
 
-interface AddModelFileFormCustomProps {
+interface CustomProps {
+  projectId: number
+  applicationId: string
   isModalOpen: boolean
   toggle
-  applicationId: string
   reload
 }
 
 interface StateProps {
-  uploadModelFileStatus: APIRequest<boolean>
+  uploadModelStatus: APIRequest<boolean>
 }
 
-const mapStateToProps = (state: any, extraProps: AddModelFileFormCustomProps) => {
+const mapStateToProps = (state: any, extraProps: CustomProps) => {
   return {
-    uploadModelFileStatus: state.uploadModelReducer.uploadModel,
+    uploadModelStatus: state.uploadModelReducer.uploadModel,
     ...state.form,
     ...extraProps
   }
 }
 
 export interface DispatchProps {
-  uploadModel: (params) => Promise<void>
+  uploadModel: (params: UploadModelParam) => Promise<void>
   addNotification: (params) => any
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    uploadModel: (params) => uploadModelDispatcher(dispatch, params),
+    uploadModel: (params: UploadModelParam) => uploadModelDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }
 
-type AddModelFileFormProps
-  = StateProps & DispatchProps & AddModelFileFormCustomProps & InjectedFormProps<{}, AddModelFileFormCustomProps>
+type AddModelFileFormProps = StateProps & DispatchProps & CustomProps
 
-export const AddModelFileModal = connect(mapStateToProps, mapDispatchToProps)(
-  reduxForm<any, AddModelFileFormCustomProps>(
-  {
-    form: 'uploadModelFileForm',
-    touchOnChange: true
-  }
-  )(AddModelFileFormImpl)
-)
+interface AddModelFileFormState {
+  submitting: boolean
+}
+
+export const AddModelFileModal = connect<StateProps, DispatchProps, CustomProps>(
+  mapStateToProps, mapDispatchToProps
+)(AddModelFileFormImpl)

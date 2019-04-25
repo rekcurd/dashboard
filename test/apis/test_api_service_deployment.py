@@ -53,13 +53,15 @@ class ApiServiceDeploymentTest(BaseTestCase):
 
     @mock_decorator()
     def test_post(self):
+        display_name = 'test'
         service_level = 'development'
         container_image = 'test-image'
         service_model_assignment = 1
         resource_request_cpu = 1.0
         resource_request_memory = '512Mi'
         response = self.client.post(
-            self.__URL, data={'service_level': service_level, 'container_image': container_image,
+            self.__URL, data={'display_name': display_name,
+                              'service_level': service_level, 'container_image': container_image,
                               'service_model_assignment': service_model_assignment,
                               'resource_request_cpu': resource_request_cpu,
                               'resource_request_memory': resource_request_memory})
@@ -83,6 +85,7 @@ class ApiServiceIdDeploymentTest(BaseTestCase):
 
     @mock_decorator()
     def test_patch(self):
+        display_name = 'test'
         service_level = 'development'
         version = 'v2'
         insecure_host = 'insecure_host'
@@ -104,7 +107,8 @@ class ApiServiceIdDeploymentTest(BaseTestCase):
         resource_limit_cpu = 1.0
         resource_limit_memory = '512Mi'
         response = self.client.patch(
-            self.__URL, data={'service_level': service_level, 'version': version,
+            self.__URL, data={'display_name': display_name,
+                              'service_level': service_level, 'version': version,
                               'insecure_host': insecure_host,
                               'insecure_port': insecure_port,
                               'replicas_default': replicas_default, 'replicas_minimum': replicas_minimum,

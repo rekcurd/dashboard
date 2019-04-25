@@ -1,24 +1,9 @@
 import { Action } from 'redux'
 import { APIError, APIErrorType } from '@src/apis/Core'
-import {
-  addApplication, saveService, saveModel, saveKubernetesHost,
-  fetchAllApplications, fetchAllModels, fetchAllServices,
-  fetchApplicationById, fetchKubernetesHostById,
-  fetchServiceById, fetchModelById, FetchServicesParam,
-  FetchModelsParam, fetchServiceDescriptions,
-  fetchAllKubernetesHosts,
-  uploadModel, switchModels, syncKubernetesStatus,
-  deleteKubernetesHost, deleteKubernetesServices,
-  deleteKubernetesModels,
-  settings, login, userInfo, fetchAllUsers,
-  fetchAccessControlList, saveAccessControl, deleteAccessControl,
-  SaveServiceParam, SaveModelParam, SwitchModelParam,
-  ModelResponse, KubernetesHost, LoginParam, AuthToken, UserInfo, AccessControlList
-} from '@src/apis'
-import { Application, Model, Service } from '@src/apis'
+import * as Apis from '@src/apis'
 
 export type Actions = APIActions<any> | NotificationActions
-export type APIActions<P = {}, S = {}, F = APIError> = APIRequestStartAction<P> | APIRequestSuccessAction<S> | APIRequestFailueAction<F>
+export type APIActions<P = {}, S = {}, F = APIError> = APIRequestStartAction<P> | APIRequestSuccessAction<S> | APIRequestFailureAction<F>
 
 export interface APIRequestStartAction<P = {}> extends Action {
   type: string
@@ -30,7 +15,7 @@ export interface APIRequestSuccessAction<S = {}> extends Action {
   result: S
 }
 
-export interface APIRequestFailueAction<F = APIError> extends Action {
+export interface APIRequestFailureAction<F = APIError> extends Action {
   type: string
   error: F
 }
@@ -52,7 +37,7 @@ export class APIRequestActionCreators<P = {}, S = {}, F = APIError> {
   ) {
     this.apiType = apiType
     const suffix = apiType
-    this.failure = (error: F): APIRequestFailueAction<F> => {
+    this.failure = (error: F): APIRequestFailureAction<F> => {
       return {type: `${suffix}_FAILURE`, error}
     }
     this.request = (params: P): APIRequestStartAction<P> => {
@@ -89,161 +74,267 @@ function asyncAPIRequestDispatcherCreator<P = {}, S = {}, F = APIError>(
   }
 }
 
-export const uploadModelActionCreators = new APIRequestActionCreators<{name: string, description: string}, ModelResponse>('UPLOAD_MODEL')
-export const uploadModelDispatcher = asyncAPIRequestDispatcherCreator<{name: string, description: string}, ModelResponse>(
+export const saveProjectActionCreators =
+  new APIRequestActionCreators<Apis.ProjectParam, boolean>('SAVE_PROJECT')
+export const saveProjectDispatcher = asyncAPIRequestDispatcherCreator<Apis.ProjectParam, boolean>(
+  saveProjectActionCreators,
+  Apis.saveProject
+)
+
+export const saveDataServerActionCreators =
+  new APIRequestActionCreators<Apis.DataServerParam, boolean>('SAVE_DATASERVER')
+export const saveDataServerDispatcher = asyncAPIRequestDispatcherCreator<Apis.DataServerParam, boolean>(
+  saveDataServerActionCreators,
+  Apis.saveDataServer
+)
+
+export const saveKubernetesActionCreators =
+  new APIRequestActionCreators<Apis.KubernetesParam, boolean>('SAVE_KUBERNETES')
+export const saveKubernetesDispatcher = asyncAPIRequestDispatcherCreator<Apis.KubernetesParam, boolean>(
+  saveKubernetesActionCreators,
+  Apis.saveKubernetes
+)
+
+export const saveApplicationActionCreators =
+  new APIRequestActionCreators<Apis.ApplicationParam, boolean>('SAVE_APPLICATION')
+export const saveApplicationDispatcher = asyncAPIRequestDispatcherCreator<Apis.ApplicationParam, boolean>(
+  saveApplicationActionCreators,
+  Apis.saveApplication
+)
+
+export const updateServiceActionCreators =
+  new APIRequestActionCreators<Apis.UpdateServiceParam, boolean>('UPDATE_SERVICE')
+export const updateServiceDispatcher = asyncAPIRequestDispatcherCreator<Apis.UpdateServiceParam, boolean>(
+  updateServiceActionCreators,
+  Apis.updateService
+)
+
+export const saveServiceDeploymentActionCreators =
+  new APIRequestActionCreators<Apis.ServiceDeploymentParam, boolean>('SAVE_SERVICE_DEPLOYMENT')
+export const saveServiceDeploymentDispatcher = asyncAPIRequestDispatcherCreator<Apis.ServiceDeploymentParam, boolean>(
+  saveServiceDeploymentActionCreators,
+  Apis.saveServiceDeployment
+)
+
+export const updateServiceRoutingActionCreators =
+  new APIRequestActionCreators<Apis.ServiceRoutingParam, boolean>('UPDATE_SERVICE_ROUTING')
+export const updateServiceRoutingDispatcher = asyncAPIRequestDispatcherCreator<Apis.ServiceRoutingParam, boolean>(
+  updateServiceRoutingActionCreators,
+  Apis.updateServiceRouting
+)
+
+export const uploadModelActionCreators =
+  new APIRequestActionCreators<Apis.UploadModelParam, boolean>('UPLOAD_MODEL')
+export const uploadModelDispatcher = asyncAPIRequestDispatcherCreator<Apis.UploadModelParam, boolean>(
   uploadModelActionCreators,
-  uploadModel
+  Apis.uploadModel
 )
 
-export const saveKubernetesHostActionCreators =
-   new APIRequestActionCreators<{name: string, description: string}, boolean>('SAVE_CONNECTION')
-export const saveKubernetesHostDispatcher = asyncAPIRequestDispatcherCreator<any, boolean>(
-  saveKubernetesHostActionCreators,
-  saveKubernetesHost
+export const updateModelActionCreators =
+  new APIRequestActionCreators<Apis.UpdateModelParam, boolean>('UPDATE_MODEL')
+export const updateModelDispatcher = asyncAPIRequestDispatcherCreator<Apis.UpdateModelParam, boolean>(
+  updateModelActionCreators,
+  Apis.updateModel
 )
 
-export const addApplicationActionCreators = new APIRequestActionCreators<{name: string, description: string}, boolean>('ADD_CLIENT')
-export const addApplicationDispatcher = asyncAPIRequestDispatcherCreator<{name: string, description: string}, boolean>(
-  addApplicationActionCreators,
-  addApplication
+export const fetchAllProjectsActionCreators =
+  new APIRequestActionCreators<{}, Apis.Project[]>('FETCH_ALL_PROJECTS')
+export const fetchAllProjectsDispatcher = asyncAPIRequestDispatcherCreator<{}, Apis.Project[]>(
+  fetchAllProjectsActionCreators,
+  Apis.fetchAllProjects
 )
 
-export const saveServiceActionCreators = new APIRequestActionCreators<SaveServiceParam, boolean>('SAVE_SERVICE')
-export const saveServiceDispatcher = asyncAPIRequestDispatcherCreator<SaveServiceParam, boolean>(
-  saveServiceActionCreators,
-  saveService
+export const fetchProjectByIdActionCreators =
+  new APIRequestActionCreators<Apis.FetchProjectByIdParam, Apis.Project>('FETCH_PROJECT_BY_ID')
+export const fetchProjectByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchProjectByIdParam, Apis.Project>(
+  fetchProjectByIdActionCreators,
+  Apis.fetchProjectById
 )
 
-export const saveModelActionCreators = new APIRequestActionCreators<SaveModelParam, boolean>('SAVE_MODEL')
-export const saveModelDispatcher = asyncAPIRequestDispatcherCreator<SaveModelParam, boolean>(
-  saveModelActionCreators,
-  saveModel
+export const fetchDataServerActionCreators =
+  new APIRequestActionCreators<Apis.FetchDataServerByIdParam, Apis.DataServer>('FETCH_DATA_SERVER_BY_ID')
+export const fetchDataServerDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchDataServerByIdParam, Apis.DataServer>(
+  fetchDataServerActionCreators,
+  Apis.fetchDataServer
 )
 
-export const fetchAllKubernetesHostsActionCreators = new APIRequestActionCreators<{}, KubernetesHost[]>('FETCH_ALL_CONNECTIONS')
-export const fetchAllKubernetesHostsDispatcher = asyncAPIRequestDispatcherCreator<{}, KubernetesHost[]>(
-  fetchAllKubernetesHostsActionCreators,
-  fetchAllKubernetesHosts
+export const fetchAllKubernetesActionCreators =
+  new APIRequestActionCreators<Apis.FetchKubernetesByIdParam, Apis.Kubernetes[]>('FETCH_ALL_KUBERNETES')
+export const fetchAllKubernetesDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes[]>(
+  fetchAllKubernetesActionCreators,
+  Apis.fetchAllKubernetes
 )
 
-export const fetchAllApplicationsActionCreators = new APIRequestActionCreators<{}, Application[]>('FETCH_ALL_CLIENTS')
-export const fetchAllApplicationsDispatcher = asyncAPIRequestDispatcherCreator<{}, Application[]>(
+export const fetchKubernetesByIdActionCreators =
+  new APIRequestActionCreators<Apis.FetchKubernetesByIdParam, Apis.Kubernetes>('FETCH_KUBERNETES_BY_ID')
+export const fetchKubernetesByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes>(
+  fetchKubernetesByIdActionCreators,
+  Apis.fetchKubernetesById
+)
+
+export const fetchAllApplicationsActionCreators =
+  new APIRequestActionCreators<Apis.FetchApplicationByIdParam, Apis.Application[]>('FETCH_ALL_APPLICATIONS')
+export const fetchAllApplicationsDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchApplicationByIdParam, Apis.Application[]>(
   fetchAllApplicationsActionCreators,
-  fetchAllApplications
+  Apis.fetchAllApplications
 )
 
-export const fetchApplicationByIdActionCreators = new APIRequestActionCreators<{id: string}, Application>('FETCH_CLIENT_BY_ID')
-export const fetchApplicationByIdDispatcher = asyncAPIRequestDispatcherCreator<{id: string}, Application>(
+export const fetchApplicationByIdActionCreators =
+  new APIRequestActionCreators<Apis.FetchApplicationByIdParam, Apis.Application>('FETCH_APPLICATION_BY_ID')
+export const fetchApplicationByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchApplicationByIdParam, Apis.Application>(
   fetchApplicationByIdActionCreators,
-  fetchApplicationById
+  Apis.fetchApplicationById
 )
 
-export const fetchKubernetesHostByIdActionCreators = new APIRequestActionCreators<{id: string}, any>('FETCH_KUBERNETES_CONNECTION_BY_ID')
-export const fetchKubernetesHostByIdDispatcher = asyncAPIRequestDispatcherCreator<{id: string}, any>(
-  fetchKubernetesHostByIdActionCreators,
-  fetchKubernetesHostById
-)
-
-export const fetchAllModelsActionCreators = new APIRequestActionCreators<{applicationId: string}, Model[]>('FETCH_ALL_MODELS')
-export const fetchAllModelsDispatcher = asyncAPIRequestDispatcherCreator<{applicationId: string}, Model[]>(
+export const fetchAllModelsActionCreators =
+  new APIRequestActionCreators<Apis.FetchModelByIdParam, Apis.Model[]>('FETCH_ALL_MODELS')
+export const fetchAllModelsDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchModelByIdParam, Apis.Model[]>(
   fetchAllModelsActionCreators,
-  fetchAllModels
+  Apis.fetchAllModels
 )
 
-export const fetchAllServicesActionCreators = new APIRequestActionCreators<FetchServicesParam, Service[]>('FETCH_ALL_SERVICES')
-export const fetchAllServicesDispatcher = asyncAPIRequestDispatcherCreator<FetchServicesParam, Service[]>(
-  fetchAllServicesActionCreators,
-  fetchAllServices
-)
-
-export const fetchServiceByIdActionCreators = new APIRequestActionCreators<FetchServicesParam, Service>('FETCH_SERVICE')
-export const fetchServiceByIdDispatcher = asyncAPIRequestDispatcherCreator<FetchServicesParam, Service>(
-  fetchServiceByIdActionCreators,
-  fetchServiceById
-)
-
-export const fetchModelByIdActionCreators = new APIRequestActionCreators<FetchModelsParam, Model>('FETCH_MODEL')
-export const fetchModelByIdDispatcher = asyncAPIRequestDispatcherCreator<FetchModelsParam, Model>(
+export const fetchModelByIdActionCreators =
+  new APIRequestActionCreators<Apis.FetchModelByIdParam, Apis.Model>('FETCH_MODEL_BY_ID')
+export const fetchModelByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchModelByIdParam, Apis.Model>(
   fetchModelByIdActionCreators,
-  fetchModelById
+  Apis.fetchModelById
 )
 
-export const fetchServiceDescriptionsActionCreators = new APIRequestActionCreators<FetchServicesParam, Service[]>('FETCH_SERVICE_DESCRIPTIONS')
-export const fetchServiceDescriptionsDispatcher = asyncAPIRequestDispatcherCreator<FetchServicesParam, Service[]>(
-  fetchServiceDescriptionsActionCreators,
-  fetchServiceDescriptions
+export const fetchAllServicesActionCreators =
+  new APIRequestActionCreators<Apis.FetchServiceParam, Apis.Service[]>('FETCH_ALL_SERVICES')
+export const fetchAllServicesDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchServiceParam, Apis.Service[]>(
+  fetchAllServicesActionCreators,
+  Apis.fetchAllServices
 )
 
-export const switchModelsActionCreators = new APIRequestActionCreators<SwitchModelParam[], boolean[]>('SWITCH_MODELS')
-export const switchModelsDispatcher = asyncAPIRequestDispatcherCreator<SwitchModelParam[], boolean[]>(
+export const fetchServiceByIdActionCreators =
+  new APIRequestActionCreators<Apis.FetchServiceByIdParam, Apis.Service>('FETCH_SERVICE_BY_ID')
+export const fetchServiceByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchServiceByIdParam, Apis.Service>(
+  fetchServiceByIdActionCreators,
+  Apis.fetchServiceById
+)
+
+export const fetchServiceRoutingActionCreators =
+  new APIRequestActionCreators<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>('FETCH_SERVICE_ROUTE_BY_ID')
+export const fetchServiceRoutingDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>(
+  fetchServiceRoutingActionCreators,
+  Apis.fetchServiceRouting
+)
+
+export const switchModelsActionCreators =
+  new APIRequestActionCreators<Apis.SwitchModelParam[], boolean[]>('SWITCH_MODELS')
+export const switchModelsDispatcher = asyncAPIRequestDispatcherCreator<Apis.SwitchModelParam[], boolean[]>(
   switchModelsActionCreators,
-  switchModels
+  Apis.switchModels
 )
 
-export const deleteKubernetesHostActionCreators = new APIRequestActionCreators<{id: number}, boolean>('DELETE_KUBERNETES_CONNECTION')
-export const deleteKubernetesHostDispatcher = asyncAPIRequestDispatcherCreator<{id: number}, boolean>(
-  deleteKubernetesHostActionCreators,
-  deleteKubernetesHost
+export const syncKubernetesActionCreators =
+  new APIRequestActionCreators<Apis.SyncKubernetesParam, boolean>('SYNC_KUBERNETES_STATUS')
+export const syncKubernetesDispatcher = asyncAPIRequestDispatcherCreator<Apis.SyncKubernetesParam, boolean>(
+  syncKubernetesActionCreators,
+  Apis.syncKubernetes
 )
 
-export const deleteKubernetesServicesActionCreators = new APIRequestActionCreators<any, boolean[]>('DELETE_KUBERNETES_SERVICE')
-export const deleteKubernetesServicesDispatcher = asyncAPIRequestDispatcherCreator<any, boolean[]>(
-  deleteKubernetesServicesActionCreators,
-  deleteKubernetesServices
+export const deleteKubernetesActionCreators =
+  new APIRequestActionCreators<Apis.IdParam, boolean>('DELETE_KUBERNETES')
+export const deleteKubernetesDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam, boolean>(
+  deleteKubernetesActionCreators,
+  Apis.deleteKubernetes
 )
 
-export const deleteKubernetesModelsActionCreators = new APIRequestActionCreators<any, boolean[]>('DELETE_KUBERNETES_MODEL')
-export const deleteKubernetesModelsDispatcher = asyncAPIRequestDispatcherCreator<any, boolean[]>(
-  deleteKubernetesModelsActionCreators,
-  deleteKubernetesModels
+export const deleteDataServerActionCreators =
+  new APIRequestActionCreators<Apis.IdParam, boolean>('DELETE_DATA_SERVER')
+export const deleteDataServerDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam, boolean>(
+  deleteDataServerActionCreators,
+  Apis.deleteDataServer
 )
 
-export const syncKubernetesStatusActionCreators = new APIRequestActionCreators<any, boolean>('SYNC_KUBERNETES_STATUS')
-export const syncKubernetesStatusDispatcher = asyncAPIRequestDispatcherCreator<any, boolean>(
-  syncKubernetesStatusActionCreators,
-  syncKubernetesStatus
+export const deleteApplicationActionCreators =
+  new APIRequestActionCreators<Apis.IdParam, boolean>('DELETE_APPLICATION')
+export const deleteApplicationDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam, boolean>(
+  deleteApplicationActionCreators,
+  Apis.deleteApplication
 )
 
-export const settingsActionCreators = new APIRequestActionCreators<{}, any>('SETTINGS')
+export const deleteServicesActionCreators =
+  new APIRequestActionCreators<Apis.IdParam[], boolean[]>('DELETE_SERVICES')
+export const deleteServicesDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam[], boolean[]>(
+  deleteServicesActionCreators,
+  Apis.deleteServices
+)
+
+export const deleteModelsActionCreators =
+  new APIRequestActionCreators<Apis.IdParam[], boolean[]>('DELETE_MODELS')
+export const deleteModelsDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam[], boolean[]>(
+  deleteModelsActionCreators,
+  Apis.deleteModels
+)
+
+// Login
+export const settingsActionCreators =
+  new APIRequestActionCreators<{}, any>('SETTINGS')
 export const settingsDispatcher = asyncAPIRequestDispatcherCreator<{}, any>(
   settingsActionCreators,
-  settings
+  Apis.settings
 )
 
-export const loginActionCreators = new APIRequestActionCreators<LoginParam, AuthToken>('LOGIN')
-export const loginDispatcher = asyncAPIRequestDispatcherCreator<LoginParam, AuthToken>(
+export const loginActionCreators =
+  new APIRequestActionCreators<Apis.LoginParam, Apis.AuthToken>('LOGIN')
+export const loginDispatcher = asyncAPIRequestDispatcherCreator<Apis.LoginParam, Apis.AuthToken>(
   loginActionCreators,
-  login
+  Apis.login
 )
 
-export const userInfoActionCreators = new APIRequestActionCreators<{}, UserInfo>('USER_INFO')
-export const userInfoDispatcher = asyncAPIRequestDispatcherCreator<{}, UserInfo>(
+export const userInfoActionCreators =
+  new APIRequestActionCreators<{}, Apis.UserInfo>('USER_INFO')
+export const userInfoDispatcher = asyncAPIRequestDispatcherCreator<{}, Apis.UserInfo>(
   userInfoActionCreators,
-  userInfo
+  Apis.userInfo
 )
 
-export const fetchAllUsersActionCreators = new APIRequestActionCreators<{}, UserInfo[]>('ALL_USERS')
-export const fetchAllUsersDispatcher = asyncAPIRequestDispatcherCreator<{}, UserInfo[]>(
+export const fetchAllUsersActionCreators =
+  new APIRequestActionCreators<{}, Apis.UserInfo[]>('ALL_USERS')
+export const fetchAllUsersDispatcher = asyncAPIRequestDispatcherCreator<{}, Apis.UserInfo[]>(
   fetchAllUsersActionCreators,
-  fetchAllUsers
+  Apis.fetchAllUsers
 )
 
-export const fetchAccessControlListActionCreators = new APIRequestActionCreators<any, AccessControlList[]>('FETCH_ACCESS_CONTROL_LIST')
-export const fetchAccessControlListDispatcher = asyncAPIRequestDispatcherCreator<any, AccessControlList[]>(
-  fetchAccessControlListActionCreators,
-  fetchAccessControlList
+export const fetchProjectAccessControlListActionCreators =
+  new APIRequestActionCreators<Apis.AccessControlParam, Apis.ProjectAccessControlList[]>('FETCH_PROJECT_ACCESS_CONTROL_LIST')
+export const fetchProjectAccessControlListDispatcher = asyncAPIRequestDispatcherCreator<Apis.AccessControlParam, Apis.ProjectAccessControlList[]>(
+  fetchProjectAccessControlListActionCreators,
+  Apis.fetchProjectAccessControlList
 )
 
-export const saveAccessControlActionCreators = new APIRequestActionCreators<{}, boolean>('SAVE_ACCESS_CONTROL')
-export const saveAccessControlDispatcher = asyncAPIRequestDispatcherCreator<{}, boolean>(
-  saveAccessControlActionCreators,
-  saveAccessControl
+export const saveProjectAccessControlActionCreators = new APIRequestActionCreators<Apis.AccessControlParam, boolean>('SAVE_PROJECT_ACCESS_CONTROL')
+export const saveProjectAccessControlDispatcher = asyncAPIRequestDispatcherCreator<Apis.AccessControlParam, boolean>(
+  saveProjectAccessControlActionCreators,
+  Apis.saveProjectAccessControl
 )
 
-export const deleteAccessControlActionCreators = new APIRequestActionCreators<{}, boolean>('DELETE_ACCESS_CONTROL')
-export const deleteAccessControlDispatcher = asyncAPIRequestDispatcherCreator<{}, boolean>(
-  deleteAccessControlActionCreators,
-  deleteAccessControl
+export const deleteProjectAccessControlActionCreators = new APIRequestActionCreators<Apis.AccessControlParam, boolean>('DELETE_PROJECT_ACCESS_CONTROL')
+export const deleteProjectAccessControlDispatcher = asyncAPIRequestDispatcherCreator<Apis.AccessControlParam, boolean>(
+  deleteProjectAccessControlActionCreators,
+  Apis.deleteProjectAccessControl
+)
+
+export const fetchApplicationAccessControlListActionCreators =
+  new APIRequestActionCreators<Apis.AccessControlParam, Apis.ApplicationAccessControlList[]>('FETCH_APPLICATION_ACCESS_CONTROL_LIST')
+export const fetchApplicationAccessControlListDispatcher = asyncAPIRequestDispatcherCreator<Apis.AccessControlParam, Apis.ApplicationAccessControlList[]>(
+  fetchApplicationAccessControlListActionCreators,
+  Apis.fetchApplicationAccessControlList
+)
+
+export const saveApplicationAccessControlActionCreators = new APIRequestActionCreators<Apis.AccessControlParam, boolean>('SAVE_APPLICATION_ACCESS_CONTROL')
+export const saveApplicationAccessControlDispatcher = asyncAPIRequestDispatcherCreator<Apis.AccessControlParam, boolean>(
+  saveApplicationAccessControlActionCreators,
+  Apis.saveApplicationAccessControl
+)
+
+export const deleteApplicationAccessControlActionCreators = new APIRequestActionCreators<Apis.AccessControlParam, boolean>('DELETE_APPLICATION_ACCESS_CONTROL')
+export const deleteApplicationAccessControlDispatcher = asyncAPIRequestDispatcherCreator<Apis.AccessControlParam, boolean>(
+  deleteApplicationAccessControlActionCreators,
+  Apis.deleteApplicationAccessControl
 )
 
 // Notification actions

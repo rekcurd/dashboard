@@ -1,18 +1,22 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { withRouter, RouteComponentProps, Link } from 'react-router-dom'
+import { withRouter, RouteComponentProps } from 'react-router-dom'
 import { Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Model, Application, UserInfo, UserRole } from '@src/apis'
 import {
+  Model, Application, UserInfo, UserApplicationRole,
+  UpdateModelParam, FetchApplicationByIdParam, FetchModelByIdParam
+} from '@src/apis'
+import {
+  fetchModelByIdDispatcher,
   fetchApplicationByIdDispatcher,
-  saveModelDispatcher,
+  updateModelDispatcher,
   addNotification
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import ModelDescription from './ModelDescription'
-import { role } from '../Admin/constants'
+import { applicationRole } from '@common/Enum'
 
 /**
  * Page for adding model
@@ -29,43 +33,17 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
     }
   }
 
-  componentWillReceiveProps(nextProps: ModelProps) {
-    const { saveModelStatus } = nextProps
-    const { push } = nextProps.history
-    const { applicationId } = this.props.match.params
-    const { submitting, notified } = this.state
-
-    // Close modal when API successfully finished
-    if (submitting && !notified) {
-      const succeeded: boolean = isAPISucceeded<boolean>(saveModelStatus) && saveModelStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(saveModelStatus) && !saveModelStatus.result) ||
-        isAPIFailed<boolean>(saveModelStatus)
-      if (succeeded) {
-        nextProps.addNotification({ color: 'success', message: 'Successfully saved model' })
-        this.setState({ notified: true })
-        push(`/applications/${applicationId}`)
-      } else if (failed) {
-        nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
-        this.setState({ notified: true })
-      }
-    }
-  }
-
-  componentWillMount() {
-    const { applicationId } = this.props.match.params
-    const { fetchApplicationById } = this.props
-
-    fetchApplicationById({id: applicationId})
-  }
-
   componentDidMount() {
     const { userInfoStatus, history } = this.props
     const { applicationId } = this.props.match.params
+
+    this.props.fetchApplicationById(this.props.match.params)
+
     const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
     if (userInfo) {
-      const canEdit: boolean = userInfo.roles.some((userRole: UserRole) => {
-        return String(userRole.applicationId) === applicationId &&
-          (userRole.role === role.editor || userRole.role === role.owner)
+      const canEdit: boolean = userInfo.applicationRoles.some((role: UserApplicationRole) => {
+        return String(role.applicationId) === String(applicationId) &&
+          (role.role === applicationRole.editor || role.role === applicationRole.admin)
       })
       if (!canEdit) {
         history.goBack()
@@ -73,29 +51,48 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
     }
   }
 
+  static getDerivedStateFromProps(nextProps: ModelProps, prevState: ModelState){
+    const { updateModelStatus } = nextProps
+    const { push } = nextProps.history
+    const { submitting, notified } = prevState
+    const { projectId, applicationId } = nextProps.match.params
+
+    // Close modal when API successfully finished
+    if (submitting && !notified) {
+      const succeeded: boolean = isAPISucceeded<boolean>(updateModelStatus) && updateModelStatus.result
+      const failed: boolean = (isAPISucceeded<boolean>(updateModelStatus) && !updateModelStatus.result) || isAPIFailed<boolean>(updateModelStatus)
+      if (succeeded) {
+        nextProps.addNotification({ color: 'success', message: 'Successfully saved model' })
+        push(`/projects/${projectId}/applications/${applicationId}`)
+        return { notified: true }
+      } else if (failed) {
+        nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+        return { notified: true }
+      }
+    }
+    return null
+  }
+
   render() {
     const { application } = this.props
-    const targetStatus = { application }
 
     return(
       <APIRequestResultsRenderer
+        APIStatus={{application}}
         render={this.renderForm}
-        APIStatus={targetStatus}
       />
     )
   }
 
   renderForm(result) {
-    const { mode } = this.props
-
     return (
       <Row className='justify-content-center'>
         <Col md='10'>
           <h1 className='mb-3'>
             <i className='fas fa-box fa-fw mr-2'></i>
-            {mode === 'edit' ? 'Edit' : 'Add'} Model
+            Edit Model
           </h1>
-          { mode === 'edit' ? <ModelDescription mode={mode}/> : null }
+          <ModelDescription />
         </Col>
       </Row>
     )
@@ -104,7 +101,7 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
 
 type ModelProps =
   StateProps & DispatchProps
-  & RouteComponentProps<{applicationId: string, modelId?: string}>
+  & RouteComponentProps<{projectId: number, applicationId: string, modelId: number}>
   & CustomProps
 
 interface ModelState {
@@ -115,19 +112,17 @@ interface ModelState {
 interface StateProps {
   model: APIRequest<Model>
   application: APIRequest<Application>
-  saveModelStatus: APIRequest<boolean>
+  updateModelStatus: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
 }
 
-interface CustomProps {
-  mode: string
-}
+interface CustomProps {}
 
 const mapStateToProps = (state: any, extraProps: CustomProps): StateProps => (
   {
-    application: state.fetchApplicationByIdReducer.applicationById,
-    model: state.fetchModelByIdReducer.modelById,
-    saveModelStatus: state.saveModelReducer.saveModel,
+    model: state.fetchModelByIdReducer.fetchModelById,
+    application: state.fetchApplicationByIdReducer.fetchApplicationById,
+    updateModelStatus: state.updateModelReducer.updateModel,
     userInfoStatus: state.userInfoReducer.userInfo,
     ...state.form,
     ...extraProps
@@ -135,21 +130,23 @@ const mapStateToProps = (state: any, extraProps: CustomProps): StateProps => (
 )
 
 export interface DispatchProps {
-  fetchApplicationById: (params) => Promise<void>
-  saveModel: (params) => Promise<void>
+  fetchModelById: (params: FetchModelByIdParam) => Promise<void>
+  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
+  updateModel: (params: UpdateModelParam) => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    fetchApplicationById: (params) => fetchApplicationByIdDispatcher(dispatch, params),
-    saveModel: (params) => saveModelDispatcher(dispatch, params),
+    fetchModelById: (params: FetchModelByIdParam) => fetchModelByIdDispatcher(dispatch, params),
+    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
+    updateModel: (params: UpdateModelParam) => updateModelDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }
 
 export default withRouter(
-  connect<StateProps, DispatchProps, RouteComponentProps<{applicationId: string, modelId?: string}> & CustomProps>(
+  connect<StateProps, DispatchProps, RouteComponentProps<{projectId: number, applicationId: string, modelId: number}> & CustomProps>(
     mapStateToProps, mapDispatchToProps
   )(SaveModel)
 )

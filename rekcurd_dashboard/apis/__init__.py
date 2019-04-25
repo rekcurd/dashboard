@@ -5,6 +5,7 @@ import traceback
 
 from flask_restplus import Api
 from flask_restplus.utils import default_id
+from werkzeug.exceptions import HTTPException
 from kubernetes.client.rest import ApiException
 
 from rekcurd_dashboard.utils import RekcurdDashboardException, ProjectUserRoleException, ApplicationUserRoleException
@@ -74,7 +75,7 @@ from .api_misc import misc_api_namespace
 def api_exception_handler(error):
     api.logger.error(str(error))
     api.logger.error(traceback.format_exc())
-    return {"status": False, 'message': str(error)}, 400
+    return {'status': False, 'message': 'Something wrong with accessing Kubernetes'}, 400
 
 
 @api.errorhandler(RekcurdDashboardException)
@@ -85,7 +86,7 @@ def rekcurd_exception_handler(error):
     api.logger.error(traceback.format_exc())
     db.session.rollback()
     db.session.close()
-    return {"status": False, 'message': str(error)}, 400
+    return {'status': False, 'message': str(error)}, 400
 
 
 @api.errorhandler
@@ -94,7 +95,7 @@ def default_error_handler(error):
     api.logger.error(traceback.format_exc())
     db.session.rollback()
     db.session.close()
-    return {"status": False, 'message': str(error)}, 500
+    return {'status': False, 'message': 'Something wrong. Contact the admin.'}, 500
 
 
 api.add_namespace(admin_api_namespace, path='/api')

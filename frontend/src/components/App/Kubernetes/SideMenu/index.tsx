@@ -10,12 +10,12 @@ import { Col, Row } from 'reactstrap'
 class Settings extends React.Component<{}> {
   render() {
     const sideMenuParam: SideMenuParam = {
-      title: <div>Settings</div>,
-      id: 'application-side-menu',
+      title: <div>Kubernetes</div>,
+      id: 'kubernetes-side-menu',
       contents: [
         {
-          title: <div><i className='fas fa-cog fa-fw mr-1'></i>{` `}Kubernetes</div>,
-          items: [{text: 'Hosts', path: '/settings/kubernetes/hosts/', icon: 'plug'}]
+          title: <div><i className='fas fa-cog fa-fw mr-1'></i>{` `}List</div>,
+          items: [{text: 'TBD', path: '/settings/kubernetes/hosts/', icon: 'plug'}]
         }
       ]
     }

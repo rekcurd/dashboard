@@ -2,14 +2,14 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouterProps } from 'react-router'
 import { Row, Col } from 'reactstrap'
-import { InjectedFormProps } from 'redux-form'
 
 import { loginDispatcher, userInfoDispatcher, addNotification } from '@src/actions'
-import { FormCustomProps } from '@components/App/SaveApplication/ApplicationDeploymentForm'
 
 import { LoginForm } from './form'
-import { isAPISucceeded, APIRequest, APIStatusSuccess, APIRequestStatusList, JWT_TOKEN_KEY, isAPIFailed, isAPIUnauthorized } from '@src/apis/Core'
-import { AuthToken } from '@src/apis'
+import {
+  isAPISucceeded, APIRequest, APIStatusSuccess, JWT_TOKEN_KEY, isAPIFailed, isAPIUnauthorized
+} from '@src/apis/Core'
+import { AuthToken, LoginParam } from '@src/apis'
 
 class Login extends React.Component<LoginProps, LoginState> {
   constructor(props, context) {
@@ -23,12 +23,12 @@ class Login extends React.Component<LoginProps, LoginState> {
   onSubmit(parameters) {
     const { submitLogin } = this.props
     this.setState({ submitting: true })
-    return submitLogin({ ...parameters.login })
+    return submitLogin({ ...parameters })
   }
 
-  componentWillReceiveProps(nextProps: LoginProps) {
+  static getDerivedStateFromProps(nextProps: LoginProps, prevState: LoginState){
     const { loginStatus, history, fetchUserInfo } = nextProps
-    const { submitting } = this.state
+    const { submitting } = prevState
     if (submitting) {
       const succeeded: boolean = isAPISucceeded<AuthToken>(loginStatus)
       const failed: boolean = isAPIFailed<AuthToken>(loginStatus) || isAPIUnauthorized<AuthToken>(loginStatus)
@@ -39,16 +39,18 @@ class Login extends React.Component<LoginProps, LoginState> {
           message: 'Successfully logged in'
         })
         window.localStorage.setItem(JWT_TOKEN_KEY, result.jwt)
-        history.push('/')
+        history.goBack()
         fetchUserInfo()
-      }
-      if (failed) {
+        return {submitting: false}
+      } else if (failed) {
         nextProps.addNotification({
           color: 'error',
           message: 'Login failed'
         })
+        return {submitting: false}
       }
     }
+    return null
   }
 
   render() {
@@ -68,7 +70,7 @@ interface StateProps {
   loginStatus: APIRequest<AuthToken>
 }
 
-type LoginProps = StateProps & DispatchProps & RouterProps & InjectedFormProps<{}, FormCustomProps>
+type LoginProps = StateProps & DispatchProps & RouterProps
 
 interface LoginState {
   submitting: boolean
@@ -82,14 +84,14 @@ const mapStateToProps = (state) => {
 
 interface DispatchProps {
   fetchUserInfo: () => Promise<void>
-  submitLogin: (params) => Promise<void>
+  submitLogin: (params: LoginParam) => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     fetchUserInfo: () => userInfoDispatcher(dispatch),
-    submitLogin: (params) => loginDispatcher(dispatch, params),
+    submitLogin: (params: LoginParam) => loginDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }

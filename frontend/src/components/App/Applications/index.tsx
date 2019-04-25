@@ -1,24 +1,33 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { RouterProps, RouteComponentProps } from 'react-router'
+import { RouteComponentProps } from 'react-router'
 import { withRouter, Link } from 'react-router-dom'
 import { Button } from 'reactstrap'
 
-import {APIRequest, isAPIFailed, isAPISucceeded} from '@src/apis/Core'
-import { Application } from '@src/apis'
+import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
+import {
+  Application, FetchApplicationByIdParam, Project, SyncKubernetesParam, UserInfo
+} from '@src/apis'
 import {
   fetchAllApplicationsDispatcher,
-  syncKubernetesStatusDispatcher,
+  syncKubernetesDispatcher,
   addNotification
- } from '@src/actions'
+} from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
+
+
+type ApplicationProps = StateProps & DispatchProps & RouteComponentProps<{projectId: number}>
+interface ApplicationState {
+  syncSubmitted: boolean
+  syncNotified: boolean
+}
 
 /**
  * Show list of all applications
  *
  * Home page to move detaied page for each application
  */
-class ApplicationList extends React.Component<StateProps & DispatchProps & RouterProps> {
+class ApplicationList extends React.Component<ApplicationProps, ApplicationState> {
   constructor(props, context) {
     super(props, context)
     this.state = {
@@ -29,49 +38,40 @@ class ApplicationList extends React.Component<StateProps & DispatchProps & Route
     this.renderApplications = this.renderApplications.bind(this)
   }
 
-  componentWillReceiveProps(nextProps) {
-    const {
-      syncAllKubernetesStatusStatus
-    } = nextProps
-
-    this.checkAndNotifyAPIResult(
-      syncAllKubernetesStatusStatus,
-      'syncSubmitted', 'syncNotified',
-      'Successfully synced all hosts'
-    )
+  componentDidMount() {
+    this.props.fetchApplications(this.props.match.params)
   }
 
-  checkAndNotifyAPIResult(status, submitted: string, notified: string, notificationText) {
-    const submittedFlag: boolean = this.state[submitted]
-    const notifiedFlag: boolean = this.state[notified]
-    const { push } = this.props.history
+  static getDerivedStateFromProps(nextProps: ApplicationProps, prevState: ApplicationState){
+    const { syncKubernetes } = nextProps
+    const { syncSubmitted, syncNotified } = prevState
 
-    if (submittedFlag && !notifiedFlag) {
-      const succeeded: boolean = isAPISucceeded<boolean>(status) && status.result
-      const failed: boolean = (isAPISucceeded<boolean>(status) && !status.result) || isAPIFailed<boolean>(status)
+    if (syncSubmitted && !syncNotified) {
+      const succeeded: boolean = isAPISucceeded<boolean>(syncKubernetes) && syncKubernetes.result
+      const failed: boolean = (isAPISucceeded<boolean>(syncKubernetes) && !syncKubernetes.result) || isAPIFailed<boolean>(syncKubernetes)
 
       if (succeeded) {
-        this.setState({[submitted]: false, [notified]: true})
-        push('/applications')
-        this.props.fetchApplications()
-        this.props.addNotification({color: 'success', message: notificationText})
+        nextProps.fetchApplications({projectId: nextProps.match.params.projectId})
+        nextProps.addNotification({color: 'success', message: 'Successfully synced all hosts'})
+        return {syncSubmitted: false, syncNotified: true}
       } else if (failed) {
-        this.setState({[submitted]: false, [notified]: true})
-        this.props.addNotification({color: 'error', message: 'Something went wrong. Try again later'})
+        nextProps.addNotification({color: 'error', message: 'Something went wrong. Try again later'})
+        return {syncSubmitted: false, syncNotified: true}
       }
     }
-  }
-
-  componentWillMount() {
-    this.props.fetchApplications()
+    return null
   }
 
   render() {
-    const status = this.props.applications
+    const { fetchProjectByIdStatus, applications, userInfoStatus, settings } = this.props
+    const targetStatus: any = { fetchProjectByIdStatus, applications }
+    if (isAPISucceeded(settings) && settings.result.auth) {
+      targetStatus.userInfoStatus = userInfoStatus
+    }
 
     return (
       <APIRequestResultsRenderer
-        APIStatus={{ applications: status }}
+        APIStatus={targetStatus}
         render={this.renderApplications}
       />
     )
@@ -80,11 +80,22 @@ class ApplicationList extends React.Component<StateProps & DispatchProps & Route
 
   renderApplications(result) {
     const applications: Application[] = result.applications
+    const project: Project = result.fetchProjectByIdStatus
     const { push } = this.props.history
     const submitSync = () => {
+      this.props.syncKubernetes({projectId: this.props.match.params.projectId})
       this.setState({syncSubmitted: true, syncNotified: false})
-      this.props.syncAllKubernetesStatus({})
     }
+
+    const syncKubernetes = project.useKubernetes ? (
+      <React.Fragment>
+        {` `}
+        <Button color='success' size='sm' onClick={submitSync}>
+          <i className='fas fa-sync-alt fa-fw mr-2'></i>
+          Sync All
+        </Button>
+      </React.Fragment>
+    ) : null
 
     const title = (
       <div className='d-flex justify-content-between align-items-center mb-4'>
@@ -93,15 +104,11 @@ class ApplicationList extends React.Component<StateProps & DispatchProps & Route
           Applications
         </h1>
         <div>
-          <Button color='primary' size='sm' onClick={(event) => push('/applications/add')}>
+          <Button color='primary' size='sm' onClick={(event) => push(`/projects/${this.props.match.params.projectId}/applications/add`)}>
             <i className='fas fa-plus fa-fw mr-2'></i>
             Add Application
           </Button>
-          {` `}
-          <Button color='success' size='sm' onClick={submitSync}>
-            <i className='fas fa-sync-alt fa-fw mr-2'></i>
-            Sync All
-          </Button>
+          {syncKubernetes}
         </div>
       </div>
     )
@@ -123,13 +130,14 @@ class ApplicationList extends React.Component<StateProps & DispatchProps & Route
    * @param applications {Application[]} List of applications
    */
   renderApplicationListTable(applications: Application[]) {
+    const { projectId } = this.props.match.params
     const applicationListTableBody = (
       applications.map(
         (value: Application) => (
-          <tr key={value.id}>
+          <tr key={value.applicationId}>
             <td>
               <Link
-                to={`/applications/${value.id}`}
+                to={`/projects/${projectId}/applications/${value.applicationId}`}
                 className='text-info'
               >
                 {value.name}
@@ -139,10 +147,7 @@ class ApplicationList extends React.Component<StateProps & DispatchProps & Route
               {value.description}
             </td>
             <td>
-              {value.kubernetesId ? 'Yes' : 'No'}
-            </td>
-            <td>
-              {value.date.toUTCString()}
+              {value.registerDate.toUTCString()}
             </td>
           </tr>
         )
@@ -153,7 +158,7 @@ class ApplicationList extends React.Component<StateProps & DispatchProps & Route
       <table className='table table-hover' id='application-list'>
         <thead>
           <tr className='bg-light text-primary'>
-            <th>Name</th><th>Description</th><th>Kubernetes</th><th>Date</th>
+            <th>Name</th><th>Description</th><th>Date</th>
           </tr>
         </thead>
         <tbody>
@@ -166,32 +171,38 @@ class ApplicationList extends React.Component<StateProps & DispatchProps & Route
 
 export interface StateProps {
   applications: APIRequest<Application[]>
-  syncAllKubernetesStatusStatus: APIRequest<boolean>
+  fetchProjectByIdStatus: APIRequest<Project>
+  syncKubernetes: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
+  settings: APIRequest<any>
 }
 
 const mapStateToProps = (state) => {
   return {
-    ...state.fetchAllApplicationsReducer,
-    syncAllKubernetesStatusStatus: state.syncKubernetesStatusReducer.syncKubernetesStatus
+    applications: state.fetchAllApplicationsReducer.fetchAllApplications,
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    syncKubernetes: state.syncKubernetesReducer.syncKubernetes,
+    userInfoStatus: state.userInfoReducer.userInfo,
+    settings: state.settingsReducer.settings,
   }
 }
 
 export interface DispatchProps {
-  fetchApplications: () => Promise<void>,
-  syncAllKubernetesStatus: (params) => Promise<void>,
+  fetchApplications: (params: FetchApplicationByIdParam) => Promise<void>,
+  syncKubernetes: (params: SyncKubernetesParam) => Promise<void>,
   addNotification
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    fetchApplications: () => fetchAllApplicationsDispatcher(dispatch),
-    syncAllKubernetesStatus: () => syncKubernetesStatusDispatcher(dispatch, {}),
+    fetchApplications: (params: FetchApplicationByIdParam) => fetchAllApplicationsDispatcher(dispatch, params),
+    syncKubernetes: (params: SyncKubernetesParam) => syncKubernetesDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }
 
 export default withRouter(
-  connect<StateProps, DispatchProps, RouteComponentProps<{}>>(
+  connect<StateProps, DispatchProps, RouteComponentProps<{projectId: number}>>(
     mapStateToProps, mapDispatchToProps
   )(ApplicationList)
 )

@@ -53,6 +53,7 @@ class TestApiServiceDeployment(BaseTestCase):
         response = self.client.delete(self.__DELETE_URL)
         self.assertEqual(200, response.status_code)
 
+        display_name = "test"
         container = WorkerConfiguration.deployment['spec']['template']['spec']['containers'][0]
         service_level = WorkerConfiguration.deployment['metadata']['namespace']
         container_image = container['image']
@@ -65,7 +66,8 @@ class TestApiServiceDeployment(BaseTestCase):
 
         response = self.client.post(
             self.__URL,
-            data={'service_level': service_level, 'container_image': container_image,
+            data={'display_name': display_name,
+                  'service_level': service_level, 'container_image': container_image,
                   'service_model_assignment': service_model_assignment,
                   'resource_request_cpu': resource_request_cpu, 'resource_request_memory': resource_request_memory,
                   'service_git_url': service_git_url, 'service_git_branch': service_git_branch,

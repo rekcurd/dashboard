@@ -3,25 +3,33 @@ import { connect } from 'react-redux'
 import { Dispatch } from 'redux'
 import { Route, BrowserRouter, Redirect, Switch } from 'react-router-dom'
 
+import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
+import { settingsDispatcher } from '@src/actions'
+import { APIRequest } from '@src/apis/Core'
+
 import Layout from './Layout'
+import Login from './Login'
+
+import Projects from './Projects'
+import ProjectAdmin from './ProjectAdmin'
+import DataServer from './DataServer'
+import * as Kubernetes from './Kubernetes'
+import SaveProject from './SaveProject'
 import Applications from './Applications'
 import SaveApplication from './SaveApplication'
+
+import ApplicationAdmin from './ApplicationAdmin'
 import Application from './Application'
-import Deploy from './Deploy'
+import Dashboard from './Dashboard'
 import Services from './Services'
-import Models from './Models'
 import Service from './Service'
+import Models from './Models'
 import Model from './Model'
-import Settings from './Settings'
-import Login from './Login'
-import Admin from './Admin'
-import * as Kubernetes from './Kubernetes'
-import { APIRequestResultsRenderer } from '@components/Common/APIRequestResultsRenderer'
-import { AppState } from '@src/reducers'
-import { settingsDispatcher } from '@src/actions'
+import ServiceRouting from './ServiceRouting'
+
 
 interface AppStateProps {
-  settingsState: AppState
+  settingsStatus: APIRequest<{}>
 }
 
 interface AppDispatchProps {
@@ -32,14 +40,13 @@ type AppProps = AppStateProps & AppDispatchProps
 
 class AppComponent extends React.Component<AppProps> {
   componentDidMount() {
-    const { fetchSettings } = this.props
-    fetchSettings()
+    this.props.fetchSettings()
   }
   render() {
-    const { settingsState } = this.props
+    const { settingsStatus } = this.props
     const app = (
       <APIRequestResultsRenderer
-        APIStatus={{ settings: settingsState }}
+        APIStatus={{ settings: settingsStatus }}
         render={this.renderApp.bind(this)}
       />
     )
@@ -51,82 +58,124 @@ class AppComponent extends React.Component<AppProps> {
   }
   renderApp(results) {
     const settings: any = results.settings
-    let login
-    if (settings.auth) {
-      login = <Route path='/login' component={Login} />
-    }
+
     return (
-      <Layout auth={settings.auth}>
-        <Switch>
-          <Redirect exact from='/' to='/applications' />
-          <Route exact path='/applications' component={Applications} />
-          <Route exact path='/applications/add' component={SaveApplication} />
-          <Route path='/applications/:applicationId' render={() => <ApplicationRoute settings={settings} />} />
-          <Route path='/settings' component={SettingsRoute} />
-          {login}
-        </Switch>
-      </Layout>
+      <Switch>
+        <Redirect exact from='/' to='/projects' />
+        <Route exact path='/(login|projects|projects/add)' render={() => <ProjectsRoute settings={settings} />} />
+        <Route path='/projects/:projectId' render={() => <ProjectIdRoute settings={settings} />} />
+      </Switch>
     )
   }
 }
 export const App = connect<AppStateProps, AppDispatchProps>(
   (state: any): AppStateProps => ({
-    settingsState: state.settingsReducer.settings
+    settingsStatus: state.settingsReducer.settings
   }),
   (dispatch: Dispatch): AppDispatchProps => ({
     fetchSettings: () => settingsDispatcher(dispatch)
   }),
 )(AppComponent)
 
-interface ApplicationRouteProps {
+
+interface ProjectsRouteProps {
   settings: any
 }
-class ApplicationRoute extends React.Component<ApplicationRouteProps> {
+
+class ProjectsRoute extends React.Component<ProjectsRouteProps> {
   render() {
-    const { settings } = this.props
-    let admin
-    if (settings.auth) {
-      admin = <Route path='/applications/:applicationId/admin' component={Admin} />
+    let login
+    if (this.props.settings.auth) {
+      login = <Route path='/login' component={Login} />
     } else {
-      admin = <Redirect from='/applications/:applicationId/admin' to='/applications/:applicationId' />
+      login = null
+    }
+
+    return (
+      <Layout auth={this.props.settings.auth}>
+        <Switch>
+          <Route exact path='/projects' component={Projects} />
+          <Route exact path='/projects/add' component={SaveProject} />
+          {login}
+        </Switch>
+      </Layout>
+    )
+  }
+}
+
+class ProjectIdRoute extends React.Component<ProjectsRouteProps> {
+  render() {
+    const dataServerComponent = <Route exact path='/projects/:projectId/data_servers' component={DataServer} />
+    const kubenetesComponent = <Route path='/projects/:projectId/kubernetes' component={KubernetesRoute} />
+    let projectAdmin
+    if (this.props.settings.auth) {
+      projectAdmin = <Route exact path='/projects/:projectId/admin' component={ProjectAdmin} />
+    } else {
+      projectAdmin = <Redirect from='/projects/:projectId/admin' to='/projects/:projectId/applications' />
+    }
+
+    return (
+      <Layout auth={this.props.settings.auth}>
+        <Switch>
+          {projectAdmin}
+          {dataServerComponent}
+          {kubenetesComponent}
+          <Redirect exact from='/projects/:projectId' to='/projects/:projectId/applications' />
+          <Route exact path='/projects/:projectId/applications' component={Applications} />
+          <Route exact path='/projects/:projectId/applications/add' component={SaveApplication} />
+          <Route path='/projects/:projectId/applications/:applicationId' render={() => <ApplicationsRoute settings={this.props.settings} />} />
+        </Switch>
+      </Layout>
+    )
+  }
+}
+
+interface ApplicationsRouteProps {
+  settings: any
+}
+
+class ApplicationsRoute extends React.Component<ApplicationsRouteProps> {
+  render() {
+    let applicationAdmin
+    if (this.props.settings.auth) {
+      applicationAdmin = <Route exact path='/projects/:projectId/applications/:applicationId/admin' component={ApplicationAdmin} />
+    } else {
+      applicationAdmin = <Redirect from='/projects/:projectId/applications/:applicationId/admin' to='/projects/:projectId/applications/:applicationId/dashboard' />
     }
     return (
       <Application>
         <Switch>
-          <Route path='/applications/:applicationId/dashboard' component={Deploy} />
-          <Route exact path='/applications/:applicationId/services' component={Services} />
-          <Route exact path='/applications/:applicationId/models' component={Models} />
-          <Route path='/applications/:applicationId/services/add'
-            render={(props) => <Service {...props} mode='add'/>} />
-          <Route path='/applications/:applicationId/services/:serviceId/edit'
-            render={(props) => <Service {...props} mode='edit'/>} />
-          <Route path='/applications/:applicationId/models/:modelId/edit'
-                render={(props) => <Model {...props} mode='edit'/>} />
-          <Redirect exact from='/applications/:applicationId' to='/applications/:applicationId/dashboard' />
-          {admin}
+          {applicationAdmin}
+          <Redirect exact from='/projects/:projectId/applications/:applicationId' to='/projects/:projectId/applications/:applicationId/dashboard' />
+          <Route exact path='/projects/:projectId/applications/:applicationId/dashboard' component={Dashboard} />
+          <Route exact path='/projects/:projectId/applications/:applicationId/services' component={Services} />
+          <Route exact path='/projects/:projectId/applications/:applicationId/models' component={Models} />
+          <Redirect exact from='/projects/:projectId/applications/:applicationId/routing' to='/projects/:projectId/applications/:applicationId/routing/development' />
+          <Route exact path='/projects/:projectId/applications/:applicationId/routing/:serviceLevel' component={ServiceRouting} />
+          <Route exact path='/projects/:projectId/applications/:applicationId/services/add'
+                 render={(props) => <Service {...props} method='post'/>} />
+          <Route exact path='/projects/:projectId/applications/:applicationId/services/:serviceId/edit'
+                 render={(props) => <Service {...props} method='patch'/>} />
+          <Route exact path='/projects/:projectId/applications/:applicationId/models/:modelId/edit'
+                 render={(props) => <Model {...props} />} />
         </Switch>
       </Application>
     )
   }
 }
 
-const SettingsRoute = () => (
-  <Settings>
-    <Switch>
-      <Route path='/settings/kubernetes' component={KubernetesRoute} />
-    </Switch>
-  </Settings>
-)
-
-const KubernetesRoute = () => (
-  <Kubernetes.Kubernetes>
-    <Switch>
-      <Redirect exact from='/settings/kubernetes' to='/settings/kubernetes/hosts' />
-      <Route exact path='/settings/kubernetes/hosts' component={Kubernetes.Hosts} />
-      <Route exact path='/settings/kubernetes/hosts/add'
-        render={(props) => <Kubernetes.Host {...props} mode='add'/>} />
-      <Route exact path='/settings/kubernetes/hosts/:kubernetesId/edit'
-        render={(props) => <Kubernetes.Host {...props} mode='edit'/>} />
-    </Switch>
-  </Kubernetes.Kubernetes>
-)
+class KubernetesRoute extends React.Component {
+  render() {
+    return(
+      //<Kubernetes.SideMenu>
+        <Switch>
+          <Route exact path='/projects/:projectId/kubernetes' component={Kubernetes.Hosts} />
+          <Route exact path='/projects/:projectId/kubernetes/add'
+                 render={(props) => <Kubernetes.Host {...props} method='post' />} />
+          <Route exact path='/projects/:projectId/kubernetes/:kubernetesId'
+                 render={(props) => <Kubernetes.Host {...props} method='patch' />} />
+        </Switch>
+      //</Kubernetes.SideMenu>
+    )
+  }
+}

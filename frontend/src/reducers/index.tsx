@@ -1,72 +1,50 @@
-import {
-  APIActions,
-  APIRequestStartAction, APIRequestFailueAction, APIRequestSuccessAction,
-  APIRequestActionCreators,
-  uploadModelActionCreators,
-  saveKubernetesHostActionCreators,
-  addApplicationActionCreators,
-  saveServiceActionCreators,
-  saveModelActionCreators,
-  fetchAllKubernetesHostsActionCreators,
-  fetchAllApplicationsActionCreators,
-  fetchApplicationByIdActionCreators,
-  fetchAllModelsActionCreators,
-  fetchAllServicesActionCreators,
-  switchModelsActionCreators,
-  fetchKubernetesHostByIdActionCreators,
-  deleteKubernetesHostActionCreators,
-  deleteKubernetesServicesActionCreators,
-  deleteKubernetesModelsActionCreators,
-  syncKubernetesStatusActionCreators,
-  fetchServiceByIdActionCreators,
-  fetchModelByIdActionCreators,
-  fetchServiceDescriptionsActionCreators,
-  APIRequestUnauthorized,
-  loginActionCreators,
-  userInfoActionCreators,
-  fetchAccessControlListActionCreators,
-  saveAccessControlActionCreators,
-  deleteAccessControlActionCreators,
-  settingsActionCreators,
-  fetchAllUsersActionCreators
-} from '@src/actions'
-import { APIRequest, APIRequestStatusList} from '@src/apis/Core'
-import {
-  Application, Model, Service, SwitchModelParam,
-  ModelResponse, KubernetesHost, FetchServicesParam,
-  FetchModelsParam, LoginParam, AuthToken, UserInfo, AccessControlList
-} from '@src/apis'
+import {APIRequest, APIRequestStatusList} from '@src/apis/Core'
+import * as Apis from '@src/apis'
+import * as Actions from '@src/actions'
 
 export class AppState {
   constructor(
     // API states
-    public uploadModel: APIRequest<ModelResponse> = { status: APIRequestStatusList.notStarted },
-    public switchModels: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
-    public saveKubernetesHost: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
-    public addApplication: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
-    public saveService: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
-    public saveModel: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
-    public applications: APIRequest<Application[]> = { status: APIRequestStatusList.notStarted },
-    public applicationById: APIRequest<Application> = { status: APIRequestStatusList.notStarted },
-    public services: APIRequest<Service[]> = { status: APIRequestStatusList.notStarted },
-    public serviceDescriptions: APIRequest<Service[]> = { status: APIRequestStatusList.notStarted },
-    public modelById: APIRequest<Model> = { status: APIRequestStatusList.notStarted },
-    public serviceById: APIRequest<Service> = { status: APIRequestStatusList.notStarted },
-    public models: APIRequest<Model[]> = { status: APIRequestStatusList.notStarted },
-    public kubernetesHosts: APIRequest<KubernetesHost[]> = { status: APIRequestStatusList.notStarted },
-    public kubernetesHostById: APIRequest<any> = { status: APIRequestStatusList.notStarted },
-    public deleteKubernetesServices: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
-    public deleteKubernetesModels: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
-    public syncKubernetesStatus: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public saveProject: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public saveDataServer: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public saveKubernetes: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public saveApplication: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public updateService: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public saveServiceDeployment: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public updateServiceRouting: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public uploadModel: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public updateModel: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public fetchAllProjects: APIRequest<Apis.Project[]> = { status: APIRequestStatusList.notStarted},
+    public fetchProjectById: APIRequest<Apis.Project> = { status: APIRequestStatusList.notStarted},
+    public fetchDataServer: APIRequest<Apis.DataServer> = { status: APIRequestStatusList.notStarted},
+    public fetchAllKubernetes: APIRequest<Apis.Kubernetes[]> = { status: APIRequestStatusList.notStarted},
+    public fetchKubernetesById: APIRequest<Apis.Kubernetes> = { status: APIRequestStatusList.notStarted},
+    public fetchAllApplications: APIRequest<Apis.Application[]> = { status: APIRequestStatusList.notStarted},
+    public fetchApplicationById: APIRequest<Apis.Application> = { status: APIRequestStatusList.notStarted},
+    public fetchAllModels: APIRequest<Apis.Model[]> = { status: APIRequestStatusList.notStarted},
+    public fetchModelById: APIRequest<Apis.Model> = { status: APIRequestStatusList.notStarted},
+    public fetchAllServices: APIRequest<Apis.Service[]> = { status: APIRequestStatusList.notStarted},
+    public fetchServiceById: APIRequest<Apis.Service> = { status: APIRequestStatusList.notStarted},
+    public fetchServiceRouting: APIRequest<Apis.ServiceRouting> = { status: APIRequestStatusList.notStarted},
+    public switchModels: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted},
+    public syncKubernetes: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public deleteKubernetes: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public deleteDataServer: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public deleteApplication: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public deleteServices: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
+    public deleteModels: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
+    public login: APIRequest<Apis.AuthToken> = { status: APIRequestStatusList.notStarted },
     public settings: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
-    public login: APIRequest<AuthToken> = { status: APIRequestStatusList.notStarted },
-    public userInfo: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
-    public accessControlList: APIRequest<AccessControlList[]> = { status: APIRequestStatusList.notStarted },
-    public allUsers: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
-    public saveAccessControl: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
-    public deleteAccessControl: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public userInfo: APIRequest<Apis.UserInfo> = { status: APIRequestStatusList.notStarted },
+    public fetchAllUsers: APIRequest<Apis.UserInfo[]> = { status: APIRequestStatusList.notStarted },
+    public fetchProjectAccessControlList: APIRequest<Apis.ProjectAccessControlList[]> = { status: APIRequestStatusList.notStarted },
+    public saveProjectAccessControl: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public deleteProjectAccessControl: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public fetchApplicationAccessControlList: APIRequest<Apis.ApplicationAccessControlList[]> = { status: APIRequestStatusList.notStarted },
+    public saveApplicationAccessControl: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
+    public deleteApplicationAccessControl: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     // Notification status
-    public notification = { toasts: [], id: -1 },
+    public notification = { toasts: [], id: -1, ids: [] },
     public navigation = { login: false }
   ) { }
 }
@@ -74,30 +52,30 @@ export class AppState {
 const initialState = new AppState()
 
 function APIRequestReducerCreator<P = {}, S = {}, F = {}>(
-  actionCreators: APIRequestActionCreators<P, S, F>,
+  actionCreators: Actions.APIRequestActionCreators<P, S, F>,
   statePropertyName: string
 ) {
-  function reducer(state: AppState = initialState, action: APIActions<P, S, F>) {
+  function reducer(state: AppState = initialState, action: Actions.APIActions<P, S, F>) {
     const suffix: string = actionCreators.apiType
     const nextState: AppState = Object.assign({}, state)
 
-    const isStarted = (item: any): item is APIRequestStartAction =>
+    const isStarted = (item: any): item is Actions.APIRequestStartAction =>
       item.type === `${suffix}_REQUEST_START`
-    const isFailed = (item: any): item is APIRequestFailueAction =>
+    const isFailed = (item: any): item is Actions.APIRequestFailureAction =>
       item.type === `${suffix}_FAILURE`
-    const isSuccess = (item: any): item is APIRequestSuccessAction =>
+    const isSuccess = (item: any): item is Actions.APIRequestSuccessAction =>
       item.type === `${suffix}_SUCCESS`
-    const isUnauthorized = (item: any): item is APIRequestUnauthorized =>
+    const isUnauthorized = (item: any): item is Actions.APIRequestUnauthorized =>
       item.type === `${suffix}_UNAUTHORIZED`
 
     if (isStarted(action)) {
       nextState[statePropertyName] = { status: APIRequestStatusList.fetching }
     } else if (isFailed(action)) {
-      nextState[statePropertyName] = { status: APIRequestStatusList.failue, error: action.error }
+      nextState[statePropertyName] = { status: APIRequestStatusList.failure, error: action.error }
     } else if (isSuccess(action)) {
       nextState[statePropertyName] = { status: APIRequestStatusList.success, result: action.result }
     } else if (isUnauthorized(action)) {
-      nextState[statePropertyName] = { status: APIRequestStatusList.unauhorized, error: action.error }
+      nextState[statePropertyName] = { status: APIRequestStatusList.unauthorized, error: action.error }
     } else {
       return state
     }
@@ -107,39 +85,82 @@ function APIRequestReducerCreator<P = {}, S = {}, F = {}>(
   return reducer
 }
 
-export const uploadModelReducer = APIRequestReducerCreator<{}, ModelResponse>(uploadModelActionCreators, 'uploadModel')
-export const switchModelsReducer = APIRequestReducerCreator< SwitchModelParam[], boolean[] >(switchModelsActionCreators, 'switchModels')
-export const addApplicationReducer = APIRequestReducerCreator<Application, boolean>(addApplicationActionCreators, 'addApplication')
-export const saveServiceReducer = APIRequestReducerCreator<Application, boolean>(saveServiceActionCreators, 'saveService')
-export const saveModelReducer = APIRequestReducerCreator<Application, boolean>(saveModelActionCreators, 'saveModel')
-export const saveKubernetesHostReducer
-  = APIRequestReducerCreator<KubernetesHost, boolean>(saveKubernetesHostActionCreators, 'saveKubernetesHost')
-export const fetchAllKubernetesHostsReducer
-  = APIRequestReducerCreator<{}, KubernetesHost[]>(fetchAllKubernetesHostsActionCreators, 'kubernetesHosts')
-export const fetchAllApplicationsReducer = APIRequestReducerCreator<{}, Application[]>(fetchAllApplicationsActionCreators, 'applications')
-export const fetchApplicationByIdReducer = APIRequestReducerCreator<{}, Application>(fetchApplicationByIdActionCreators, 'applicationById')
-export const fetchKubernetesHostByIdReducer = APIRequestReducerCreator<{}, any>(fetchKubernetesHostByIdActionCreators, 'kubernetesHostById')
-export const fetchAllModelsReducer = APIRequestReducerCreator<{}, Model[]>(fetchAllModelsActionCreators, 'models')
-export const fetchAllServicesReducer = APIRequestReducerCreator<{}, Service[]>(fetchAllServicesActionCreators, 'services')
-export const fetchServiceByIdReducer = APIRequestReducerCreator<FetchServicesParam, any>(fetchServiceByIdActionCreators, 'serviceById')
-export const fetchModelByIdReducer = APIRequestReducerCreator<FetchModelsParam, any>(fetchModelByIdActionCreators, 'modelById')
-export const fetchServiceDescriptionsReducer
-  = APIRequestReducerCreator<FetchServicesParam, any>(fetchServiceDescriptionsActionCreators, 'serviceDescriptions')
-export const deleteKubernetesHostReducer
-  = APIRequestReducerCreator<{id: number}, boolean>(deleteKubernetesHostActionCreators, 'deleteKubernetesHost')
-export const deleteKubernetesServicesReducer
-  = APIRequestReducerCreator<any, boolean[]>(deleteKubernetesServicesActionCreators, 'deleteKubernetesServices')
-export const deleteKubernetesModelsReducer
-  = APIRequestReducerCreator<any, boolean[]>(deleteKubernetesModelsActionCreators, 'deleteKubernetesModels')
-export const syncKubernetesStatusReducer
-  = APIRequestReducerCreator<any, boolean[]>(syncKubernetesStatusActionCreators, 'syncKubernetesStatus')
-export const settingsReducer = APIRequestReducerCreator<{}, any>(settingsActionCreators, 'settings')
-export const loginReducer = APIRequestReducerCreator<LoginParam, AuthToken>(loginActionCreators, 'login')
-export const userInfoReducer = APIRequestReducerCreator<{}, UserInfo>(userInfoActionCreators, 'userInfo')
-export const fetchAllUsersStatusReducer = APIRequestReducerCreator<{}, UserInfo[]>(fetchAllUsersActionCreators, 'allUsers')
-export const fetchAccessControlListReducer = APIRequestReducerCreator<{}, AccessControlList[]>(fetchAccessControlListActionCreators, 'accessControlList')
-export const saveAccessControlReducer = APIRequestReducerCreator<{}, boolean>(saveAccessControlActionCreators, 'saveAccessControl')
-export const deleteAccessControlReducer = APIRequestReducerCreator<{}, boolean>(deleteAccessControlActionCreators, 'deleteAccessControl')
+export const saveProjectReducer = APIRequestReducerCreator<Apis.ProjectParam, boolean>(
+  Actions.saveProjectActionCreators, 'saveProject')
+export const saveDataServerReducer = APIRequestReducerCreator<Apis.DataServerParam, boolean>(
+  Actions.saveDataServerActionCreators, 'saveDataServer')
+export const saveKubernetesReducer = APIRequestReducerCreator<Apis.KubernetesParam, boolean>(
+  Actions.saveKubernetesActionCreators, 'saveKubernetes')
+export const saveApplicationReducer = APIRequestReducerCreator<Apis.ApplicationParam, boolean>(
+  Actions.saveApplicationActionCreators, 'saveApplication')
+export const updateServiceReducer = APIRequestReducerCreator<Apis.UpdateServiceParam, boolean>(
+  Actions.updateServiceActionCreators, 'updateService')
+export const saveServiceDeploymentReducer = APIRequestReducerCreator<Apis.ServiceDeploymentParam, boolean>(
+  Actions.saveServiceDeploymentActionCreators, 'saveServiceDeployment')
+export const updateServiceRoutingReducer = APIRequestReducerCreator<Apis.ServiceRoutingParam, boolean>(
+  Actions.updateServiceRoutingActionCreators, 'updateServiceRouting')
+export const uploadModelReducer = APIRequestReducerCreator<Apis.UploadModelParam, boolean>(
+  Actions.uploadModelActionCreators, 'uploadModel')
+export const updateModelReducer = APIRequestReducerCreator<Apis.UpdateModelParam, boolean>(
+  Actions.updateModelActionCreators, 'updateModel')
+export const fetchAllProjectsReducer = APIRequestReducerCreator<{}, Apis.Project[]>(
+  Actions.fetchAllProjectsActionCreators, 'fetchAllProjects')
+export const fetchProjectByIdReducer = APIRequestReducerCreator<Apis.FetchProjectByIdParam, Apis.Project>(
+  Actions.fetchProjectByIdActionCreators, 'fetchProjectById')
+export const fetchDataServerReducer = APIRequestReducerCreator<Apis.FetchDataServerByIdParam, Apis.DataServer>(
+  Actions.fetchDataServerActionCreators, 'fetchDataServer')
+export const fetchAllKubernetesReducer = APIRequestReducerCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes[]>(
+  Actions.fetchAllKubernetesActionCreators, 'fetchAllKubernetes')
+export const fetchKubernetesByIdReducer = APIRequestReducerCreator<Apis.FetchKubernetesByIdParam, Apis.Kubernetes>(
+  Actions.fetchKubernetesByIdActionCreators, 'fetchKubernetesById')
+export const fetchAllApplicationsReducer = APIRequestReducerCreator<Apis.FetchApplicationByIdParam, Apis.Application[]>(
+  Actions.fetchAllApplicationsActionCreators, 'fetchAllApplications')
+export const fetchApplicationByIdReducer = APIRequestReducerCreator<Apis.FetchApplicationByIdParam, Apis.Application>(
+  Actions.fetchApplicationByIdActionCreators, 'fetchApplicationById')
+export const fetchAllModelsReducer = APIRequestReducerCreator<Apis.FetchModelByIdParam, Apis.Model[]>(
+  Actions.fetchAllModelsActionCreators, 'fetchAllModels')
+export const fetchModelByIdReducer = APIRequestReducerCreator<Apis.FetchModelByIdParam, Apis.Model>(
+  Actions.fetchModelByIdActionCreators, 'fetchModelById')
+export const fetchAllServicesReducer = APIRequestReducerCreator<Apis.FetchServiceParam, Apis.Service[]>(
+  Actions.fetchAllServicesActionCreators, 'fetchAllServices')
+export const fetchServiceByIdReducer = APIRequestReducerCreator<Apis.FetchServiceByIdParam, Apis.Service>(
+  Actions.fetchServiceByIdActionCreators, 'fetchServiceById')
+export const fetchServiceRoutingReducer = APIRequestReducerCreator<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>(
+  Actions.fetchServiceRoutingActionCreators, 'fetchServiceRouting')
+export const switchModelsReducer = APIRequestReducerCreator<Apis.SwitchModelParam[], boolean[]>(
+  Actions.switchModelsActionCreators, 'switchModels')
+export const syncKubernetesReducer = APIRequestReducerCreator<Apis.SyncKubernetesParam, boolean[]>(
+  Actions.syncKubernetesActionCreators, 'syncKubernetes')
+export const deleteKubernetesReducer = APIRequestReducerCreator<Apis.IdParam, boolean>(
+  Actions.deleteKubernetesActionCreators, 'deleteKubernetes')
+export const deleteDataServerReducer = APIRequestReducerCreator<Apis.IdParam, boolean>(
+  Actions.deleteDataServerActionCreators, 'deleteDataServer')
+export const deleteApplicationReducer = APIRequestReducerCreator<Apis.IdParam, boolean>(
+  Actions.deleteApplicationActionCreators, 'deleteApplication')
+export const deleteServicesReducer = APIRequestReducerCreator<Apis.IdParam[], boolean[]>(
+  Actions.deleteServicesActionCreators, 'deleteServices')
+export const deleteModelsReducer = APIRequestReducerCreator<Apis.IdParam[], boolean[]>(
+  Actions.deleteModelsActionCreators, 'deleteModels')
+export const loginReducer = APIRequestReducerCreator<Apis.LoginParam, Apis.AuthToken>(
+  Actions.loginActionCreators, 'login')
+export const settingsReducer = APIRequestReducerCreator<{}, any>(
+  Actions.settingsActionCreators, 'settings')
+export const userInfoReducer = APIRequestReducerCreator<{}, Apis.UserInfo>(
+  Actions.userInfoActionCreators, 'userInfo')
+export const fetchAllUsersReducer = APIRequestReducerCreator<{}, Apis.UserInfo[]>(
+  Actions.fetchAllUsersActionCreators, 'fetchAllUsers')
+export const fetchProjectAccessControlListReducer = APIRequestReducerCreator<Apis.AccessControlParam, Apis.ProjectAccessControlList[]>(
+  Actions.fetchProjectAccessControlListActionCreators, 'fetchProjectAccessControlList')
+export const saveProjectAccessControlReducer = APIRequestReducerCreator<Apis.AccessControlParam, boolean>(
+  Actions.saveProjectAccessControlActionCreators, 'saveProjectAccessControl')
+export const deleteProjectAccessControlReducer = APIRequestReducerCreator<Apis.AccessControlParam, boolean>(
+  Actions.deleteProjectAccessControlActionCreators, 'deleteProjectAccessControl')
+export const fetchApplicationAccessControlListReducer = APIRequestReducerCreator<Apis.AccessControlParam, Apis.ApplicationAccessControlList[]>(
+  Actions.fetchApplicationAccessControlListActionCreators, 'fetchApplicationAccessControlList')
+export const saveApplicationAccessControlReducer = APIRequestReducerCreator<Apis.AccessControlParam, boolean>(
+  Actions.saveApplicationAccessControlActionCreators, 'saveApplicationAccessControl')
+export const deleteApplicationAccessControlReducer = APIRequestReducerCreator<Apis.AccessControlParam, boolean>(
+  Actions.deleteApplicationAccessControlActionCreators, 'deleteApplicationAccessControl')
 
 /**
  * Notification with toasts
@@ -154,12 +175,18 @@ export function notificationReducer(state: AppState = initialState, action): App
     case 'NOTIFICATION_OPEN':
       const nextId = state.notification.id + 1
       const toastProp = {
+        id: nextId,
         ...action.properties,
-        id: nextId
       }
-      const openNextNotification = {
-        toasts: [toastProp].concat(state.notification.toasts),
-        id: nextId
+      let openNextNotification
+      if (state.notification.ids.indexOf(toastProp.id) === -1) {
+        openNextNotification = {
+          id: nextId,
+          toasts: [toastProp].concat(state.notification.toasts),
+          ids: [toastProp.id].concat(state.notification.ids)
+        }
+      } else {
+        openNextNotification = state.notification
       }
       return {
         ...state,
@@ -171,6 +198,9 @@ export function notificationReducer(state: AppState = initialState, action): App
         ...state.notification,
         toasts: state.notification.toasts.filter(
           (toast) => toast.id !== action.id
+        ),
+        ids: state.notification.ids.filter(
+          (id) => id !== action.id
         )
       }
       return {

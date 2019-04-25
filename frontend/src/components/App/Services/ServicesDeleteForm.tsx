@@ -1,62 +1,152 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { Button } from 'reactstrap'
-import { reduxForm, InjectedFormProps } from 'redux-form'
+import { Button, Table, Row } from 'reactstrap'
+import { Link } from 'react-router-dom'
+import { Formik, Form } from 'formik'
 
 import { Service } from '@src/apis'
-import ServicesStatusTable from './ServicesStatusTable'
-import { ControlMode } from './index'
+import { Checkbox } from '@common/Field'
 
-class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
+
+class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, ServiceDeleteFormCustomState> {
   constructor(props, context) {
     super(props, context)
-
-    this.handleDiscardChanges = this.handleDiscardChanges.bind(this)
-  }
-
-  componentWillReceiveProps(nextProps: ServicesDeleteFormProps) {
-    const { mode, pristine, changeMode } = nextProps
-
-    if (mode === ControlMode.VIEW_SERVICES_STATUS && !pristine) {
-      changeMode(ControlMode.SELECT_TARGETS)
-    } else if (mode === ControlMode.SELECT_TARGETS && pristine) {
-      changeMode(ControlMode.VIEW_SERVICES_STATUS)
-    }
   }
 
   render() {
-    const {
-      onSubmit,
-      handleSubmit,
-    } = this.props
+    const { onSubmit, onCancel } = this.props
+    const initialValues = {
+      delete_services: this.props.initialValues.delete.services
+    }
 
     return (
-      <form onSubmit={handleSubmit(onSubmit)} >
-        <div className='mb-2'>
-          {this.renderDiscardButton()}
-        </div>
-        <ServicesStatusTable
-          {...this.props}
-        />
-        <hr />
-        {this.renderSubmitButtons()}
-      </form>
+      <Formik
+        initialValues={initialValues}
+        onSubmit={(values, {setSubmitting}) => {
+          onSubmit(values).then(
+            result => {
+              setSubmitting(false)
+            },
+            errors => {
+              setSubmitting(false)
+            }
+          )}
+        }
+        onReset={onCancel} >
+        {({ isValid, isSubmitting, resetForm }) => (
+          <Form>
+            <div className='mb-2'>
+              {this.renderDiscardButton(isValid, resetForm, initialValues)}
+            </div>
+            <Table hover className='mb-3'>
+              {this.renderTableHead()}
+              {this.renderTableBody()}
+            </Table>
+            <hr />
+            {this.renderSubmitButtons(isValid, isSubmitting)}
+          </Form>
+        )}
+      </Formik>
     )
   }
 
-  renderDiscardButton = () => {
-    const { mode } = this.props
+  /**
+   * Render head row of the table
+   */
+  renderTableHead = () => {
+    return (
+      <thead>
+      <tr className='bg-light text-primary'>
+        <th>Name</th>
+        <th>Service Level</th>
+        <th>Version</th>
+        <th>Model ID</th>
+        <th>Description</th>
+        <th>Host</th>
+        <th>Registered Date</th>
+      </tr>
+      </thead>
+    )
+  }
 
-    switch (mode) {
-      case ControlMode.SELECT_TARGETS:
-        return (
-          <Button outline color='danger' onClick={this.handleDiscardChanges}>
-            <i className={`fas fa-times fa-fw mr-2`}></i>
-            Discard changes
-          </Button>
+  /**
+   * Render body of the table
+   *
+   * Render Service names
+   * Each Service is rendered with a deploy check box on viewing/deleting mode
+   * @param services Services to be shown (Currently show all, but should be filtered)
+   */
+  renderTableBody = () => {
+    const { projectId, applicationId, canEdit, services } = this.props
+
+    // Button to delete Service (for deleting k8s services)
+    const deleteCheckButton = (serviceName: string, serviceId: string) => {
+      return (
+        <Row>
+          { canEdit ?
+            <Checkbox id={serviceId} name='delete_services' value={serviceId} label='' />
+            : null }
+          <Link className='text-info' to={`/projects/${projectId}/applications/${applicationId}/services/${serviceId}/edit`}>
+            {serviceName}
+          </Link>
+        </Row>
+      )
+    }
+
+    const modelLink = (modelId: number) => (
+      <Link className='text-info' to={`/projects/${projectId}/applications/${applicationId}/models/${modelId}/edit`}>
+        {modelId}
+      </Link>
+    )
+
+    return (
+      <tbody>
+      {services.map(
+        (service: Service, index: number) => (
+          <tr key={index}>
+            <td key={service.name} scope='col'>
+              {deleteCheckButton(service.name, service.serviceId)}
+            </td>
+            <td>
+              {service.serviceLevel}
+            </td>
+            <td>
+              {service.version}
+            </td>
+            <td>
+              {modelLink(service.modelId)}
+            </td>
+            <td>
+              {service.description}
+            </td>
+            <td>
+              {service.insecureHost}:{service.insecurePort}
+            </td>
+            <td>
+              {service.registerDate.toUTCString()}
+            </td>
+          </tr>
         )
-      default:
-        return null
+      )}
+      </tbody>
+    )
+  }
+
+  renderDiscardButton = (isValid, resetForm, initialValues) => {
+    const { canEdit, onCancel } = this.props
+
+    if (!canEdit) {
+      return null
+    }
+    if (isValid) {
+      return (
+        <Button outline color='danger' onClick={() => {onCancel(); resetForm(initialValues);}}>
+          <i className={`fas fa-times fa-fw mr-2`}></i>
+          Discard changes
+        </Button>
+      )
+    } else {
+      return null
     }
   }
 
@@ -66,34 +156,21 @@ class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
    * Show delete button if selected targets exist
    * Show save button if editing deploy status
    */
-  renderSubmitButtons(): JSX.Element {
-    const {
-      mode,
-      submitting,
-      pristine
-    } = this.props
-
-    const showSubmitButton: boolean = mode !== ControlMode.VIEW_SERVICES_STATUS
-
-    if (!showSubmitButton) {
+  renderSubmitButtons(isValid, isSubmitting): JSX.Element {
+    if (!isValid) {
       return null
     }
 
-    const paramsMap = {
-      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services' },
-    }
-
     // Submit button element(s)
-    const buttons = (params) => (
+    const buttons = (
       <div className='mb-2'>
         <Button
-          color={params.color}
+          color='danger'
           className='mr-2'
-          disabled={pristine || submitting}
-          type='submit'
-        >
-          <i className={`fas fa-${params.icon} fa-fw mr-2`}></i>
-          {params.text}
+          disabled={!isValid || isSubmitting}
+          type='submit'>
+          <i className={`fas fa-trash fa-fw mr-2`}></i>
+          Delete Services
         </Button>
       </div>
     )
@@ -105,71 +182,33 @@ class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, {}> {
       </div>
     )
 
-    return submitting ? submittingLoader : buttons(paramsMap[mode])
-  }
-
-  renderSubmitButtonElements() {
-    const {
-      submitting,
-      pristine
-    } = this.props
-
-    const paramsMap = {
-      [ControlMode.SELECT_TARGETS]: { color: 'danger', icon: 'trash', text: 'Delete Services' },
-    }
-
-    return (
-      <div className='mb-2'>
-        <Button
-          color='danger'
-          className='mr-2'
-          disabled={pristine || submitting}
-        >
-          <i className='fas fa-trash fa-fw mr-2'></i>
-          Delete Services
-      </Button>
-      </div>
-    )
-  }
-
-  // Handle event methods
-
-  handleDiscardChanges(event): void {
-    const { changeMode, reset } = this.props
-    reset()
-    changeMode(ControlMode.VIEW_SERVICES_STATUS)
+    return isSubmitting ? submittingLoader : buttons
   }
 }
 
 interface ServicesDeleteFormCustomProps {
-  applicationType: string
+  projectId
   applicationId
-  mode: ControlMode
   services: Service[]
   canEdit: boolean
-  onSubmit: (e) => Promise<void>
-  changeMode: (mode: ControlMode) => void
+  onSubmit
+  onCancel
 }
+
+interface ServiceDeleteFormCustomState {}
 
 interface StateProps {
   initialValues: {
-    status
     delete
   }
 }
 
 const mapStateToProps = (state: any, extraProps: ServicesDeleteFormCustomProps) => {
-  // Map of service ID to delete flag
-  const initialDeleteStatus: { [x: string]: boolean } =
-    extraProps.services
-    .map((service) => ({[service.id]: false}))
-    .reduce((l, r) => Object.assign(l, r), {})
-
   return {
     ...state.form,
     initialValues: {
       delete: {
-        services: initialDeleteStatus
+        services: []
       }
     }
   }
@@ -179,13 +218,6 @@ const mapDispatchToProps = (dispatch): {} => {
   return { }
 }
 
-type ServicesDeleteFormProps
-  = StateProps & ServicesDeleteFormCustomProps & InjectedFormProps<{}, ServicesDeleteFormCustomProps>
+type ServicesDeleteFormProps = StateProps & ServicesDeleteFormCustomProps
 
-export default connect(mapStateToProps, mapDispatchToProps)(
-  reduxForm<{}, ServicesDeleteFormCustomProps>(
-    {
-      form: 'deployStatusForm'
-    }
-  )(ServicesDeleteForm)
-)
+export default connect(mapStateToProps, mapDispatchToProps)(ServicesDeleteForm)

@@ -4,116 +4,127 @@ import { withRouter, RouteComponentProps } from 'react-router'
 import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Service, SynKubernetesStatusParam, Application, UserInfo, UserRole } from '@src/apis'
+import {
+  Service, SyncKubernetesParam, Application, UserInfo,
+  FetchApplicationByIdParam, FetchServiceParam, IdParam, Project
+} from '@src/apis'
 import {
   addNotification,
   fetchApplicationByIdDispatcher,
   fetchAllServicesDispatcher,
-  deleteKubernetesServicesDispatcher,
-  syncKubernetesStatusDispatcher
+  deleteServicesDispatcher,
+  syncKubernetesDispatcher
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import ServicesDeleteForm from './ServicesDeleteForm'
-import { role } from '../Admin/constants'
 
-export enum ControlMode {
-  VIEW_SERVICES_STATUS,
-  SELECT_TARGETS,
+
+type ServicesStatusProps = DispatchProps & StateProps & RouteComponentProps<{projectId: number, applicationId: string}>
+
+interface ServicesStatusState {
+  isDeleteServicesModalOpen: boolean
+  selectedData: IdParam[]
+  submitted: boolean
+  notified: boolean
+  syncSubmitted: boolean
+  syncNotified: boolean
 }
 
-type ServicesStatusProps = DispatchProps & StateProps & RouteComponentProps<{applicationId: string}>
-
-class Services extends React.Component<ServicesStatusProps, any> {
+class Services extends React.Component<ServicesStatusProps, ServicesStatusState> {
   constructor(props, context) {
     super(props, context)
 
     this.state = {
-      controlMode: ControlMode.VIEW_SERVICES_STATUS,
       isDeleteServicesModalOpen: false,
-      selectedData: { services: [] },
+      selectedData: [],
       submitted: false,
+      notified: false,
       syncSubmitted: false,
       syncNotified: false
     }
 
     this.onSubmitDelete = this.onSubmitDelete.bind(this)
-    this.deleteKubernetesServices = this.deleteKubernetesServices.bind(this)
+    this.onCancel = this.onCancel.bind(this)
+    this.deleteServices = this.deleteServices.bind(this)
     this.toggleDeleteServicesModal = this.toggleDeleteServicesModal.bind(this)
     this.syncServices = this.syncServices.bind(this)
     this.renderServices = this.renderServices.bind(this)
-    this.changeMode = this.changeMode.bind(this)
     this.complete = this.complete.bind(this)
   }
 
-  componentWillMount() {
-    const { applicationId } = this.props.match.params
-
-    this.props.fetchApplicationById(applicationId)
-    this.props.fetchAllServices(applicationId)
+  componentDidMount() {
+    this.props.fetchApplicationById(this.props.match.params)
+    this.props.fetchAllServices(this.props.match.params)
   }
 
-  componentWillReceiveProps(nextProps: ServicesStatusProps) {
+  static getDerivedStateFromProps(nextProps: ServicesStatusProps, prevState: ServicesStatusState){
     const {
-      deleteKubernetesServicesStatus,
-      syncKubernetesServicesStatusStatus
+      deleteServicesStatus,
+      syncKubernetesStatus
     } = nextProps
-    const { controlMode, submitted } = this.state
+    const { submitted, syncSubmitted, syncNotified } = prevState
 
-    const checkAllApiResultStatus =
+    const checkAllApiResultSucceeded =
       (result: APIRequest<boolean[]>) =>
         isAPISucceeded<boolean[]>(result) &&
         result.result.reduce((p, c) => (p && c))
+    const checkAllApiResultFailed =
+      (result: APIRequest<boolean[]>) =>
+        (isAPISucceeded<boolean[]>(result) && !result.result.reduce((p, c) => (p && c))) || isAPIFailed<boolean[]>(result)
 
-    if (submitted && controlMode === ControlMode.SELECT_TARGETS) {
-      if (checkAllApiResultStatus(deleteKubernetesServicesStatus)) {
-        this.complete({ color: 'success', message: 'Successfully changed deletion' })
-      } else {
-        this.complete({ color: 'error', message: 'Something went wrong, try again later' })
+    if (submitted) {
+      if (checkAllApiResultSucceeded(deleteServicesStatus)) {
+        nextProps.addNotification({ color: 'success', message: 'Successfully changed deletion services' })
+        nextProps.fetchAllServices(nextProps.match.params)
+        return {
+          submitted: false,
+          notified: true,
+          selectedData: []
+        }
+      } else if (checkAllApiResultFailed(deleteServicesStatus)) {
+        nextProps.addNotification({ color: 'error', message: 'Something went wrong with deletion services, try again later' })
+        return {
+          submitted: false,
+          notified: true,
+          selectedData: []
+        }
       }
     }
 
-    this.checkAndNotifyAPIResult(
-      syncKubernetesServicesStatusStatus,
-      'syncSubmitted', 'syncNotified',
-      'Successfully synced application'
-    )
-  }
-
-  checkAndNotifyAPIResult(status, submitted: string, notified: string, notificationText) {
-    const submittedFlag: boolean = this.state[submitted]
-    const notifiedFlag: boolean = this.state[notified]
-
-    if (submittedFlag && !notifiedFlag) {
-      const succeeded: boolean = isAPISucceeded<boolean>(status) && status.result
-      const failed: boolean = (isAPISucceeded<boolean>(status) && !status.result) ||
-        isAPIFailed<boolean>(status)
+    if (syncSubmitted && !syncNotified) {
+      const succeeded: boolean = isAPISucceeded<boolean>(syncKubernetesStatus) && syncKubernetesStatus.result
+      const failed: boolean = (isAPISucceeded<boolean>(syncKubernetesStatus) && !syncKubernetesStatus.result) || isAPIFailed<boolean>(syncKubernetesStatus)
 
       if (succeeded) {
-        this.setState({[submitted]: false, [notified]: true})
-        this.complete({ color: 'success', message: notificationText })
+        nextProps.addNotification({ color: 'success', message: 'Successfully synced application' })
+        nextProps.fetchAllServices(nextProps.match.params)
+        return {
+          syncSubmitted: false,
+          syncNotified: true,
+        }
       } else if (failed) {
-        this.setState({[submitted]: false, [notified]: true})
-        this.complete({ color: 'error', message: 'Something went wrong. Try again later' })
+        nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+        return {
+          syncSubmitted: false,
+          syncNotified: true,
+        }
       }
     }
+    return null
   }
 
   // Render methods
 
   render(): JSX.Element {
-    const { application, services, userInfoStatus, settings } = this.props
-    const statuses: any = { application, services }
+    const { fetchProjectByIdStatus, application, services, userInfoStatus, settings } = this.props
+    const statuses: any = { fetchProjectByIdStatus, application, services }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
-    }
-    if ( this.props.match.params.applicationId === 'add' ) {
-      return null
     }
     return (
       <APIRequestResultsRenderer
         APIStatus={statuses}
         render={this.renderServices}
-        applicationId={this.props.match.params.applicationId}
       />
     )
   }
@@ -126,60 +137,72 @@ class Services extends React.Component<ServicesStatusProps, any> {
    * @param canEdit Boolean value of user's editor permission
    */
   renderServices(fetchedResults, canEdit) {
-    const { controlMode } = this.state
-    const {
-      onSubmitNothing,
-      onSubmitDelete,
-      changeMode
-    } = this
-
-    const { kubernetesId, name } = fetchedResults.application
-    const { applicationId } = this.props.match.params
-
+    const project: Project = fetchedResults.fetchProjectByIdStatus
+    const applicationName = fetchedResults.application.name
+    const { projectId, applicationId } = this.props.match.params
     const services: Service[] = fetchedResults.services
-    const onSubmitMap = {
-      [ControlMode.VIEW_SERVICES_STATUS]: onSubmitNothing,
-      [ControlMode.SELECT_TARGETS]: onSubmitDelete,
-    }
 
     return (
       this.renderContent(
         <ServicesDeleteForm
-          applicationType={!!kubernetesId ? 'kubernetes' : 'simple'}
+          projectId={projectId}
           applicationId={applicationId}
           services={services}
-          mode={controlMode}
-          onSubmit={onSubmitMap[controlMode]}
-          changeMode={changeMode}
+          onSubmit={this.onSubmitDelete}
+          onCancel={this.onCancel}
           canEdit={canEdit}
         />,
-        name,
-        kubernetesId,
+        applicationName,
+        project.useKubernetes,
         canEdit
       )
     )
   }
 
-  renderContent = (content: JSX.Element, applicationName, kubernetesId, canEdit: boolean): JSX.Element => {
+  renderContent = (content: JSX.Element, applicationName, kubernetesMode, canEdit: boolean): JSX.Element => {
     return (
       <div className='pb-5'>
-        {this.renderTitle(applicationName, kubernetesId, canEdit)}
+        {this.renderTitle(applicationName, kubernetesMode, canEdit)}
         <h3>
           <i className='fas fa-server fa-fw mr-2'></i>
           Services
         </h3>
         <hr />
         {content}
-        {
-          this.state.controlMode === ControlMode.SELECT_TARGETS
-            ? this.renderConfirmDeleteHostModal()
-            : null
-        }
+        {this.renderConfirmDeleteHostModal()}
       </div>
     )
   }
 
-  renderTitle = (applicationName, kubernetesId, canEdit: boolean): JSX.Element => {
+  renderTitle = (applicationName, kubernetesMode, canEdit: boolean): JSX.Element => {
+    const { push } = this.props.history
+    const { projectId, applicationId} = this.props.match.params
+
+    const kubeSyncButton = (
+      <React.Fragment>
+        {` `}
+        <Button
+          color='success' size='sm'
+          onClick={this.syncServices}>
+          <i className='fas fa-sync-alt fa-fw mr-2'></i>
+          Sync
+        </Button>
+      </React.Fragment>
+    )
+
+    const buttons = (
+      <Col xs='5' className='text-right'>
+        <Button
+          color='primary'
+          size='sm'
+          onClick={() => { push(`/projects/${projectId}/applications/${applicationId}/services/add`) }}>
+          <i className='fas fa-box fa-fw mr-2'></i>
+          Add Service
+        </Button>
+        {kubernetesMode ? kubeSyncButton : null}
+      </Col>
+    )
+
     return (
       <Row className='align-items-center mb-5'>
         <Col xs='7'>
@@ -188,55 +211,30 @@ class Services extends React.Component<ServicesStatusProps, any> {
             {applicationName}
           </h1>
         </Col>
-        <Col xs='5' className='text-right'>
-          {kubernetesId && canEdit ? this.renderKubernetesControlButtons(kubernetesId) : null}
-        </Col>
+        {canEdit ? buttons : null}
       </Row>
-    )
-  }
-
-  renderKubernetesControlButtons(kubernetesId) {
-    const { push } = this.props.history
-    const { syncServices } = this
-    const { applicationId } = this.props.match.params
-
-    return (
-      <React.Fragment>
-        <Button
-          color='primary'
-          size='sm'
-          onClick={() => { push(`/applications/${applicationId}/services/add`) }}
-        >
-          <i className='fas fa-box fa-fw mr-2'></i>
-          Add Service
-          </Button>
-        {` `}
-        <Button
-          color='success' size='sm'
-          onClick={(event) => syncServices(kubernetesId)}
-        >
-          <i className='fas fa-sync-alt fa-fw mr-2'></i>
-          Sync
-          </Button>
-      </React.Fragment>
     )
   }
 
   renderConfirmDeleteHostModal(): JSX.Element {
     const { isDeleteServicesModalOpen } = this.state
 
-    const cancel = () => {
+    const executeDeletion = (event) => {
+      if (this.state.selectedData.length > 0) {
+        this.deleteServices(this.state.selectedData)
+      }
       this.toggleDeleteServicesModal()
+      return Promise.resolve()
     }
 
-    const executeDeletion = (event) => {
-      this.deleteKubernetesServices(this.state.selectedData.services)
+    const cancelDeletion = (event) => {
       this.toggleDeleteServicesModal()
+      return Promise.resolve()
     }
 
     return (
-      <Modal isOpen={isDeleteServicesModalOpen} toggle={cancel} size='sm'>
-        <ModalHeader toggle={cancel}>Delete Services</ModalHeader>
+      <Modal isOpen={isDeleteServicesModalOpen} toggle={cancelDeletion} size='sm'>
+        <ModalHeader toggle={cancelDeletion}>Delete Services</ModalHeader>
         <ModalBody>
           Are you sure to delete?
         </ModalBody>
@@ -245,8 +243,7 @@ class Services extends React.Component<ServicesStatusProps, any> {
             color='danger'
             size='lg'
             className='rounded-0 flex-1'
-            onClick={executeDeletion}
-          >
+            onClick={executeDeletion}>
             <i className='fas fa-exclamation-circle mr-3' />
             Delete
           </Button>
@@ -254,8 +251,7 @@ class Services extends React.Component<ServicesStatusProps, any> {
             color='secondary'
             size='lg'
             className='rounded-0 flex-1'
-            onClick={cancel}
-          >
+            onClick={cancelDeletion}>
             <i className='fas fa-ban mr-3' />
             Cancel
           </Button>
@@ -264,11 +260,9 @@ class Services extends React.Component<ServicesStatusProps, any> {
     )
   }
 
-  syncServices(kubernetesId): void {
-    const { applicationId } = this.props.match.params
-
+  syncServices(): void {
     this.setState({ syncSubmitted: true, syncNotified: false })
-    this.props.syncKubernetesServicesStatus({applicationId, kubernetesId})
+    this.props.syncKubernetes(this.props.match.params)
   }
 
   // Event handing methods
@@ -276,10 +270,6 @@ class Services extends React.Component<ServicesStatusProps, any> {
     this.setState({
       isDeleteServicesModalOpen: !this.state.isDeleteServicesModalOpen
     })
-  }
-
-  onSubmitNothing(params): void {
-    this.setState({})
   }
 
   /**
@@ -291,34 +281,29 @@ class Services extends React.Component<ServicesStatusProps, any> {
   onSubmitDelete(params): void {
     this.setState({
       isDeleteServicesModalOpen: true,
-      selectedData: {
-        services: params.delete.services,
-      }
+      selectedData: params.delete_services
     })
   }
 
-  deleteKubernetesServices(params): Promise<void> {
-    const { deleteKubernetesServices } = this.props
-    const { applicationId } = this.props.match.params
-
-    const apiParams =
-      Object.entries(params)
-        .filter(([key, value]) => (value))
-        .map(
-          ([key, value]) => (
-            {
-              applicationId,
-              serviceId: key
-            }))
-
-    this.setState({ submitted: true })
-
-    return deleteKubernetesServices(apiParams)
+  onCancel(): void {
+    this.setState({
+      selectedData: []
+    })
   }
 
-  // Utils
-  changeMode(mode: ControlMode) {
-    this.setState({ controlMode: mode })
+  deleteServices(params): Promise<void> {
+    const { projectId, applicationId } = this.props.match.params
+
+    const apiParams =
+      params.map((id) => (
+        {
+          projectId,
+          applicationId,
+          serviceId: id
+        }))
+
+    this.setState({ submitted: true, notified: false })
+    return this.props.deleteServices(apiParams)
   }
 
   /**
@@ -327,38 +312,32 @@ class Services extends React.Component<ServicesStatusProps, any> {
    * Fetch services through API again
    */
   complete(param) {
-    const {
-      fetchAllServices
-    } = this.props
-    const {
-      applicationId
-    } = this.props.match.params
-
     this.props.addNotification(param)
-    fetchAllServices(applicationId)
+    this.props.fetchAllServices(this.props.match.params)
     this.setState({
-      controlMode: ControlMode.VIEW_SERVICES_STATUS,
       submitted: false,
-      selectedData: { services: [] }
+      selectedData: []
     })
   }
 }
 
 export interface StateProps {
+  syncKubernetesStatus: APIRequest<boolean>
+  fetchProjectByIdStatus: APIRequest<Project>
   application: APIRequest<Application>
   services: APIRequest<Service[]>
-  deleteKubernetesServicesStatus: APIRequest<boolean[]>
-  syncKubernetesServicesStatusStatus: APIRequest<boolean>
+  deleteServicesStatus: APIRequest<boolean[]>
   userInfoStatus: APIRequest<UserInfo>
   settings: APIRequest<any>
 }
 
 const mapStateToProps = (state): StateProps => {
   const props = {
-    application: state.fetchApplicationByIdReducer.applicationById,
-    services: state.fetchAllServicesReducer.services,
-    deleteKubernetesServicesStatus: state.deleteKubernetesServicesReducer.deleteKubernetesServices,
-    syncKubernetesServicesStatusStatus: state.syncKubernetesStatusReducer.syncKubernetesStatus,
+    syncKubernetesStatus: state.syncKubernetesReducer.syncKubernetes,
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    application: state.fetchApplicationByIdReducer.fetchApplicationById,
+    services: state.fetchAllServicesReducer.fetchAllServices,
+    deleteServicesStatus: state.deleteServicesReducer.deleteServices,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings
   }
@@ -367,23 +346,23 @@ const mapStateToProps = (state): StateProps => {
 
 export interface DispatchProps {
   addNotification
-  syncKubernetesServicesStatus
-  fetchApplicationById: (id: string) => Promise<void>
-  fetchAllServices: (applicationId: string) => Promise<void>
-  deleteKubernetesServices: (params) => Promise<void>
+  syncKubernetes: (params: SyncKubernetesParam) => Promise<void>
+  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
+  fetchAllServices: (params: FetchServiceParam) => Promise<void>
+  deleteServices: (params: IdParam[]) => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
-    fetchApplicationById: (id: string) => fetchApplicationByIdDispatcher(dispatch, { id }),
-    fetchAllServices: (applicationId: string) => fetchAllServicesDispatcher(dispatch, { applicationId }),
-    deleteKubernetesServices: (params) => deleteKubernetesServicesDispatcher(dispatch, params),
-    syncKubernetesServicesStatus: (params: SynKubernetesStatusParam) => syncKubernetesStatusDispatcher(dispatch, params),
+    syncKubernetes: (params: SyncKubernetesParam) => syncKubernetesDispatcher(dispatch, params),
+    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
+    fetchAllServices: (params: FetchServiceParam) => fetchAllServicesDispatcher(dispatch, params),
+    deleteServices: (params: IdParam[]) => deleteServicesDispatcher(dispatch, params),
   }
 }
 
 export default withRouter(
-  connect<StateProps, DispatchProps, RouteComponentProps<{applicationId: string}>>(
+  connect<StateProps, DispatchProps, RouteComponentProps<{projectId: number, applicationId: string}>>(
     mapStateToProps, mapDispatchToProps
   )(Services))

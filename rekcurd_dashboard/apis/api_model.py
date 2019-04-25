@@ -43,7 +43,7 @@ model_model_params = model_api_namespace.model('Model', {
 @model_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/models')
 class ApiModels(Resource):
     upload_model_parser = reqparse.RequestParser()
-    upload_model_parser.add_argument('file', location='files',
+    upload_model_parser.add_argument('filepath', location='files',
                                      type=FileStorage, required=True)
     upload_model_parser.add_argument('description', type=str, required=True, location='form')
 
@@ -57,7 +57,7 @@ class ApiModels(Resource):
     def post(self, project_id: int, application_id: str):
         """upload_model"""
         args = self.upload_model_parser.parse_args()
-        file: FileStorage = args['file']
+        file: FileStorage = args['filepath']
         description: str = args['description']
 
         data_server_model: DataServerModel = db.session.query(
@@ -67,14 +67,17 @@ class ApiModels(Resource):
         if data_server_model.data_server_mode == DataServerModeEnum.LOCAL:
             """Only if DataServerModeEnum.LOCAL, send file to the server."""
             filepath = "ml-{0:%Y%m%d%H%M%S}.model".format(datetime.datetime.utcnow())
-            service_model: ServiceModel = db.session.query(
-                ServiceModel).filter(ServiceModel.application_id == application_id).first()
-            rekcurd_dashboard_application = RekcurdDashboardClient(
-                host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
-                service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
-            response_body = rekcurd_dashboard_application.run_upload_model(filepath, file)
-            if not response_body.get("status", True):
-                raise RekcurdDashboardException(response_body.get("message", "Error."))
+            service_models = db.session.query(
+                ServiceModel).filter(ServiceModel.application_id == application_id).all()
+            for service_model in service_models:
+                rekcurd_dashboard_application = RekcurdDashboardClient(
+                    host=service_model.insecure_host, port=service_model.insecure_port,
+                    application_name=application_model.application_name,
+                    service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
+                response_body = rekcurd_dashboard_application.run_upload_model(filepath, file)
+                if not response_body.get("status", True):
+                    raise RekcurdDashboardException(response_body.get("message", "Error."))
+            response_body = {"status": True, "message": "Success."}
         else:
             """Otherwise, upload file."""
             with tempfile.NamedTemporaryFile() as fp:

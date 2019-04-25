@@ -8,6 +8,7 @@ from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_dashboard.models import (
     db, KubernetesModel, DataServerModel, DataServerModeEnum, ApplicationModel, ServiceModel, ModelModel
 )
+from rekcurd_dashboard.protobuf import rekcurd_pb2
 
 
 service_api_namespace = Namespace('services', description='Service API Endpoint.')
@@ -78,7 +79,10 @@ class ApiServiceId(Resource):
     update_config_parser = reqparse.RequestParser()
     update_config_parser.add_argument('display_name', type=str, required=False, location='form')
     update_config_parser.add_argument('description', type=str, required=False, location='form')
-    update_config_parser.add_argument('version', type=str, required=False, location='form')
+    update_config_parser.add_argument(
+        'version', type=str, required=False, location='form',
+        default=rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version],
+        choices=('v0', 'v1', 'v2'))
 
     @service_api_namespace.marshal_with(service_model_params)
     def get(self, project_id: int, application_id: str, service_id: str):
@@ -101,7 +105,8 @@ class ApiServiceId(Resource):
             raise RekcurdDashboardException("No need to switch model.")
         if len(kubernetes_models) and data_server_model.data_server_mode != DataServerModeEnum.LOCAL:
             """If Kubernetes mode and data_sever_mode is not LOCAL, then request switch to Kubernetes WebAPI"""
-            response_body = switch_model_assignment(project_id, application_id, service_id, model_id)
+            switch_model_assignment(project_id, application_id, service_id, model_id)
+            response_body = {"status": True, "message": "Success."}
         else:
             """Otherwise, switch model directly by requesting gRPC proto."""
             application_model: ApplicationModel = db.session.query(ApplicationModel).filter(

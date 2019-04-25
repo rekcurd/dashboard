@@ -18,6 +18,12 @@ from rekcurd_dashboard.utils import ProjectUserRoleException
 
 kubernetes_api_namespace = Namespace('kubernetes', description='Kubernetes API Endpoint.')
 success_or_not = kubernetes_api_namespace.model('Success', status_model)
+true_or_false = kubernetes_api_namespace.model('True or False', {
+    'is_target': fields.Boolean(
+        readOnly=True,
+        description='True or False'
+    )
+})
 kubernetes_model_params = kubernetes_api_namespace.model('Kubernetes', {
     'kubernetes_id': fields.Integer(
         readOnly=True,
@@ -86,18 +92,9 @@ class ApiKubernetes(Resource):
             role: ProjectUserRoleModel = db.session.query(ProjectUserRoleModel).filter(
                 ProjectUserRoleModel.project_id == project_id,
                 ProjectUserRoleModel.user_id == user_id).one_or_none()
-            if role is None or role.project_role != ProjectRole.admin:
+            if role is None:
                 raise ProjectUserRoleException("Invalid access.")
         return KubernetesModel.query.filter_by(project_id=project_id).all()
-
-    @kubernetes_api_namespace.marshal_with(success_or_not)
-    def put(self, project_id: int):
-        """update to the latest Kubernetes deployment info."""
-        kubernetes_model = KubernetesModel.query.filter_by(project_id=project_id).first()
-        update_kubernetes_deployment_info(kubernetes_model)
-        db.session.commit()
-        db.session.close()
-        return {"status": True, "message": "Success."}
 
     @kubernetes_api_namespace.marshal_with(success_or_not)
     @kubernetes_api_namespace.expect(kubernetes_model_parser)

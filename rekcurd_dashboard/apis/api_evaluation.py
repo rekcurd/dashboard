@@ -3,7 +3,7 @@ import tempfile
 from itertools import chain
 
 from flask import abort
-from flask_restplus import Namespace, fields, Resource, reqparse
+from flask_restplus import Namespace, fields, Resource, reqparse, inputs
 from werkzeug.datastructures import FileStorage
 
 from . import status_model
@@ -114,7 +114,7 @@ class ApiEvaluate(Resource):
     eval_parser = reqparse.RequestParser()
     eval_parser.add_argument('model_id', location='form', type=int, required=True)
     eval_parser.add_argument('evaluation_id', location='form', type=int, required=False)
-    eval_parser.add_argument('overwrite', location='form', type=bool, required=False)
+    eval_parser.add_argument('overwrite', location='form', type=inputs.boolean, required=False)
 
     @evaluation_api_namespace.expect(eval_parser)
     @evaluation_api_namespace.marshal_with(eval_metrics)

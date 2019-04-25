@@ -1,19 +1,36 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { withRouter, RouteComponentProps, Link } from 'react-router-dom'
-import { Alert } from 'reactstrap'
+import { withRouter, RouteComponentProps } from 'react-router-dom'
+import { Alert, Card, CardBody, Button, Input, Label } from 'reactstrap'
+import { Formik, Form } from 'formik'
+import * as Yup from "yup";
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { KubernetesHost, Model, Service, Application } from '@src/apis'
 import {
-  fetchKubernetesHostByIdDispatcher,
+  Service, Model, FetchServiceByIdParam,
+  FetchModelByIdParam, ServiceDeploymentParam, UpdateServiceParam, UserInfo
+} from '@src/apis'
+import {
   fetchServiceByIdDispatcher,
   fetchAllModelsDispatcher,
-  saveServiceDispatcher,
+  saveServiceDeploymentDispatcher,
+  updateServiceDispatcher,
   addNotification
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
-import { ServiceDeploymentForm } from './ServiceDeploymentForm'
+import * as ServiceDescriptionForm from './ServiceDescriptionForm'
+import * as ServiceConfigForm from './ServiceConfigForm'
+import * as ServiceDeploymentForm from './ServiceDeploymentForm'
+
+
+const UpdateFlagSchema = {
+  isUpdate: Yup.boolean()
+    .required('Required')
+}
+
+const UpdateFlagInitialValues = {
+  isUpdate: false
+}
 
 /**
  * Page for adding service
@@ -32,63 +49,60 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
     }
   }
 
-  componentWillReceiveProps(nextProps: SaveServiceProps) {
-    const { saveServiceStatus } = nextProps
+  componentDidMount(): void {
+    this.props.fetchAllModels(this.props.match.params)
+    if (this.props.method === 'patch') {
+      this.props.fetchServiceById({
+        isKubernetes: this.props.kubernetesMode,
+        isOnlyDescription: false,
+        serviceId: this.props.match.params.serviceId,
+        ...this.props.match.params
+      })
+    }
+  }
+
+  static getDerivedStateFromProps(nextProps: SaveServiceProps, prevState: SaveServiceState){
+    const { updateServiceStatus, saveServiceDeploymentStatus } = nextProps
     const { push } = nextProps.history
-    const { applicationId } = this.props.match.params
-    const { submitting, notified } = this.state
+    const { projectId, applicationId } = nextProps.match.params
+    const { submitting, notified } = prevState
 
     // Close modal when API successfully finished
     if (submitting && !notified) {
-      const succeeded: boolean = isAPISucceeded<boolean>(saveServiceStatus) && saveServiceStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(saveServiceStatus) && !saveServiceStatus.result) ||
-        isAPIFailed<boolean>(saveServiceStatus)
-      if (succeeded) {
+      const deploySucceeded: boolean = isAPISucceeded<boolean>(saveServiceDeploymentStatus) && saveServiceDeploymentStatus.result
+      const deployFailed: boolean = (isAPISucceeded<boolean>(saveServiceDeploymentStatus) && !saveServiceDeploymentStatus.result) || isAPIFailed<boolean>(saveServiceDeploymentStatus)
+      if (deploySucceeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully saved service' })
-        this.setState({ notified: true })
-        push(`/applications/${applicationId}`)
-      } else if (failed) {
+        push(`/projects/${projectId}/applications/${applicationId}`)
+        return { submitting: false, notified: true }
+      } else if (deployFailed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
-        this.setState({ notified: true })
+        return { submitting: false, notified: true }
+      }
+
+      const updateSucceeded: boolean = isAPISucceeded<boolean>(updateServiceStatus) && updateServiceStatus.result
+      const updateFailed: boolean = (isAPISucceeded<boolean>(updateServiceStatus) && !updateServiceStatus.result) || isAPIFailed<boolean>(updateServiceStatus)
+      if (updateSucceeded) {
+        nextProps.addNotification({ color: 'success', message: 'Successfully updated service' })
+        push(`/projects/${projectId}/applications/${applicationId}`)
+        return { submitting: false, notified: true }
+      } else if (updateFailed) {
+        nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+        return { submitting: false, notified: true }
       }
     }
-
-  }
-
-  componentWillMount() {
-    this.props.fetchKubernetesHostById({id: this.props.kubernetesId})
-    this.props.fetchAllModels({applicationId: this.props.match.params.applicationId})
-    if (this.props.mode === 'edit') {
-      this.props.fetchServiceById(
-        {
-          kubernetes: true,
-          id: this.props.match.params.serviceId,
-          applicationId: this.props.match.params.applicationId,
-          kubernetesId: this.props.kubernetesId
-        }
-      )
-    }
+    return null
   }
 
   render() {
-    const {
-      kubernetesId,
-      fetchKubernetesHostStatus,
-      fetchServiceByIdStatus,
-      fetchAllModelsStatus,
-      mode
-    } = this.props
+    const { method, fetchServiceByIdStatus, fetchAllModelsStatus, userInfoStatus, settings } = this.props
+    const targetStatus: any = (method === 'patch') ?
+      {service: fetchServiceByIdStatus, models: fetchAllModelsStatus} :
+      {models: fetchAllModelsStatus}
 
-    const targetStatus =
-      mode === 'edit'
-      ? { hosts: fetchKubernetesHostStatus, service: fetchServiceByIdStatus, models: fetchAllModelsStatus }
-      : { hosts: fetchKubernetesHostStatus, models: fetchAllModelsStatus }
-
-    if (!kubernetesId && mode === 'edit') {
-      // TODO: Check whether this is fine
-      return null
+    if (isAPISucceeded(settings) && settings.result.auth) {
+      targetStatus.userInfoStatus = userInfoStatus
     }
-
     return(
       <APIRequestResultsRenderer
         render={this.renderForm}
@@ -97,43 +111,203 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
     )
   }
 
-  renderForm(params) {
-    const { mode } = this.props
+  renderForm(params, canEdit) {
+    const { projectId, applicationId } = this.props.match.params
+    const { kubernetesMode, method } = this.props
+
+    if (!canEdit) {
+      this.props.history.push(`/projects/${projectId}/applications/${applicationId}`)
+      this.props.addNotification({ color: 'error', message: "You don't have a permission. Contact your Project admin." })
+    }
+    if (params.models.length === 0) {
+      this.props.history.push(`/projects/${projectId}/applications/${applicationId}`)
+      this.props.addNotification({ color: 'error', message: 'No models available. Please add your model firstly.' })
+    }
+
+    const ValidationSchema = this.setValidationSchema(kubernetesMode, method)
+    const InitialValues = this.setInitialValues(kubernetesMode, method, params)
+    const FormikContents = (
+      <Formik
+        initialValues={InitialValues}
+        validationSchema={ValidationSchema}
+        onSubmit={this.onSubmit}
+        onReset={this.onCancel}>
+        {({ isSubmitting, setFieldValue }) => (
+          <Form>
+            {this.setFormContent(kubernetesMode, method, params, isSubmitting, setFieldValue)}
+            {this.renderButtons(isSubmitting)}
+          </Form>
+        )}
+      </Formik>
+    )
 
     return (
       <React.Fragment>
-        {this.hostsNotFoundAlert()}
-        <ServiceDeploymentForm
-          mode={mode}
-          models={params.models}
-          onSubmit={this.onSubmit}
-          onCancel={this.onCancel}
-          applicationType='kubernetes'
-          kubernetesHost={params.hosts}
-          service={params.service}
-        />
+        { FormikContents }
       </React.Fragment>
     )
   }
 
-  hostsNotFoundAlert() {
-    const failed: boolean =
-      isAPIFailed<KubernetesHost>(this.props.fetchKubernetesHostStatus)
-
-    if (failed) {
-        const link = (
-          <Link className='text-info' to='/settings/kubernetes/hosts/'>
-            here
-          </Link>
-        )
-        return (
-          <Alert color='danger'>
-            We could not fetch Kubernetes host.
-            Check {` `}{link}.
-          </Alert>
-        )
+  setValidationSchema(kubernetesMode, method) {
+    if (kubernetesMode) {
+      if (method === 'post') {
+        return Yup.object().shape({
+          ...ServiceDescriptionForm.ServiceDescriptionSchema,
+          ...ServiceConfigForm.ServiceConfigSchema,
+          ...ServiceDeploymentForm.ServiceDeploymentSchema
+        })
+      } else {
+        return Yup.object().shape({
+          ...ServiceDescriptionForm.ServiceDescriptionSchema,
+          ...UpdateFlagSchema,
+          ...ServiceConfigForm.ServiceConfigSchema,
+          ...ServiceDeploymentForm.ServiceDeploymentSchema
+        })
+      }
+    } else {
+      if (method === 'post') {
+        return Yup.object().shape({
+          ...ServiceDescriptionForm.ServiceDescriptionSchema,
+          ...ServiceConfigForm.ServiceConfigSchema,
+        })
+      } else {
+        return Yup.object().shape({
+          ...ServiceDescriptionForm.ServiceDescriptionSchema,
+          ...UpdateFlagSchema,
+          ...ServiceConfigForm.ServiceConfigSchema,
+        })
+      }
     }
-    return null
+  }
+
+  setInitialValues(kubernetesMode, method, params) {
+    if (kubernetesMode) {
+      if (method === 'post') {
+        return {
+          ...ServiceDescriptionForm.ServiceDescriptionDefaultInitialValues,
+          ...ServiceConfigForm.ServiceConfigDefaultInitialValues,
+          ...ServiceDeploymentForm.ServiceDeploymentDefaultInitialValues
+        }
+      } else {
+        return {
+          ...UpdateFlagInitialValues,
+          serviceModelAssignment: params.service.modelId,
+          ...params.service
+        }
+      }
+    } else {
+      if (method === 'post') {
+        return {
+          ...ServiceDescriptionForm.ServiceDescriptionDefaultInitialValues,
+          ...ServiceConfigForm.ServiceConfigDefaultInitialValues
+        }
+      } else {
+        return {
+          ...UpdateFlagInitialValues,
+          serviceModelAssignment: params.service.modelId,
+          ...params.service
+        }
+      }
+    }
+  }
+
+  setFormContent(kubernetesMode, method, params, isSubmitting, setFieldValue) {
+    const isPost = (method === 'post')
+    if (kubernetesMode) {
+      if (isPost) {
+        return (
+          <React.Fragment>
+            <ServiceDescriptionForm.ServiceDescriptionForm />
+            <ServiceConfigForm.ServiceConfigForm models={params.models}/>
+            <ServiceDeploymentForm.ServiceDeploymentForm />
+          </React.Fragment>
+        )
+      } else {
+        return (
+          <React.Fragment>
+            <ServiceDescriptionForm.ServiceDescriptionForm />
+            {this.renderUpdateButtons(isSubmitting, setFieldValue)}
+            <ServiceConfigForm.ServiceConfigForm models={params.models}/>
+            <ServiceDeploymentForm.ServiceDeploymentForm />
+          </React.Fragment>
+        )
+      }
+    } else {
+      if (isPost) {
+        return (
+          <React.Fragment>
+            <ServiceDescriptionForm.ServiceDescriptionForm />
+            <ServiceConfigForm.ServiceConfigForm models={params.models}/>
+          </React.Fragment>
+        )
+      } else {
+        return (
+          <React.Fragment>
+            <ServiceDescriptionForm.ServiceDescriptionForm />
+            {this.renderUpdateButtons(isSubmitting, setFieldValue)}
+            <ServiceConfigForm.ServiceConfigForm models={params.models}/>
+          </React.Fragment>
+        )
+      }
+    }
+  }
+
+  /**
+   * Render control buttons
+   *
+   * Put on footer of this modal
+   */
+  renderButtons(isSubmitting): JSX.Element {
+    const { method, kubernetesMode } = this.props
+
+    if (isSubmitting) {
+      return (
+        <div className='text-right mb-3'>
+          <div className='loader loader-primary loader-xs mr-2' />
+          Submitting...
+        </div>
+      )
+    }
+
+    return (
+      <div className='text-right mb-3'>
+        <Button color='success' type='submit'>
+          <i className='fas fa-check fa-fw mr-2'></i>
+          {method === 'post' ? 'Add New Service' : kubernetesMode ? 'Rolling Deploying' : 'Deploying'}
+        </Button>
+        {' '}
+        <Button outline color='info' type='reset'>
+          <i className='fas fa-ban fa-fw mr-2'></i>
+          Reset
+        </Button>
+      </div>
+    )
+  }
+
+  renderUpdateButtons(isSubmitting, setFieldValue): JSX.Element {
+    if (isSubmitting) {
+      return (
+        <div className='text-right mb-3'>
+          <div className='loader loader-primary loader-xs mr-2' />
+          Submitting...
+        </div>
+      )
+    }
+
+    return (
+      <div className='text-right mb-3'>
+        <Input name="isUpdate" type="hidden" />
+        <Button color='success' type='submit' onClick={()=>{setFieldValue('isUpdate', true)}}>
+          <i className='fas fa-check fa-fw mr-2'></i>
+          Update without deploying
+        </Button>
+        {' '}
+        <Button outline color='info' type='reset'>
+          <i className='fas fa-ban fa-fw mr-2'></i>
+          Reset
+        </Button>
+      </div>
+    )
   }
 
   /**
@@ -143,22 +317,47 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
    */
   onCancel() {
     const { push } = this.props.history
-    const { applicationId } = this.props.match.params
-    push(`applications/${applicationId}`)
+    const { projectId, applicationId } = this.props.match.params
+    push(`/projects/${projectId}/applications/${applicationId}`)
   }
 
   onSubmit(parameters) {
-    const { saveServiceDeployment, mode } = this.props
-    const { applicationId, serviceId } = this.props.match.params
+    const { kubernetesMode, method } = this.props
+    if (parameters["isUpdate"]) {
+      this.onServiceInfoUpdateSubmit(parameters)
+    } else if (!kubernetesMode && (method === 'patch')) {
+      this.onServiceInfoUpdateSubmit(parameters)
+    } else {
+      this.onDeploymentSubmit(parameters)
+    }
+  }
 
-    const request = {
-      dbType: 'sqlite',
-      ...parameters[mode].service,
-      mode,
-      id: serviceId,
-      applicationType: 'kubernetes',
+  onServiceInfoUpdateSubmit(parameters) {
+    const { updateServiceDeployment, method } = this.props
+    const { projectId, applicationId, serviceId } = this.props.match.params
+
+    const request: UpdateServiceParam = {
+      projectId,
       applicationId,
-      saveDescription: false
+      serviceId,
+      method,
+      ...parameters
+    }
+
+    this.setState({ submitting: true, notified: false })
+    return updateServiceDeployment(request)
+  }
+
+  onDeploymentSubmit(parameters) {
+    const { saveServiceDeployment, kubernetesMode, method } = this.props
+    const { projectId, applicationId } = this.props.match.params
+
+    const request: ServiceDeploymentParam = {
+      projectId,
+      applicationId,
+      isKubernetes: kubernetesMode,
+      method,
+      ...parameters
     }
 
     this.setState({ submitting: true, notified: false })
@@ -168,7 +367,7 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
 
 type SaveServiceProps =
   StateProps & DispatchProps
-  & RouteComponentProps<{applicationId: string, serviceId?: string}>
+  & RouteComponentProps<{projectId: number, applicationId: string, serviceId?: string}>
   & CustomProps
 
 interface SaveServiceState {
@@ -176,51 +375,53 @@ interface SaveServiceState {
   notified: boolean
 }
 
-interface StateProps {
-  application: APIRequest<Application>
-  saveServiceStatus: APIRequest<boolean>
-  fetchKubernetesHostStatus: APIRequest<KubernetesHost>
-  fetchServiceByIdStatus: APIRequest<Service>
-  fetchAllModelsStatus: APIRequest<Model[]>
+interface CustomProps {
+  method: string
+  kubernetesMode: boolean
 }
 
-interface CustomProps {
-  mode: string
-  kubernetesId: string
+interface StateProps {
+  fetchServiceByIdStatus: APIRequest<Service>
+  fetchAllModelsStatus: APIRequest<Model[]>
+  saveServiceDeploymentStatus: APIRequest<boolean>
+  updateServiceStatus: APIRequest<boolean>
+  userInfoStatus: APIRequest<UserInfo>
+  settings: APIRequest<any>
 }
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
-    application: state.fetchApplicationByIdReducer.applicationById,
-    saveServiceStatus: state.saveServiceReducer.saveService,
-    fetchKubernetesHostStatus: state.fetchKubernetesHostByIdReducer.kubernetesHostById,
-    fetchServiceByIdStatus: state.fetchServiceByIdReducer.serviceById,
-    fetchAllModelsStatus: state.fetchAllModelsReducer.models,
+    fetchServiceByIdStatus: state.fetchServiceByIdReducer.fetchServiceById,
+    fetchAllModelsStatus: state.fetchAllModelsReducer.fetchAllModels,
+    saveServiceDeploymentStatus: state.saveServiceDeploymentReducer.saveServiceDeployment,
+    updateServiceStatus: state.updateServiceReducer.updateService,
+    userInfoStatus: state.userInfoReducer.userInfo,
+    settings: state.settingsReducer.settings,
     ...state.form,
     ...extraProps
   }
 )
 
 export interface DispatchProps {
-  saveServiceDeployment: (params) => Promise<void>
-  fetchKubernetesHostById: (params) => Promise<void>
-  fetchServiceById: (params) => Promise<void>
-  fetchAllModels: (params) => Promise<void>
+  fetchServiceById: (params: FetchServiceByIdParam) => Promise<void>
+  fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
+  saveServiceDeployment: (params: ServiceDeploymentParam) => Promise<void>
+  updateServiceDeployment: (params: UpdateServiceParam) => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    fetchKubernetesHostById: (params) => fetchKubernetesHostByIdDispatcher(dispatch, params),
-    fetchServiceById: (params) => fetchServiceByIdDispatcher(dispatch, params),
-    fetchAllModels: (params) => fetchAllModelsDispatcher(dispatch, params),
-    saveServiceDeployment: (params) => saveServiceDispatcher(dispatch, params),
+    fetchServiceById: (params: FetchServiceByIdParam) => fetchServiceByIdDispatcher(dispatch, params),
+    fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
+    saveServiceDeployment: (params: ServiceDeploymentParam) => saveServiceDeploymentDispatcher(dispatch, params),
+    updateServiceDeployment: (params: UpdateServiceParam) => updateServiceDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }
 
 export default withRouter(
-  connect<StateProps, DispatchProps, CustomProps & RouteComponentProps<{applicationId: string, serviceId?: string}> & CustomProps>(
+  connect<StateProps, DispatchProps, CustomProps & RouteComponentProps<{projectId: number, applicationId: string, serviceId?: string}> & CustomProps>(
     mapStateToProps, mapDispatchToProps
   )(ServiceDeployment)
 )

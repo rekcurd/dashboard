@@ -4,16 +4,18 @@ import { withRouter, RouteComponentProps } from 'react-router-dom'
 import { Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Service, Application, UserInfo, UserRole } from '@src/apis'
+import {
+  Service, Application, UserInfo, UserApplicationRole,
+  FetchApplicationByIdParam, ServiceDeploymentParam, Project
+} from '@src/apis'
 import {
   fetchApplicationByIdDispatcher,
-  saveServiceDispatcher,
+  saveServiceDeploymentDispatcher,
   addNotification
 } from '@src/actions'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import ServiceDeployment from './ServiceDeployment'
-import ServiceDescription from './ServiceDescription'
-import { role } from '../Admin/constants'
+import { applicationRole } from '@common/Enum'
 
 /**
  * Page for adding service
@@ -30,43 +32,16 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
     }
   }
 
-  componentWillReceiveProps(nextProps: ServiceProps) {
-    const { saveServiceStatus } = nextProps
-    const { push } = nextProps.history
-    const { applicationId } = this.props.match.params
-    const { submitting, notified } = this.state
-
-    // Close modal when API successfully finished
-    if (submitting && !notified) {
-      const succeeded: boolean = isAPISucceeded<boolean>(saveServiceStatus) && saveServiceStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(saveServiceStatus) && !saveServiceStatus.result) ||
-        isAPIFailed<boolean>(saveServiceStatus)
-      if (succeeded) {
-        nextProps.addNotification({ color: 'success', message: 'Successfully saved service' })
-        this.setState({ notified: true })
-        push(`/applications/${applicationId}`)
-      } else if (failed) {
-        nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
-        this.setState({ notified: true })
-      }
-    }
-  }
-
-  componentWillMount() {
-    const { applicationId } = this.props.match.params
-    const { fetchApplicationById } = this.props
-
-    fetchApplicationById({id: applicationId})
-  }
-
   componentDidMount() {
     const { userInfoStatus, history } = this.props
     const { applicationId } = this.props.match.params
+
+    this.props.fetchApplicationById(this.props.match.params)
     const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
     if (userInfo) {
-      const canEdit: boolean = userInfo.roles.some((userRole: UserRole) => {
-        return String(userRole.applicationId) === applicationId &&
-          (userRole.role === role.editor || userRole.role === role.owner)
+      const canEdit: boolean = userInfo.applicationRoles.some((userRole: UserApplicationRole) => {
+        return String(userRole.applicationId) === String(applicationId) &&
+          (userRole.role === applicationRole.editor || userRole.role === applicationRole.admin)
       })
       if (!canEdit) {
         history.goBack()
@@ -74,9 +49,31 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
     }
   }
 
+  static getDerivedStateFromProps(nextProps: ServiceProps, prevState: ServiceState){
+    const { saveServiceDeploymentStatus } = nextProps
+    const { push } = nextProps.history
+    const { projectId, applicationId } = nextProps.match.params
+    const { submitting, notified } = prevState
+
+    // Close modal when API successfully finished
+    if (submitting && !notified) {
+      const succeeded: boolean = isAPISucceeded<boolean>(saveServiceDeploymentStatus) && saveServiceDeploymentStatus.result
+      const failed: boolean = (isAPISucceeded<boolean>(saveServiceDeploymentStatus) && !saveServiceDeploymentStatus.result) || isAPIFailed<boolean>(saveServiceDeploymentStatus)
+      if (succeeded) {
+        nextProps.addNotification({ color: 'success', message: 'Successfully saved service' })
+        push(`/projects/${projectId}/applications/${applicationId}`)
+        return { notified: true }
+      } else if (failed) {
+        nextProps.addNotification({ color: 'error', message: 'Something went wrong with saving service. Try again later' })
+        return { notified: true }
+      }
+    }
+    return null
+  }
+
   render() {
-    const { application } = this.props
-    const targetStatus = { application }
+    const { fetchProjectByIdStatus, application } = this.props
+    const targetStatus = { fetchProjectByIdStatus, application }
 
     return(
       <APIRequestResultsRenderer
@@ -86,21 +83,23 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
     )
   }
 
-  renderForm(result) {
-    const { mode } = this.props
+  renderForm(result, canEdit) {
+    const { method } = this.props
+    const { projectId, applicationId } = this.props.match.params
+    const project: Project = result.fetchProjectByIdStatus
+
+    if (!canEdit) {
+      this.props.history.push(`/projects/${projectId}/applications/${applicationId}`)
+    }
 
     return (
       <Row className='justify-content-center'>
         <Col md='10'>
           <h1 className='mb-3'>
             <i className='fas fa-box fa-fw mr-2'></i>
-            {mode === 'edit' ? 'Edit' : 'Add'} Service
+            {method === 'patch' ? 'Edit' : 'Add'} Service
           </h1>
-          { mode === 'edit' ? <ServiceDescription mode={mode}/> : null }
-          <ServiceDeployment
-            mode={mode}
-            kubernetesId={result.application.kubernetesId}
-          />
+          <ServiceDeployment kubernetesMode={project.useKubernetes} method={method} />
         </Col>
       </Row>
     )
@@ -109,7 +108,7 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
 
 type ServiceProps =
   StateProps & DispatchProps
-  & RouteComponentProps<{applicationId: string, serviceId?: string}>
+  & RouteComponentProps<{projectId: number, applicationId: string, serviceId?: string}>
   & CustomProps
 
 interface ServiceState {
@@ -118,21 +117,23 @@ interface ServiceState {
 }
 
 interface StateProps {
-  service: APIRequest<Service>
+  fetchProjectByIdStatus: APIRequest<Project>
   application: APIRequest<Application>
-  saveServiceStatus: APIRequest<boolean>
+  service: APIRequest<Service>
+  saveServiceDeploymentStatus: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
 }
 
 interface CustomProps {
-  mode: string
+  method: string
 }
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
-    application: state.fetchApplicationByIdReducer.applicationById,
-    service: state.fetchServiceByIdReducer.serviceById,
-    saveServiceStatus: state.saveServiceReducer.saveService,
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    application: state.fetchApplicationByIdReducer.fetchApplicationById,
+    service: state.fetchServiceByIdReducer.fetchServiceById,
+    saveServiceDeploymentStatus: state.saveServiceDeploymentReducer.saveServiceDeployment,
     userInfoStatus: state.userInfoReducer.userInfo,
     ...state.form,
     ...extraProps
@@ -140,21 +141,21 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
 )
 
 export interface DispatchProps {
-  fetchApplicationById: (params) => Promise<void>
-  saveService: (params) => Promise<void>
+  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
+  saveServiceDeployment: (params: ServiceDeploymentParam) => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    fetchApplicationById: (params) => fetchApplicationByIdDispatcher(dispatch, params),
-    saveService: (params) => saveServiceDispatcher(dispatch, params),
+    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
+    saveServiceDeployment: (params: ServiceDeploymentParam) => saveServiceDeploymentDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }
 
 export default withRouter(
-  connect<StateProps, DispatchProps, RouteComponentProps<{applicationId: string, serviceId?: string}> & CustomProps>(
+  connect<StateProps, DispatchProps, RouteComponentProps<{projectId: number, applicationId: string, serviceId?: string}> & CustomProps>(
     mapStateToProps, mapDispatchToProps
   )(SaveService)
 )

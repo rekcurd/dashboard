@@ -45,7 +45,7 @@ class ApiAccessControlTest(BaseTestCase):
         token = self._get_token(TEST_AUTH_ID_1)
         headers = {'Authorization': 'Bearer {}'.format(token)}
 
-        data = {'display_name': 'new_project'}
+        data = {'display_name': 'new_project', 'use_kubernetes': False}
         response = self.client.post('/api/projects',
                                     headers=headers, data=data)
         self.assertEqual(200, response.status_code)
@@ -135,13 +135,13 @@ class ApiAccessControlTest(BaseTestCase):
         application_user_role_model.application_role = ApplicationRole.viewer
         response = self.client.get('/api/projects/{}/applications/{}/acl'.format(
             TEST_PROJECT_ID, TEST_APPLICATION_ID), headers=headers)
-        self.assertEqual(401, response.status_code)
+        self.assertEqual(200, response.status_code)
 
         # editor
         application_user_role_model.application_role = ApplicationRole.editor
         response = self.client.get('/api/projects/{}/applications/{}/acl'.format(
             TEST_PROJECT_ID, TEST_APPLICATION_ID), headers=headers)
-        self.assertEqual(401, response.status_code)
+        self.assertEqual(200, response.status_code)
 
         # owner
         application_user_role_model.application_role = ApplicationRole.admin

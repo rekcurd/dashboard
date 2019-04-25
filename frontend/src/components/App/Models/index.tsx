@@ -3,91 +3,103 @@ import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router'
 import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 
-import { APIRequest, isAPISucceeded } from '@src/apis/Core'
-import { Model, Application, UserInfo, UserRole } from '@src/apis'
+import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
+import {
+  Model, Application, UserInfo, Project,
+  FetchApplicationByIdParam, FetchModelByIdParam, IdParam
+} from '@src/apis'
 import {
   addNotification,
   fetchApplicationByIdDispatcher,
   fetchAllModelsDispatcher,
-  deleteKubernetesModelsDispatcher,
+  deleteModelsDispatcher
 } from '@src/actions'
 import { AddModelFileModal } from '@components/App/Model/Modals/AddModelFileModal'
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import ModelsDeleteForm from './ModelsDeleteForm'
-import { role } from '../Admin/constants'
 
-export enum ControlMode {
-  VIEW_MODELS_STATUS,
-  SELECT_TARGETS,
-  UPLOAD_MODEL
+
+type ModelsStatusProps = DispatchProps & StateProps & RouteComponentProps<{projectId: number, applicationId: string}>
+
+interface ModelsStatusState {
+  isDeleteModelsModalOpen: boolean
+  isAddModelFileModalOpen: boolean
+  selectedData: IdParam[]
+  submitted: boolean
+  notified: boolean
 }
 
-type ModelsStatusProps = DispatchProps & StateProps & RouteComponentProps<{applicationId: string}>
-
-class Models extends React.Component<ModelsStatusProps, any> {
+class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
   constructor(props, context) {
     super(props, context)
 
     this.state = {
-      controlMode: ControlMode.VIEW_MODELS_STATUS,
-      isAddModelFileModalOpen: false,
       isDeleteModelsModalOpen: false,
-      selectedData: { models: [] },
+      isAddModelFileModalOpen: false,
+      selectedData: [],
       submitted: false,
-      syncSubmitted: false,
-      syncNotified: false
+      notified: false
     }
 
     this.onSubmitDelete = this.onSubmitDelete.bind(this)
-    this.deleteKubernetesModels = this.deleteKubernetesModels.bind(this)
-    this.toggleDeleteModelsModal = this.toggleDeleteModelsModal.bind(this)
+    this.onCancel = this.onCancel.bind(this)
     this.toggleAddModelFileModalOpen = this.toggleAddModelFileModalOpen.bind(this)
+    this.deleteModels = this.deleteModels.bind(this)
+    this.toggleDeleteModelsModal = this.toggleDeleteModelsModal.bind(this)
     this.renderModels = this.renderModels.bind(this)
-    this.changeMode = this.changeMode.bind(this)
     this.complete = this.complete.bind(this)
   }
 
-  componentWillMount() {
-    const { applicationId } = this.props.match.params
-
-    this.props.fetchApplicationById(applicationId)
-    this.props.fetchAllModels(applicationId)
+  componentDidMount() {
+    this.props.fetchApplicationById(this.props.match.params)
+    this.props.fetchAllModels(this.props.match.params)
   }
 
-  componentWillReceiveProps(nextProps: ModelsStatusProps) {
-    const { deleteKubernetesModelsStatus } = nextProps
-    const { controlMode, submitted } = this.state
+  static getDerivedStateFromProps(nextProps: ModelsStatusProps, prevState: ModelsStatusState){
+    const { deleteModelsStatus } = nextProps
+    const { submitted } = prevState
 
-    const checkAllApiResultStatus =
+    const checkAllApiResultSucceeded =
       (result: APIRequest<boolean[]>) =>
         isAPISucceeded<boolean[]>(result) &&
         result.result.reduce((p, c) => (p && c))
+    const checkAllApiResultFailed =
+      (result: APIRequest<boolean[]>) =>
+        (isAPISucceeded<boolean[]>(result) && !result.result.reduce((p, c) => (p && c))) || isAPIFailed<boolean[]>(result)
 
-    if (submitted && controlMode === ControlMode.SELECT_TARGETS) {
-      if (checkAllApiResultStatus(deleteKubernetesModelsStatus)) {
-        this.complete({ color: 'success', message: 'Successfully changed deletion' })
-      } else {
-        this.complete({ color: 'error', message: 'Something went wrong, try again later' })
+    if (submitted) {
+      if (checkAllApiResultSucceeded(deleteModelsStatus)) {
+        nextProps.addNotification({ color: 'success', message: 'Successfully changed deletion' })
+        nextProps.fetchAllModels(nextProps.match.params)
+        return {
+          submitted: false,
+          notified: true,
+          selectedData: []
+        }
+      } else if (checkAllApiResultFailed(deleteModelsStatus)) {
+        nextProps.addNotification({ color: 'error', message: 'Something went wrong, try again later' })
+        return {
+          submitted: false,
+          notified: true,
+          selectedData: []
+        }
       }
     }
+    return null
   }
 
   // Render methods
 
   render(): JSX.Element {
-    const { application, models, userInfoStatus, settings } = this.props
-    const statuses: any = { application, models }
+    const { fetchProjectByIdStatus, application, models, userInfoStatus, settings } = this.props
+    const statuses: any = { fetchProjectByIdStatus, application, models }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
-    }
-    if ( this.props.match.params.applicationId === 'add' ) {
-      return null
     }
     return (
       <APIRequestResultsRenderer
         APIStatus={statuses}
         render={this.renderModels}
-        applicationId={this.props.match.params.applicationId}
       />
     )
   }
@@ -100,45 +112,36 @@ class Models extends React.Component<ModelsStatusProps, any> {
    * @param canEdit Boolean value of user's editor permission
    */
   renderModels(fetchedResults, canEdit) {
-    const { controlMode } = this.state
-    const {
-      onSubmitNothing,
-      onSubmitDelete,
-      changeMode
-    } = this
+    const { onSubmitDelete, onCancel } = this
 
-    const { kubernetesId, name } = fetchedResults.application
-    const { applicationId } = this.props.match.params
-
+    const project: Project = fetchedResults.fetchProjectByIdStatus
+    const applicationName = fetchedResults.application.name
+    const { projectId, applicationId } = this.props.match.params
     const models: Model[] = fetchedResults.models
-    const onSubmitMap = {
-      [ControlMode.VIEW_MODELS_STATUS]: onSubmitNothing,
-      [ControlMode.SELECT_TARGETS]: onSubmitDelete,
-    }
 
     return (
       this.renderContent(
         <ModelsDeleteForm
-          applicationType={!!kubernetesId ? 'kubernetes' : 'simple'}
+          projectId={projectId}
           applicationId={applicationId}
           models={models}
-          mode={controlMode}
-          onSubmit={onSubmitMap[controlMode]}
-          changeMode={changeMode}
+          onSubmit={onSubmitDelete}
+          onCancel={onCancel}
           canEdit={canEdit}
         />,
-        name,
-        kubernetesId,
+        applicationName,
+        project.useKubernetes,
         canEdit
       )
     )
   }
 
-  renderContent = (content: JSX.Element, applicationName, kubernetesId, canEdit: boolean): JSX.Element => {
+  renderContent = (content: JSX.Element, applicationName, kubernetesMode, canEdit: boolean): JSX.Element => {
     return (
       <div className='pb-5'>
-        {this.renderTitle(applicationName, canEdit)}
+        {this.renderTitle(applicationName, kubernetesMode, canEdit)}
         <AddModelFileModal
+          projectId={this.props.match.params.projectId}
           applicationId={this.props.match.params.applicationId}
           isModalOpen={this.state.isAddModelFileModalOpen}
           toggle={this.toggleAddModelFileModalOpen}
@@ -150,26 +153,24 @@ class Models extends React.Component<ModelsStatusProps, any> {
         </h3>
         <hr />
         {content}
-        {
-          this.state.controlMode === ControlMode.SELECT_TARGETS
-            ? this.renderConfirmDeleteHostModal()
-            : null
-        }
+        {this.renderConfirmDeleteHostModal()}
       </div>
     )
   }
 
-  renderTitle = (applicationName, canEdit: boolean): JSX.Element => {
+  renderTitle = (applicationName, kubernetesMode, canEdit: boolean): JSX.Element => {
     const button = (
-      <Button
-        color='primary'
-        size='sm'
-        onClick={this.toggleAddModelFileModalOpen}
-      >
-        <i className='fas fa-robot fa-fw mr-2'></i>
-        Add Model
-      </Button>
+      <Col xs='5' className='text-right'>
+        <Button
+          color='primary'
+          size='sm'
+          onClick={this.toggleAddModelFileModalOpen}>
+          <i className='fas fa-robot fa-fw mr-2'></i>
+          Add Model
+        </Button>
+      </Col>
     )
+
     return (
       <Row className='align-items-center mb-5'>
         <Col xs='7'>
@@ -178,9 +179,7 @@ class Models extends React.Component<ModelsStatusProps, any> {
             {applicationName}
           </h1>
         </Col>
-        <Col xs='5' className='text-right'>
-          {canEdit ? button : null}
-        </Col>
+        {canEdit ? button : null}
       </Row>
     )
   }
@@ -188,18 +187,20 @@ class Models extends React.Component<ModelsStatusProps, any> {
   renderConfirmDeleteHostModal(): JSX.Element {
     const { isDeleteModelsModalOpen } = this.state
 
-    const cancel = () => {
+    const executeDeletion = (event) => {
+      if (this.state.selectedData.length > 0) {
+        this.deleteModels(this.state.selectedData)
+      }
       this.toggleDeleteModelsModal()
     }
-
-    const executeDeletion = (event) => {
-      this.deleteKubernetesModels(this.state.selectedData.models)
+    const cancelDeletion = (event) => {
       this.toggleDeleteModelsModal()
+      return Promise.resolve()
     }
 
     return (
-      <Modal isOpen={isDeleteModelsModalOpen} toggle={cancel} size='sm'>
-        <ModalHeader toggle={cancel}>Delete Models</ModalHeader>
+      <Modal isOpen={isDeleteModelsModalOpen} toggle={cancelDeletion} size='sm'>
+        <ModalHeader toggle={cancelDeletion}>Delete Models</ModalHeader>
         <ModalBody>
           Are you sure to delete?
         </ModalBody>
@@ -217,7 +218,7 @@ class Models extends React.Component<ModelsStatusProps, any> {
             color='secondary'
             size='lg'
             className='rounded-0 flex-1'
-            onClick={cancel}
+            onClick={cancelDeletion}
           >
             <i className='fas fa-ban mr-3' />
             Cancel
@@ -240,10 +241,6 @@ class Models extends React.Component<ModelsStatusProps, any> {
     })
   }
 
-  onSubmitNothing(params): void {
-    this.setState({})
-  }
-
   /**
    * Handle submit and call API to delete models
    * Currently only supports to delete k8s models
@@ -253,72 +250,56 @@ class Models extends React.Component<ModelsStatusProps, any> {
   onSubmitDelete(params): void {
     this.setState({
       isDeleteModelsModalOpen: true,
-      selectedData: {
-        models: params.delete.models,
-      }
+      selectedData: params.delete_models
     })
   }
 
-  deleteKubernetesModels(params): Promise<void> {
-    const { deleteKubernetesModels } = this.props
-    const { applicationId } = this.props.match.params
+  onCancel(): void {
+    this.setState({
+      selectedData: []
+    })
+  }
+
+  deleteModels(params): Promise<void> {
+    const { projectId, applicationId } = this.props.match.params
 
     const apiParams =
-      Object.entries(params)
-        .filter(([key, value]) => (value))
-        .map(
-          ([key, value]) => (
-            {
-              applicationId,
-              modelId: key
-            }))
+      params.map((id) => (
+        {
+          projectId,
+          applicationId,
+          modelId: Number(id)
+        }))
 
-    this.setState({ submitted: true })
-
-    return deleteKubernetesModels(apiParams)
+    this.setState({ submitted: true, notified: false })
+    return this.props.deleteModels(apiParams)
   }
 
-  // Utils
-  changeMode(mode: ControlMode) {
-    this.setState({ controlMode: mode })
-  }
-
-  /**
-   * Reload models status
-   *
-   * Fetch models through API again
-   */
   complete(param) {
-    const {
-      fetchAllModels
-    } = this.props
-    const {
-      applicationId
-    } = this.props.match.params
-
     this.props.addNotification(param)
-    fetchAllModels(applicationId)
+    this.props.fetchAllModels(this.props.match.params)
     this.setState({
-      controlMode: ControlMode.VIEW_MODELS_STATUS,
       submitted: false,
-      selectedData: { models: [] }
+      selectedData: []
     })
   }
 }
 
 export interface StateProps {
+  fetchProjectByIdStatus: APIRequest<Project>
   application: APIRequest<Application>
   models: APIRequest<Model[]>
-  deleteKubernetesModelsStatus: APIRequest<boolean[]>
+  deleteModelsStatus: APIRequest<boolean[]>
   userInfoStatus: APIRequest<UserInfo>
   settings: APIRequest<any>
 }
 
 const mapStateToProps = (state): StateProps => {
   const props = {
-    application: state.fetchApplicationByIdReducer.applicationById,
-    models: state.fetchAllModelsReducer.models,
-    deleteKubernetesModelsStatus: state.deleteKubernetesModelsReducer.deleteKubernetesModels,
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    application: state.fetchApplicationByIdReducer.fetchApplicationById,
+    models: state.fetchAllModelsReducer.fetchAllModels,
+    deleteModelsStatus: state.deleteModelsReducer.deleteModels,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings
   }
@@ -327,21 +308,21 @@ const mapStateToProps = (state): StateProps => {
 
 export interface DispatchProps {
   addNotification
-  fetchApplicationById: (id: string) => Promise<void>
-  fetchAllModels: (applicationId: string) => Promise<void>
-  deleteKubernetesModels: (params) => Promise<void>
+  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
+  fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
+  deleteModels: (params: IdParam[]) => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
-    fetchApplicationById: (id: string) => fetchApplicationByIdDispatcher(dispatch, { id }),
-    fetchAllModels: (applicationId: string) => fetchAllModelsDispatcher(dispatch, { applicationId }),
-    deleteKubernetesModels: (params) => deleteKubernetesModelsDispatcher(dispatch, params),
+    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
+    fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
+    deleteModels: (params: IdParam[]) => deleteModelsDispatcher(dispatch, params),
   }
 }
 
 export default withRouter(
-  connect<StateProps, DispatchProps, RouteComponentProps<{applicationId: string}>>(
+  connect<StateProps, DispatchProps, RouteComponentProps<{projectId: number, applicationId: string}>>(
     mapStateToProps, mapDispatchToProps
   )(Models))

@@ -2,7 +2,7 @@
  * Core implementations for handling external APIs
  */
 
-export const JWT_TOKEN_KEY = 'jwt_token'
+export const JWT_TOKEN_KEY = 'jwt_token';
 
 export enum APIErrorType {
   unknown,
@@ -14,7 +14,7 @@ export enum APIErrorType {
  *
  */
 export class APIError implements Error {
-  name = 'APIError'
+  name = 'APIError';
 
   constructor(
     public message: string,
@@ -31,13 +31,13 @@ export class APIError implements Error {
 export enum APIRequestStatusList {
   notStarted,
   fetching,
-  failue,
+  failure,
   success,
-  unauhorized,
+  unauthorized,
 }
 
-export interface APIStatusFailue {
-  status: APIRequestStatusList.failue
+export interface APIStatusFailure {
+  status: APIRequestStatusList.failure
   error: any
 }
 
@@ -55,15 +55,15 @@ export interface APIStatusSuccess<T> {
 }
 
 export interface APIStatusUnauthorized<T> {
-  status: APIRequestStatusList.unauhorized
+  status: APIRequestStatusList.unauthorized
 }
 
 export function isAPISucceeded<T>(status: APIRequest<T>): status is APIStatusSuccess<T> {
   return status.status === APIRequestStatusList.success
 }
 
-export function isAPIFailed<T>(status: APIRequest<T>): status is APIStatusFailue {
-  return status.status === APIRequestStatusList.failue
+export function isAPIFailed<T>(status: APIRequest<T>): status is APIStatusFailure {
+  return status.status === APIRequestStatusList.failure
 }
 
 export function isAPIFetching<T>(status: APIRequest<T>): status is APIStatusFetching {
@@ -75,10 +75,10 @@ export function isAPINotStarted<T>(status: APIRequest<T>): status is APIStatusNo
 }
 
 export function isAPIUnauthorized<T>(status: APIRequest<T>): status is APIStatusUnauthorized<T> {
-  return status.status === APIRequestStatusList.unauhorized
+  return status.status === APIRequestStatusList.unauthorized
 }
 
-export type APIRequest<T> = APIStatusFailue | APIStatusFetching | APIStatusNotStarted | APIStatusUnauthorized<T> | APIStatusSuccess<T>
+export type APIRequest<T> = APIStatusFailure | APIStatusFetching | APIStatusNotStarted | APIStatusUnauthorized<T> | APIStatusSuccess<T>
 
 export async function getRequest(
   entryPoint: string,
@@ -86,7 +86,7 @@ export async function getRequest(
 ) {
   const options = {
     method: 'GET',
-  }
+  };
   return rawRequest(entryPoint, convert, options)
 }
 
@@ -101,7 +101,7 @@ export async function postJsonRequest(
     headers: {
       'Content-Type': 'application/json'
     }
-  }
+  };
   return rawRequest(entryPoint, convert, options)
 }
 
@@ -116,7 +116,22 @@ export async function putJsonRequest(
     headers: {
       'Content-Type': 'application/json'
     }
-  }
+  };
+  return rawRequest(entryPoint, convert, options)
+}
+
+export async function patchJsonRequest(
+  entryPoint: string,
+  data: any,
+  convert: (response) => any = (response) => response,
+) {
+  const options = {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
   return rawRequest(entryPoint, convert, options)
 }
 
@@ -126,15 +141,8 @@ export async function deleteRequest(
 ) {
   const options = {
     method: 'DELETE',
-  }
+  };
   return rawRequest(entryPoint, convert, options)
-}
-
-function snakelize(key) {
-  const separator = '_'
-  const split = /(?=[A-Z])/
-
-  return key.split(split).join(separator).toLowerCase()
 }
 
 /**
@@ -155,7 +163,7 @@ export async function formDataRequest<T = any>(
 ) {
   // Append data as form data
   const formData = new FormData()
-  Object.keys(params).forEach((key) => formData.append(snakelize(key), params[key]))
+  Object.keys(params).forEach((key) => formData.append(key, params[key]))
 
   const options = {
     method,
@@ -199,7 +207,7 @@ export async function rawRequest<T = any>(
  *
  * @param entryPoints {string[]} Target API entrypoints
  * @param convert
- * @param paramsList {any[]}
+ * @param requestList {any[]}
  */
 export async function rawMultiRequest<T = any>(
   entryPoints: string[],
@@ -226,9 +234,10 @@ export async function rawMultiRequest<T = any>(
   return Promise.all(
     entryPoints.map(
       (entryPoint, i) => {
-        return fetch(entryPoint, fullOptionsList[i]).then((response) => {
-          return _handleAPIResponse<T>(response, convert)
-        })
+        return fetch(entryPoint, fullOptionsList[i])
+          .then((response) => {
+            return _handleAPIResponse<T>(response, convert)
+          })
       }
     )
   )
@@ -237,7 +246,7 @@ export async function rawMultiRequest<T = any>(
 
 function generateFormData(params) {
   const formData = new FormData()
-  Object.keys(params || {}).forEach((key) => formData.append(snakelize(key), params[key]))
+  Object.keys(params || {}).forEach((key) => formData.append(key, params[key]))
 
   return formData
 }

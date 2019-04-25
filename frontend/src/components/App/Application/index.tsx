@@ -7,13 +7,13 @@ import SideMenu from './SideMenu/index'
  *
  * @param props
  */
-class Application extends React.Component<RouteComponentProps<{applicationId: string}>, {}> {
+class Application extends React.Component<RouteComponentProps<{projectId: number, applicationId: string}>, {}> {
   render() {
-    const { applicationId } = this.props.match.params
+    const { projectId, applicationId } = this.props.match.params
 
     return (
       <div className='row'>
-        <SideMenu applicationId={applicationId}/>
+        <SideMenu projectId={projectId} applicationId={applicationId}/>
         <div className='col-md-10 ml-sm-auto pt-5 px-5'>
           {this.props.children}
         </div>

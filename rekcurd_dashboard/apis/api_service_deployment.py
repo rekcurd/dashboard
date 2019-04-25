@@ -1,7 +1,7 @@
 import datetime
 import math
 
-from flask_restplus import Namespace, fields, Resource, reqparse
+from flask_restplus import Namespace, fields, Resource, reqparse, inputs
 
 from . import status_model, apply_rekcurd_to_kubernetes, load_kubernetes_deployment_info
 from rekcurd_dashboard.core import RekcurdDashboardClient
@@ -19,6 +19,16 @@ service_deployment_params = service_deployment_api_namespace.model('Deployment',
     'service_id': fields.String(
         readOnly=True,
         description='Service ID.'
+    ),
+    'display_name': fields.String(
+        required=True,
+        description='Display name.',
+        example='dev-001'
+    ),
+    'description': fields.String(
+        required=False,
+        description='Description.',
+        example='This is a sample.'
     ),
     'service_level': fields.String(
         required=True,
@@ -144,12 +154,14 @@ class ApiSingleServiceRegistration(Resource):
     single_worker_parser.add_argument(
         'description', location='form', type=str, required=False, help='Description.')
     single_worker_parser.add_argument(
+        'version', location='form', type=str, required=False,
+        choices=('v0', 'v1', 'v2'),
+        default=rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version],
+        help='Rekcurd gRPC spec version. Default is the latest version.')
+    single_worker_parser.add_argument(
         'service_level', location='form', type=str, required=True,
         choices=('development','beta','staging','sandbox','production'),
         help='Service level. [development/beta/staging/sandbox/production].')
-    single_worker_parser.add_argument(
-        'version', location='form', type=str, required=False,
-        help='Rekcurd gRPC spec version. Default is the latest version.')
     single_worker_parser.add_argument(
         'service_model_assignment', location='form', type=int, required=True,
         help='Model ID which is assigned to the service.')
@@ -197,14 +209,20 @@ class ApiSingleServiceRegistration(Resource):
 class ApiServiceDeployment(Resource):
     service_deployment_parser = reqparse.RequestParser()
     service_deployment_parser.add_argument(
+        'display_name', location='form', type=str, required=True,
+        help='Display name.')
+    service_deployment_parser.add_argument(
+        'description', location='form', type=str, required=False,
+        help='Description.')
+    service_deployment_parser.add_argument(
+        'version', location='form', type=str, required=False,
+        choices=('v0', 'v1', 'v2'),
+        default=rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version],
+        help='Rekcurd gRPC spec version. Default is the latest version.')
+    service_deployment_parser.add_argument(
         'service_level', location='form', type=str, required=True,
         choices=('development','beta','staging','sandbox','production'),
         help='Service level. [development/beta/staging/sandbox/production].')
-    service_deployment_parser.add_argument(
-        'version', location='form', type=str, required=False,
-        default=rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version],
-        choices=('v0', 'v1', 'v2'),
-        help='Rekcurd gRPC spec version. Default is the latest version.')
     service_deployment_parser.add_argument(
         'insecure_host', location='form', type=str, default="[::]", required=False,
         help='Rekcurd server insecure host. Default is "[::]".')
@@ -261,7 +279,7 @@ class ApiServiceDeployment(Resource):
         'resource_limit_memory', location='form', type=str, required=False,
         help='Upper limit of memory reservation. Default is "resource_request_memory".')
     service_deployment_parser.add_argument(
-        'debug_mode', location='form', type=bool, default=False, required=False,
+        'debug_mode', location='form', type=inputs.boolean, default=False, required=False,
         help='Debug mode.')
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
@@ -288,13 +306,20 @@ class ApiServiceDeployment(Resource):
 class ApiServiceIdDeployment(Resource):
     patch_parser = reqparse.RequestParser()
     patch_parser.add_argument(
-        'service_level', location='form', type=str, required=True,
-        choices=('development','beta','staging','sandbox','production'),
-        help='Service level. [development/beta/staging/sandbox/production].')
+        'display_name', location='form', type=str, required=True,
+        help='Display name.')
+    patch_parser.add_argument(
+        'description', location='form', type=str, required=False,
+        help='Description.')
     patch_parser.add_argument(
         'version', location='form', type=str, required=True,
         choices=('v0', 'v1', 'v2'),
+        default=rekcurd_pb2.DESCRIPTOR.GetOptions().Extensions[rekcurd_pb2.rekcurd_grpc_proto_version],
         help='Rekcurd gRPC spec version. Default is the latest version.')
+    patch_parser.add_argument(
+        'service_level', location='form', type=str, required=True,
+        choices=('development','beta','staging','sandbox','production'),
+        help='Service level. [development/beta/staging/sandbox/production].')
     patch_parser.add_argument(
         'insecure_host', location='form', type=str, required=True,
         help='Rekcurd server insecure host. Default is "[::]".')
@@ -351,13 +376,17 @@ class ApiServiceIdDeployment(Resource):
         'resource_limit_memory', location='form', type=str, required=True,
         help='Upper limit of memory reservation. Default is "resource_request_memory".')
     patch_parser.add_argument(
-        'debug_mode', location='form', type=bool, default=False, required=False,
+        'debug_mode', location='form', type=inputs.boolean, default=False, required=False,
         help='Debug mode.')
 
     @service_deployment_api_namespace.marshal_with(service_deployment_params)
     def get(self, project_id: int, application_id: str, service_id: str):
         """Get Kubernetes deployment info."""
         deployment_info = load_kubernetes_deployment_info(project_id, application_id, service_id)
+        service_model: ServiceModel = db.session.query(ServiceModel).filter(
+            ServiceModel.service_id == service_id).first_or_404()
+        deployment_info["display_name"] = service_model.display_name
+        deployment_info["description"] = service_model.description
         return deployment_info
 
     @service_deployment_api_namespace.marshal_with(success_or_not)
@@ -396,6 +425,12 @@ class ApiServiceIdDeployment(Resource):
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
             ServiceModel.service_id == service_id).first_or_404()
         is_updated = False
+        if service_model.display_name != args["display_name"]:
+            is_updated = True
+            service_model.version = args["display_name"]
+        if service_model.description != args["description"]:
+            is_updated = True
+            service_model.version = args["description"]
         if service_model.version != args["version"]:
             is_updated = True
             service_model.version = args["version"]
