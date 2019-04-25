@@ -1,6 +1,9 @@
 from flask_restplus import Namespace, fields, Resource, reqparse
 
-from . import status_model, load_secret, apply_secret, GIT_SECRET_PREFIX, GIT_ID_RSA, GIT_CONFIG
+from . import (
+    status_model, load_secret, apply_secret, delete_secret,
+    GIT_SECRET_PREFIX, GIT_ID_RSA, GIT_CONFIG
+)
 from rekcurd_dashboard.utils import RekcurdDashboardException
 
 
@@ -91,9 +94,5 @@ class ApiGitKeyDelete(Resource):
     @kubernetes_secret_api_namespace.marshal_with(success_or_not)
     def delete(self, project_id: int, application_id: str, service_level: str):
         """Delete git key."""
-        string_data = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
-        if string_data:
-            string_data[GIT_ID_RSA] = ""
-            string_data[GIT_CONFIG] = ""
-            apply_secret(project_id, application_id, service_level, string_data, GIT_SECRET_PREFIX)
+        delete_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
         return {"status": True, "message": "Success."}
