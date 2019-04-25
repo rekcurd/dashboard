@@ -26,7 +26,16 @@ class DashboardStatusForm extends React.Component<DashboardStatusFormProps, Dash
     return (
       <Formik
         initialValues={initialValues}
-        onSubmit={onSubmit} >
+        onSubmit={(values, {setSubmitting}) => {
+          onSubmit(values).then(
+            result => {
+              setSubmitting(false)
+            },
+            errors => {
+              setSubmitting(false)
+            }
+          )}
+        }>
         {({ isValid, isSubmitting, resetForm }) => (
           <Form>
             <div className='mb-2'>

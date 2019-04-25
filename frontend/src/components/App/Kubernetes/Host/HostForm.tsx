@@ -59,9 +59,15 @@ class HostFormImpl extends React.Component<HostFormProps> {
           initialValues={initialValues}
           validationSchema={isPost ? AddKubernetesSchema : EditKubernetesSchema}
           onSubmit={(values, {setSubmitting}) => {
-            onSubmit(values)
-            setSubmitting(false)
-          }}>
+            onSubmit(values).then(
+              result => {
+                setSubmitting(false)
+              },
+              errors => {
+                setSubmitting(false)
+              }
+            )}
+          }>
           {({ errors, touched, setFieldValue, isSubmitting }) => (
             <Form>
               <Card className='mb-3'>

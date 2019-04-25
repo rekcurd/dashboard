@@ -110,9 +110,15 @@ class AddUserApplicationRoleModal extends React.Component<AddUserApplicationRole
         }}
         validationSchema={UserRoleSchema}
         onSubmit={(values, {setSubmitting}) => {
-          this.onSubmit(values)
-          setSubmitting(false)
-        }}>
+          this.onSubmit(values).then(
+            result => {
+              setSubmitting(false)
+            },
+            errors => {
+              setSubmitting(false)
+            }
+          )}
+        }>
         {({ isSubmitting }) => (
           <Form>
             <ModalHeader toggle={this.onCancel}>

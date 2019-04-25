@@ -60,9 +60,15 @@ class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, Edit
           }}
           validationSchema={UserRoleSchema}
           onSubmit={(values, {setSubmitting}) => {
-            this.onSubmit(values)
-            setSubmitting(false)
-          }}>
+            this.onSubmit(values).then(
+              result => {
+                setSubmitting(false)
+              },
+              errors => {
+                setSubmitting(false)
+              }
+            )}
+          }>
           {({ isSubmitting }) => (
             <Form>
               <ModalHeader toggle={this.onCancel}>
@@ -136,7 +142,7 @@ interface CustomProps {
   toggle: () => void
   reload: () => void
   target?: ApplicationAccessControlList
-  saveApplicationAccessControl: (params) => void
+  saveApplicationAccessControl: (params) => Promise<void>
   saveApplicationAccessControlStatus: APIRequest<boolean>
   addNotification: (params) => void
 }

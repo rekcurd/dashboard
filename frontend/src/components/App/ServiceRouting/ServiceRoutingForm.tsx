@@ -42,7 +42,16 @@ class ServiceRoutingForm extends React.Component<ServiceRoutingFormProps, Servic
       <Formik
         initialValues={initialValues}
         validationSchema={ServiceRoutingSchema}
-        onSubmit={onSubmit}
+        onSubmit={(values, {setSubmitting}) => {
+          onSubmit(values).then(
+            result => {
+              setSubmitting(false)
+            },
+            errors => {
+              setSubmitting(false)
+            }
+          )}
+        }
         onReset={onCancel}>
         {({ isValid, isSubmitting, resetForm, values }) => (
           <Form>

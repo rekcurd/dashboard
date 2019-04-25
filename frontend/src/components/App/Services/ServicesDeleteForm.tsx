@@ -22,7 +22,16 @@ class ServicesDeleteForm extends React.Component<ServicesDeleteFormProps, Servic
     return (
       <Formik
         initialValues={initialValues}
-        onSubmit={onSubmit}
+        onSubmit={(values, {setSubmitting}) => {
+          onSubmit(values).then(
+            result => {
+              setSubmitting(false)
+            },
+            errors => {
+              setSubmitting(false)
+            }
+          )}
+        }
         onReset={onCancel} >
         {({ isValid, isSubmitting, resetForm }) => (
           <Form>

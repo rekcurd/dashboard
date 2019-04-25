@@ -181,9 +181,15 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
           initialValues={initialValues}
           validationSchema={DataServerSchema}
           onSubmit={(values, {setSubmitting}) => {
-            onSubmit(values)
-            setSubmitting(false)
-          }}
+            onSubmit(values).then(
+              result => {
+                setSubmitting(false)
+              },
+              errors => {
+                setSubmitting(false)
+              }
+            )}
+          }
           onReset={onCancel}>
           {({ errors, touched, isSubmitting }) => (
             <Form>
