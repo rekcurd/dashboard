@@ -145,13 +145,6 @@ export async function deleteRequest(
   return rawRequest(entryPoint, convert, options)
 }
 
-function snakelize(key) {
-  const separator = '_'
-  const split = /(?=[A-Z])/
-
-  return key.split(split).join(separator).toLowerCase()
-}
-
 /**
  * Request to send data with formdata
  *
@@ -170,7 +163,7 @@ export async function formDataRequest<T = any>(
 ) {
   // Append data as form data
   const formData = new FormData()
-  Object.keys(params).forEach((key) => formData.append(snakelize(key), params[key]))
+  Object.keys(params).forEach((key) => formData.append(key, params[key]))
 
   const options = {
     method,
@@ -253,7 +246,7 @@ export async function rawMultiRequest<T = any>(
 
 function generateFormData(params) {
   const formData = new FormData()
-  Object.keys(params || {}).forEach((key) => formData.append(snakelize(key), params[key]))
+  Object.keys(params || {}).forEach((key) => formData.append(key, params[key]))
 
   return formData
 }
