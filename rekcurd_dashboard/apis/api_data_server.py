@@ -66,30 +66,39 @@ data_server_parser.add_argument(
     help='Data server mode. [local/ceph_s3/aws_s3].')
 data_server_parser.add_argument(
     'ceph_access_key', location='form', type=str, required=False,
+    default='',
     help='Ceph S3 API access key.')
 data_server_parser.add_argument(
     'ceph_secret_key', location='form', type=str, required=False,
+    default='',
     help='Ceph S3 API secret key.')
 data_server_parser.add_argument(
     'ceph_host', location='form', type=str, required=False,
+    default='',
     help='Ceph S3 API endpoint host name.')
 data_server_parser.add_argument(
     'ceph_port', location='form', type=int, required=False,
+    default=80,
     help='Ceph S3 API port number.')
 data_server_parser.add_argument(
     'ceph_is_secure', location='form', type=inputs.boolean, required=False,
+    default=False,
     help='Ceph S3 API is SSL or not.')
 data_server_parser.add_argument(
     'ceph_bucket_name', location='form', type=str, required=False,
+    default='',
     help='Ceph S3 API bucket name.')
 data_server_parser.add_argument(
     'aws_access_key', location='form', type=str, required=False,
+    default='',
     help='AWS S3 API access key.')
 data_server_parser.add_argument(
     'aws_secret_key', location='form', type=str, required=False,
+    default='',
     help='AWS S3 API secret key.')
 data_server_parser.add_argument(
     'aws_bucket_name', location='form', type=str, required=False,
+    default='',
     help='AWS S3 API bucket name.')
 
 
@@ -202,19 +211,8 @@ class ApiDataServers(Resource):
             data_server_model.aws_bucket_name = aws_bucket_name
 
         if data_server_mode_enum == DataServerModeEnum.LOCAL:
-            data_server_model.ceph_access_key = None
-            data_server_model.ceph_secret_key = None
-            data_server_model.ceph_host = None
-            data_server_model.ceph_port = None
-            data_server_model.ceph_is_secure = None
-            data_server_model.ceph_bucket_name = None
-            data_server_model.aws_access_key = None
-            data_server_model.aws_secret_key = None
-            data_server_model.aws_bucket_name = None
+            pass
         elif data_server_mode_enum == DataServerModeEnum.CEPH_S3:
-            data_server_model.aws_access_key = None
-            data_server_model.aws_secret_key = None
-            data_server_model.aws_bucket_name = None
             if data_server_model.ceph_access_key and data_server_model.ceph_secret_key and \
                     data_server_model.ceph_host and data_server_model.ceph_port and \
                     data_server_model.ceph_is_secure is not None and data_server_model.ceph_bucket_name:
@@ -224,12 +222,6 @@ class ApiDataServers(Resource):
                     "Need to set \"ceph_access_key\", \"ceph_secret_key\", \"ceph_host\", \"ceph_port\", "
                     "\"ceph_is_secure\" and \"ceph_bucket_name\"")
         elif data_server_mode_enum == DataServerModeEnum.AWS_S3:
-            data_server_model.ceph_access_key = None
-            data_server_model.ceph_secret_key = None
-            data_server_model.ceph_host = None
-            data_server_model.ceph_port = None
-            data_server_model.ceph_is_secure = None
-            data_server_model.ceph_bucket_name = None
             if data_server_model.aws_bucket_name:
                 pass
             else:

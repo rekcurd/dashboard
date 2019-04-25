@@ -73,10 +73,10 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
         nextProps.fetchDataServer({
           projectId: nextProps.match.params.projectId
         })
-        nextProps.addNotification({ color: 'success', message: 'Successfully saved host' })
+        nextProps.addNotification({ color: 'success', message: 'Successfully saved DataServer.' })
         return {submitting: false, notified: true}
       } else if (failed) {
-        nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
+        nextProps.addNotification({ color: 'error', message: saveDataServerStatus['error']['message'] })
         return {submitting: false, notified: true}
       }
     } else {
