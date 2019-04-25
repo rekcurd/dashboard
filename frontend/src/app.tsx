@@ -2,7 +2,6 @@ import * as React from 'react'
 import { render } from 'react-dom'
 import { Provider } from 'react-redux'
 import { createStore, combineReducers, compose, applyMiddleware } from 'redux'
-import thunk from 'redux-thunk'
 import {
   saveProjectReducer,
   saveDataServerReducer,
@@ -48,7 +47,7 @@ import { App } from './components/App'
 import './assets/koromo.css'
 import './assets/style'
 
-const store = compose(applyMiddleware(thunk))(createStore)(
+const store = createStore(
   combineReducers({
     saveProjectReducer,
     saveDataServerReducer,
