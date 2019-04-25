@@ -58,7 +58,10 @@ class HostFormImpl extends React.Component<HostFormProps> {
         <Formik
           initialValues={initialValues}
           validationSchema={isPost ? AddKubernetesSchema : EditKubernetesSchema}
-          onSubmit={onSubmit}>
+          onSubmit={(values, {setSubmitting}) => {
+            onSubmit(values)
+            setSubmitting(false)
+          }}>
           {({ errors, touched, setFieldValue, isSubmitting }) => (
             <Form>
               <Card className='mb-3'>

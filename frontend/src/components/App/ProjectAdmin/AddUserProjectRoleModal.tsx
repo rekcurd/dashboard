@@ -110,7 +110,10 @@ class AddUserProjectRoleModal extends React.Component<AddUserProjectRoleModalPro
             role: projectRole.member.toString(),
           }}
           validationSchema={UserRoleSchema}
-          onSubmit={this.onSubmit}>
+          onSubmit={(values, {setSubmitting}) => {
+            this.onSubmit(values)
+            setSubmitting(false)
+          }}>
           {({ isSubmitting }) => (
             <Form>
               <ModalHeader toggle={this.onCancel}>

@@ -180,7 +180,10 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
         <Formik
           initialValues={initialValues}
           validationSchema={DataServerSchema}
-          onSubmit={onSubmit}
+          onSubmit={(values, {setSubmitting}) => {
+            onSubmit(values)
+            setSubmitting(false)
+          }}
           onReset={onCancel}>
           {({ errors, touched, isSubmitting }) => (
             <Form>

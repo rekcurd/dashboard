@@ -59,7 +59,10 @@ class EditUserRoleModalImpl extends React.Component<EditUserRoleModalProps, Edit
             role: target.role
           }}
           validationSchema={UserRoleSchema}
-          onSubmit={this.onSubmit}>
+          onSubmit={(values, {setSubmitting}) => {
+            this.onSubmit(values)
+            setSubmitting(false)
+          }}>
           {({ isSubmitting }) => (
             <Form>
               <ModalHeader toggle={this.onCancel}>
