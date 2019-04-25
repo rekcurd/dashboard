@@ -46,7 +46,6 @@ export default {
 
   plugins: [
     new webpack.DefinePlugin({
-      REACT_APP_CONFIG: JSON.stringify(require('./config.json')),
       'process.env': {
         NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
         API_HOST: JSON.stringify(process.env.API_HOST || 'http://localhost'),
