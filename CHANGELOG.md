@@ -1,5 +1,41 @@
 # Change Log
 
+## [v1.0.0](https://github.com/rekcurd/dashboard/tree/v1.0.0) (2019-04-26)
+[Full Changelog](https://github.com/rekcurd/dashboard/compare/v0.4.5...v1.0.0)
+
+**Fixed bugs:**
+
+- Cannot work `kube.datadir` if we change the value after registering kubernetes service [\#67](https://github.com/rekcurd/dashboard/issues/67)
+- Uploading model sometimes returns errors. [\#64](https://github.com/rekcurd/dashboard/issues/64)
+
+**Closed issues:**
+
+- Add `kubernetes mode flag` to Project settings [\#86](https://github.com/rekcurd/dashboard/issues/86)
+- Add image driven boot option [\#77](https://github.com/rekcurd/dashboard/issues/77)
+- Add access control to Kubernetes [\#65](https://github.com/rekcurd/dashboard/issues/65)
+- Replace library redux-form to formik [\#61](https://github.com/rekcurd/dashboard/issues/61)
+- Application permission can be reset if we delete Kubernetes and register it again [\#57](https://github.com/rekcurd/dashboard/issues/57)
+- Deployable to the application which we don't have a permission [\#53](https://github.com/rekcurd/dashboard/issues/53)
+- Fixed ssh directory mount path [\#48](https://github.com/rekcurd/dashboard/issues/48)
+- Support different Kubernetes cluster but same application [\#46](https://github.com/rekcurd/dashboard/issues/46)
+
+**Merged pull requests:**
+
+- remove redux-thunk [\#89](https://github.com/rekcurd/dashboard/pull/89) ([yuki-mt](https://github.com/yuki-mt))
+- fix console command [\#88](https://github.com/rekcurd/dashboard/pull/88) ([yuki-mt](https://github.com/yuki-mt))
+- Add kubernetes mode flag to project [\#85](https://github.com/rekcurd/dashboard/pull/85) ([keigohtr](https://github.com/keigohtr))
+- Update documents [\#84](https://github.com/rekcurd/dashboard/pull/84) ([keigohtr](https://github.com/keigohtr))
+- Renewal dashboard frontend [\#83](https://github.com/rekcurd/dashboard/pull/83) ([keigohtr](https://github.com/keigohtr))
+- delete evaluate files [\#82](https://github.com/rekcurd/dashboard/pull/82) ([yuki-mt](https://github.com/yuki-mt))
+- quit saving evaluate result as file [\#81](https://github.com/rekcurd/dashboard/pull/81) ([yuki-mt](https://github.com/yuki-mt))
+- \[Bugfix\]add logger option to db handler for KeyError [\#80](https://github.com/rekcurd/dashboard/pull/80) ([yuki-mt](https://github.com/yuki-mt))
+- Renewal dashboard backend [\#75](https://github.com/rekcurd/dashboard/pull/75) ([keigohtr](https://github.com/keigohtr))
+- Optimize architecture [\#74](https://github.com/rekcurd/dashboard/pull/74) ([keigohtr](https://github.com/keigohtr))
+- Bugfix: allow multiple evaluated services [\#73](https://github.com/rekcurd/dashboard/pull/73) ([yuki-mt](https://github.com/yuki-mt))
+- add label to EvaluateResult result [\#72](https://github.com/rekcurd/dashboard/pull/72) ([yuki-mt](https://github.com/yuki-mt))
+- add temporary path for evaluation data [\#71](https://github.com/rekcurd/dashboard/pull/71) ([yuki-mt](https://github.com/yuki-mt))
+- Rename from `drucker` to `rekcurd` [\#70](https://github.com/rekcurd/dashboard/pull/70) ([keigohtr](https://github.com/keigohtr))
+
 ## [v0.4.5](https://github.com/rekcurd/dashboard/tree/v0.4.5) (2019-01-30)
 [Full Changelog](https://github.com/rekcurd/dashboard/compare/v0.4.4...v0.4.5)
 
