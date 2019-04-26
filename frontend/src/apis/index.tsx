@@ -196,6 +196,23 @@ export async function saveServiceDeployment(params: ServiceDeploymentParam): Pro
   throw new RangeError(`You specified wrong save method ${params.method}`)
 }
 
+export interface KubernetesGitKeyParam {
+  projectId: number
+  applicationId: string
+  serviceLevel: string
+  gitIdRsa: string
+  config: string
+}
+export async function updateKubernetesGitKey(params: KubernetesGitKeyParam): Promise<boolean> {
+  const requestBody = {
+    ...convertKeys(params, snakelize)
+  }
+
+  const convert = (result) => result.status
+
+  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key`, requestBody, convert, 'PATCH')
+}
+
 export interface ServiceWeightParam {
   serviceId: string
   serviceWeight: number
@@ -534,6 +551,27 @@ export async function fetchServiceById(params: FetchServiceByIdParam): Promise<S
       convert
     )
   }
+}
+
+export class KubernetesGitKey {
+  constructor(
+    public gitIdRsa: string,
+    public config: string
+  ) { }
+}
+export interface FetchKubernetesGitKeyParam {
+  projectId: number
+  applicationId: string
+  serviceLevel: string
+}
+export async function fetchKubernetesGitKey(params: FetchKubernetesGitKeyParam): Promise<KubernetesGitKey> {
+  const convert =
+    (result) => (
+      {
+        ...convertKeys(result, camelize)
+      }
+    )
+  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key?service_level=${params.serviceLevel}`, convert)
 }
 
 export class ServiceRoutingWeight {
