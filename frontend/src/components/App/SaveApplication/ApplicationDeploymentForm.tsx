@@ -11,8 +11,6 @@ const ApplicationSchema = Yup.object().shape({
   application_name: Yup.string()
     .required('Required')
     .max(128),
-  useGitKey: Yup.boolean()
-    .required('Required'),
   description: Yup.string(),
 });
 
@@ -23,7 +21,6 @@ class ApplicationDeploymentFormImpl extends React.Component<AddApplicationFormPr
    */
   render() {
     const { onSubmit, onCancel } = this.props
-    const yesno = [{value: true, label: "Yes"}, {value: false, label: "No"}]
 
     return (
       <React.Fragment>
@@ -35,7 +32,6 @@ class ApplicationDeploymentFormImpl extends React.Component<AddApplicationFormPr
         <Formik
           initialValues={{
             application_name: '',
-            useGitKey: false,
             description: '',
           }}
           validationSchema={ApplicationSchema}
@@ -51,16 +47,6 @@ class ApplicationDeploymentFormImpl extends React.Component<AddApplicationFormPr
                     component={FormikInput}
                     className='form-control'
                     placeholder="Application name"
-                    required />
-                  <Field
-                    name="useGitKey"
-                    label="Do you use git SSH key?"
-                    component={FormikInput}
-                    type="select"
-                    className="form-control"
-                    placeholder="If you use private git repository, then choose 'Yes'."
-                    options={yesno}
-                    onChange={()=>{}}
                     required />
                   <Field
                     name="description"

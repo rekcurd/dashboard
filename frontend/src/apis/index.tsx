@@ -101,7 +101,6 @@ export interface ApplicationParam {
   applicationId?: string,
   projectId: number
   applicationName: string
-  useGitKey: boolean
   description: string
   registerDate?: Date
   method: string
@@ -379,7 +378,6 @@ export class Application {
   constructor(
     public applicationId: string,
     public name: string,
-    public useGitKey: boolean,
     public description: string = '',
     public registerDate: Date = null,
     public projectId: number
@@ -397,7 +395,6 @@ export function fetchAllApplications(params: FetchApplicationByIdParam): Promise
           return {
             applicationId: result.application_id,
             name: result.application_name,
-            useGitKey: result.use_git_key,
             description: result.description,
             registerDate: new Date(result.register_date * 1000),
             projectId: result.project_id

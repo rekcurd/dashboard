@@ -53,29 +53,30 @@ class SideMenu extends React.Component<SideMenuProps, SideMenuState> {
       }
     ]
     if (fetchProjectByIdStatus.status === APIRequestStatusList.success && fetchProjectByIdStatus.result.useKubernetes) {
-      const serviceLevels = Object.values(serviceLevel).map((serviceLevelName: string) => {
-        return {
-          text: serviceLevelName,
-          path: `routing/${serviceLevelName}`
-        }
-      })
+      const serviceLevels = (parentPath: string) => {
+        const contents = Object.values(serviceLevel).map((serviceLevelName: string) => {
+          return {
+            text: serviceLevelName,
+            path: `${parentPath}/${serviceLevelName}`
+          }
+        })
+        return contents
+      }
       menuContents.push({
         title: 'Kubernetes',
         items: []
       })
-      if (application.status === APIRequestStatusList.success && application.result.useGitKey) {
-        menuContents[1]['items'].push({
-          text: 'Git Key',
-          path: 'secret',
-          icon: 'key',
-          items: []
-        })
-      }
+      menuContents[1]['items'].push({
+        text: 'Git Key',
+        path: 'git_key',
+        icon: 'key',
+        items: serviceLevels('git_key')
+      })
       menuContents[1]['items'].push({
         text: 'Routing',
         path: 'routing',
         icon: 'route',
-        items: serviceLevels
+        items: serviceLevels('routing')
       })
     }
     if (userInfoStatus.status === APIRequestStatusList.success) {

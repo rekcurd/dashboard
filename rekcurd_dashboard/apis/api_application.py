@@ -21,11 +21,6 @@ application_model_params = application_api_namespace.model('Application', {
         description='Application name.',
         example='rekcurd-sample'
     ),
-    'use_git_key': fields.Boolean(
-        required=True,
-        description='Do you use git SSH key?',
-        default=False
-    ),
     'project_id': fields.Integer(
         required=False,
         description='Project ID.'
@@ -46,7 +41,6 @@ application_model_params = application_api_namespace.model('Application', {
 class ApiApplications(Resource):
     add_application_parser = reqparse.RequestParser()
     add_application_parser.add_argument('application_name', type=str, required=True, location='form')
-    add_application_parser.add_argument('use_git_key', type=inputs.boolean, required=True, default=False, location='form')
     add_application_parser.add_argument('description', type=str, required=False, location='form')
 
     @application_api_namespace.marshal_list_with(application_model_params)
@@ -60,7 +54,6 @@ class ApiApplications(Resource):
         """add_application"""
         args = self.add_application_parser.parse_args()
         application_name = args['application_name']
-        use_git_key = args['use_git_key']
         description = args['description']
 
         application_model = db.session.query(ApplicationModel).filter(
@@ -71,7 +64,7 @@ class ApiApplications(Resource):
         application_id = uuid.uuid4().hex
         application_model = ApplicationModel(
             project_id=project_id, application_id=application_id,
-            application_name=application_name, use_git_key=use_git_key, description=description)
+            application_name=application_name, description=description)
         db.session.add(application_model)
         db.session.flush()
 
@@ -96,7 +89,6 @@ class ApiApplications(Resource):
 @application_api_namespace.route('/projects/<int:project_id>/applications/<application_id>')
 class ApiApplicationId(Resource):
     edit_application_parser = reqparse.RequestParser()
-    edit_application_parser.add_argument('use_git_key', type=inputs.boolean, required=False, location='form')
     edit_application_parser.add_argument('description', type=str, required=False, location='form')
 
     @application_api_namespace.marshal_with(application_model_params)
@@ -109,15 +101,11 @@ class ApiApplicationId(Resource):
     def patch(self, project_id: int, application_id: str):
         """update_application"""
         args = self.edit_application_parser.parse_args()
-        use_git_key = args['use_git_key']
         description = args['description']
 
         application_model = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
         is_update = False
-        if use_git_key is not None and use_git_key != application_model.use_git_key:
-            application_model.use_git_key = use_git_key
-            is_update = True
         if description is not None and description != application_model.description:
             application_model.description = description
             is_update = True

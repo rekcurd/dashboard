@@ -24,7 +24,6 @@ class ApplicationModel(db.Model):
     project_id = Column(Integer, ForeignKey('projects.project_id', ondelete="CASCADE"), nullable=False)
     application_name = Column(String(128), nullable=False)
     description = Column(Text, nullable=True)
-    use_git_key = Column(Boolean, nullable=False, default=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
     projects = relationship(
@@ -38,6 +37,5 @@ class ApplicationModel(db.Model):
             'application_name': self.application_name,
             'project_id': self.project_id,
             'description': self.description,
-            'use_git_key': self.use_git_key,
             'register_date': self.register_date.strftime('%Y-%m-%d %H:%M:%S'),
         }
