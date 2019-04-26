@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/rekcurd/dashboard/branch/master/graph/badge.svg)](https://codecov.io/gh/rekcurd/dashboard "Non-generated packages only")
 [![pypi supported versions](https://img.shields.io/pypi/pyversions/rekcurd-dashboard.svg)](https://pypi.python.org/pypi/rekcurd-dashboard)
 
-Rekcurd dashboard is the project for managing ML model and deploying ML module. Any Rekcurd service is manageable. It can deploy the Rekcurd service to Kubernetes cluster.
+Rekcurd dashboard is the project for managing ML model and deploying ML module. Any Rekcurd service is manageable. It can deploy the Rekcurd service to Kubernetes cluster and can control traffic weights which Istio manages.
 
 
 ## Parent Project
@@ -14,8 +14,12 @@ https://github.com/rekcurd/community
 
 ## Components
 - [Rekcurd](https://github.com/rekcurd/rekcurd-python): Project for serving ML module.
-- [Rekcurd-dashboard](https://github.com/rekcurd/dashboard) (here): Project for managing ML model and deploying ML module.
-- [Rekcurd-client](https://github.com/rekcurd/python-client): Project for integrating ML module. 
+- [Rekcurd-dashboard](https://github.com/rekcurd/dashboard): Project for managing ML model and deploying ML module.
+- [Rekcurd-client](https://github.com/rekcurd/python-client): Project for integrating ML module.
+
+
+## Screen shot
+<img src="./docs/img/application-dashboard.png" width="480">
 
 
 ## Environment
@@ -42,21 +46,19 @@ $ pip install rekcurd-dashboard
 ```
 
 
-## How to boot
-### Preparation
-You need to create [`settings.yml`](rekcurd_dashboard/settings.yml).
+## How to use
+Check the belows in detail.
+- [Backend](./rekcurd_dashboard/README.md)
+- [Frontend](./frontend/README.md)
 
-### General users
-Launched on `http://0.0.0.0:18080` as a default.
-
-#### command line
+##### Boot command
 ```bash
-$ rekcurd_dashboard --settings settings.yml db init
-$ rekcurd_dashboard --settings settings.yml db migrate
-$ rekcurd_dashboard --settings settings.yml server
+$ rekcurd_dashboard db --settings settings.yml init
+$ rekcurd_dashboard db --settings settings.yml migrate
+$ rekcurd_dashboard server --settings settings.yml
 ```
 
-#### docker-compose (Deprecated)
+##### docker-compose (Deprecated)
 ```bash
 # For dev
 $ docker-compose -f docker-compose/docker-compose.develop.yaml up
@@ -64,7 +66,7 @@ $ docker-compose -f docker-compose/docker-compose.develop.yaml up
 $ docker-compose -f docker-compose/docker-compose.production.yaml up
 ```
 
-### For AWS users
+##### For AWS users
 If you run this on AWS (such as EKS), you need to configure aws-cli setting.  
 Follow the [official document](https://docs.aws.amazon.com/streams/latest/dev/kinesis-tutorial-cli-installation.html).  
 
@@ -78,27 +80,19 @@ $ docker-compose -f docker-compose/aws/docker-compose.develop.yaml up
 $ docker-compose -f docker-compose/aws/docker-compose.production.yaml up
 ```
 
+## How to use WebUI
+See [docs](./docs/README.md) in detail.
 
-## How to use
-See [docs](./docs/README.md).
 
-
-## Unittest
-### Prerequisites
+## Test
+### Unittest
 ```bash
-$ pip install -r requirements.txt
-$ pip install -r test-requirements.txt
+$ python -m unittest test/*/test_*
 ```
 
-If you don't have VirtualBox, run it.
+### e2e test
 ```bash
-$ sudo yum install -y kernel-devel kernel-headers make patch gcc
-$ sudo wget https://download.virtualbox.org/virtualbox/rpm/el/virtualbox.repo -P /etc/yum.repos.d
-$ sudo yum install -y VirtualBox-5.2
-```
-
-### Test
-```bash
+## sudo sh scripts/kube-init.sh
 $ sudo sh e2e_test/startup.sh
 $ python -m unittest
 $ sudo sh e2e_test/cleanup.sh
@@ -106,4 +100,4 @@ $ sudo sh e2e_test/cleanup.sh
 
 
 ## Kubernetes support
-Rekcurd can be run on Kubernetes. See [here](https://github.com/rekcurd/community).
+Rekcurd can be run on Kubernetes. See [community repository](https://github.com/rekcurd/community).
