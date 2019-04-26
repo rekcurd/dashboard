@@ -6,31 +6,31 @@ You can use `setting.yml` as your configuration file. See [template](./template/
 ### DB
 ##### help
 ```bash
-$ python app.py db -h
+$ rekcurd_dashboard db -h
 ```
 
 ##### initialization
 ```bash
-$ python app.py db --settings settings.yml init
-$ python app.py db --settings settings.yml migrate
+$ rekcurd_dashboard db --settings settings.yml init
+$ rekcurd_dashboard db --settings settings.yml migrate
 ```
 
 ##### migration
 ```bash
-$ python app.py db --settings settings.yml migrate
-$ python app.py db --settings settings.yml upgrade
+$ rekcurd_dashboard db --settings settings.yml migrate
+$ rekcurd_dashboard db --settings settings.yml upgrade
 ```
 
 
 ### Server
 ##### help
 ```bash
-$ python app.py server -h
+$ rekcurd_dashboard server -h
 ```
 
 ##### boot
 ```bash
-$ python app.py server --settings settings.yml
+$ rekcurd_dashboard server --settings settings.yml
 ```
 
 Launched on `http://0.0.0.0:18080` as a default.
