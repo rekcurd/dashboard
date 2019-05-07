@@ -82,6 +82,7 @@ class SideMenu extends React.Component<SideMenuProps, SideMenuState> {
         </li>
       )
       const gitKeyContents = serviceLevels(gitKeyPath)
+
       const routingPath = 'routing'
       const routingDropdown = (
         <li className='navbar-item mb-1' key={routingPath}>

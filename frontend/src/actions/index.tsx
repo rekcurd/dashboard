@@ -116,11 +116,11 @@ export const saveServiceDeploymentDispatcher = asyncAPIRequestDispatcherCreator<
   Apis.saveServiceDeployment
 )
 
-export const updateKubernetesGitKeyActionCreators =
+export const saveKubernetesGitKeyActionCreators =
   new APIRequestActionCreators<Apis.KubernetesGitKeyParam, boolean>('UPDATE_KUBERNETES_GIT_KEY')
-export const updateKubernetesGitKeyDispatcher = asyncAPIRequestDispatcherCreator<Apis.KubernetesGitKeyParam, boolean>(
-  updateKubernetesGitKeyActionCreators,
-  Apis.updateKubernetesGitKey
+export const saveKubernetesGitKeyDispatcher = asyncAPIRequestDispatcherCreator<Apis.KubernetesGitKeyParam, boolean>(
+  saveKubernetesGitKeyActionCreators,
+  Apis.saveKubernetesGitKey
 )
 
 export const updateServiceRoutingActionCreators =

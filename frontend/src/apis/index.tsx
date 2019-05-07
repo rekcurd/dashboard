@@ -202,15 +202,22 @@ export interface KubernetesGitKeyParam {
   serviceLevel: string
   gitIdRsa: string
   config: string
+  method: string
 }
-export async function updateKubernetesGitKey(params: KubernetesGitKeyParam): Promise<boolean> {
+export async function saveKubernetesGitKey(params: KubernetesGitKeyParam): Promise<boolean> {
   const requestBody = {
-    ...convertKeys(params, snakelize)
+    ...convertKeys(params, snakelize),
+    method: {} = {},
   }
 
   const convert = (result) => result.status
 
-  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key`, requestBody, convert, 'PATCH')
+  if (params.method === 'post') {
+    return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key`, requestBody, convert, 'POST')
+  } else if (params.method === 'patch') {
+    return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key`, requestBody, convert, 'PATCH')
+  }
+  throw new RangeError(`You specified wrong save method ${params.method}`)
 }
 
 export interface ServiceWeightParam {

@@ -25,6 +25,7 @@ import Services from './Services'
 import Service from './Service'
 import Models from './Models'
 import Model from './Model'
+import KubernetesGitKey from './KubernetesGitKey'
 import ServiceRouting from './ServiceRouting'
 
 
@@ -150,8 +151,14 @@ class ApplicationsRoute extends React.Component<ApplicationsRouteProps> {
           <Route exact path='/projects/:projectId/applications/:applicationId/dashboard' component={Dashboard} />
           <Route exact path='/projects/:projectId/applications/:applicationId/services' component={Services} />
           <Route exact path='/projects/:projectId/applications/:applicationId/models' component={Models} />
-          <Redirect exact from='/projects/:projectId/applications/:applicationId/routing' to='/projects/:projectId/applications/:applicationId/routing/development' />
-          <Route exact path='/projects/:projectId/applications/:applicationId/routing/:serviceLevel' component={ServiceRouting} />
+          <Redirect exact from='/projects/:projectId/applications/:applicationId/git_key'
+                    to='/projects/:projectId/applications/:applicationId/git_key/development' />
+          <Route exact path='/projects/:projectId/applications/:applicationId/git_key/:serviceLevel'
+                 component={KubernetesGitKey} />
+          <Redirect exact from='/projects/:projectId/applications/:applicationId/routing'
+                    to='/projects/:projectId/applications/:applicationId/routing/development' />
+          <Route exact path='/projects/:projectId/applications/:applicationId/routing/:serviceLevel'
+                 component={ServiceRouting} />
           <Route exact path='/projects/:projectId/applications/:applicationId/services/add'
                  render={(props) => <Service {...props} method='post'/>} />
           <Route exact path='/projects/:projectId/applications/:applicationId/services/:serviceId/edit'

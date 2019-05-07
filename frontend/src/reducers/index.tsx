@@ -11,7 +11,7 @@ export class AppState {
     public saveApplication: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public updateService: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public saveServiceDeployment: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
-    public updateKubernetesGitKey: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public saveKubernetesGitKey: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public updateServiceRouting: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public uploadModel: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public updateModel: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
@@ -99,8 +99,8 @@ export const updateServiceReducer = APIRequestReducerCreator<Apis.UpdateServiceP
   Actions.updateServiceActionCreators, 'updateService')
 export const saveServiceDeploymentReducer = APIRequestReducerCreator<Apis.ServiceDeploymentParam, boolean>(
   Actions.saveServiceDeploymentActionCreators, 'saveServiceDeployment')
-export const updateKubernetesGitKeyReducer = APIRequestReducerCreator<Apis.KubernetesGitKeyParam, boolean>(
-  Actions.updateKubernetesGitKeyActionCreators, 'updateKubernetesGitKey')
+export const saveKubernetesGitKeyReducer = APIRequestReducerCreator<Apis.KubernetesGitKeyParam, boolean>(
+  Actions.saveKubernetesGitKeyActionCreators, 'saveKubernetesGitKey')
 export const updateServiceRoutingReducer = APIRequestReducerCreator<Apis.ServiceRoutingParam, boolean>(
   Actions.updateServiceRoutingActionCreators, 'updateServiceRouting')
 export const uploadModelReducer = APIRequestReducerCreator<Apis.UploadModelParam, boolean>(
