@@ -35,7 +35,7 @@ class ApiGitKeyTest(BaseTestCase):
     @mock_decorator()
     def test_get(self):
         response = self.client.get(self.__URL+f'?service_level={SERVICE_LEVEL}')
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(400, response.status_code)
         self.assertIsNotNone(response)
 
     @mock_decorator()

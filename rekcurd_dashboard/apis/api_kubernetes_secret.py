@@ -45,20 +45,12 @@ class ApiGitKey(Resource):
         service_level = args["service_level"]
         string_data = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
 
-        GIT_ID_RSA_TEMPLATE = "-----BEGIN RSA PRIVATE KEY-----\n" \
-                              "YOUR-RSA-PRIVATE-KEY\n" \
-                              "-----END RSA PRIVATE KEY-----"
-        GIT_CONFIG_TEMPLATE = "Host git.private.com\n" \
-                              "  User git\n" \
-                              "  Port 22\n" \
-                              "  HostName git.private.com\n" \
-                              "  IdentityFile /root/.ssh/git_id_rsa\n" \
-                              "  StrictHostKeyChecking no"
         response_body = dict()
-        response_body[GIT_ID_RSA] = string_data[GIT_ID_RSA] if GIT_ID_RSA in string_data and string_data[GIT_ID_RSA] \
-            else GIT_ID_RSA_TEMPLATE
-        response_body[GIT_CONFIG] = string_data[GIT_CONFIG] if GIT_CONFIG in string_data and string_data[GIT_CONFIG] \
-            else GIT_CONFIG_TEMPLATE
+        if GIT_ID_RSA in string_data and GIT_CONFIG in string_data:
+            response_body[GIT_ID_RSA] = string_data[GIT_ID_RSA]
+            response_body[GIT_CONFIG] = string_data[GIT_CONFIG]
+        else:
+            raise RekcurdDashboardException("No git key secret found.")
         return response_body
 
     @kubernetes_secret_api_namespace.marshal_with(success_or_not)
@@ -67,10 +59,12 @@ class ApiGitKey(Resource):
         """Save git key."""
         args = self.git_key_parser.parse_args()
         service_level = args["service_level"]
-        string_data = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
-        if (GIT_ID_RSA in string_data and string_data[GIT_ID_RSA]) \
-                or (GIT_CONFIG in string_data and string_data[GIT_CONFIG]):
-            raise RekcurdDashboardException("Fields already exist.")
+        try:
+            string_data = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
+        except:
+            string_data = dict()
+        if GIT_ID_RSA in string_data or GIT_CONFIG in string_data:
+            raise RekcurdDashboardException("Git key secret already exist.")
         string_data[GIT_ID_RSA] = args[GIT_ID_RSA]
         string_data[GIT_CONFIG] = args[GIT_CONFIG]
         apply_secret(project_id, application_id, service_level, string_data, GIT_SECRET_PREFIX)

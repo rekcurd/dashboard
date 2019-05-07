@@ -187,7 +187,10 @@ def apply_rekcurd_to_kubernetes(
         ModelModel.model_id == service_model_assignment).first_or_404()
 
     from kubernetes import client
-    git_secret = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
+    try:
+        git_secret = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
+    except:
+        git_secret = None
     volume_mounts = dict()
     volumes = dict()
     if git_secret:
@@ -929,20 +932,17 @@ def load_secret(project_id: int, application_id: str, service_level: str, name_p
     from kubernetes import client, config
     config.load_kube_config(full_config_path)
     core_v1_api = client.CoreV1Api()
-    try:
-        name = "sec-{}-{}".format(name_prefix, application_id)
-        secret_body = core_v1_api.read_namespaced_secret(
-            name=name,
-            namespace=service_level,
-            exact=True,
-            export=True
-        )
-        string_data: dict = secret_body.data
-        for key in string_data.keys():
-            string_data[key] = base64.b64decode(string_data[key]).decode()
-        return string_data
-    except:
-        return dict()
+    name = "sec-{}-{}".format(name_prefix, application_id)
+    secret_body = core_v1_api.read_namespaced_secret(
+        name=name,
+        namespace=service_level,
+        exact=True,
+        export=True
+    )
+    string_data: dict = secret_body.data
+    for key in string_data.keys():
+        string_data[key] = base64.b64decode(string_data[key]).decode()
+    return string_data
 
 
 def apply_secret(project_id: int, application_id: str, service_level: str, string_data: dict, name_prefix: str):

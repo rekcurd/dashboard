@@ -14,7 +14,7 @@ class TestApiGitKey(BaseTestCase):
 
     def test_get(self):
         response = self.client.get(f'{self.__URL}?service_level={SERVICE_LEVEL}')
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(400, response.status_code)
 
     def test_post(self):
         service_level = SERVICE_LEVEL
@@ -23,6 +23,9 @@ class TestApiGitKey(BaseTestCase):
         response = self.client.post(
             self.__URL,
             data={'service_level': service_level, GIT_ID_RSA: git_id_rsa, GIT_CONFIG: git_config})
+        self.assertEqual(200, response.status_code)
+
+        response = self.client.get(f'{self.__URL}?service_level={SERVICE_LEVEL}')
         self.assertEqual(200, response.status_code)
         self.client.delete(self.__URL_DELETE)
 
