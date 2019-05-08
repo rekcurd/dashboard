@@ -56,7 +56,9 @@ class DataServerModel(db.Model):
     aws_access_key = Column(String(128), nullable=False, default='')
     aws_secret_key = Column(String(128), nullable=False, default='')
     aws_bucket_name = Column(String(128), nullable=False, default='')
-    # TODO: GCP
+    gcs_access_key = Column(String(128), nullable=False, default='')
+    gcs_secret_key = Column(String(128), nullable=False, default='')
+    gcs_bucket_name = Column(String(128), nullable=False, default='')
     # TODO: PV
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
