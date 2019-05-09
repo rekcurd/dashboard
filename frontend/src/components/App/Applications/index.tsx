@@ -2,7 +2,7 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { RouteComponentProps } from 'react-router'
 import { withRouter, Link } from 'react-router-dom'
-import { Button } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Button } from 'reactstrap'
 
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
 import {
@@ -116,6 +116,10 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
     return (
       <div className='row justify-content-center'>
         <div className='col-10 pt-5'>
+          <Breadcrumb tag="nav" listTag="div">
+            <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+            <BreadcrumbItem active tag="span">{project.name}</BreadcrumbItem>
+          </Breadcrumb>
           {title}
           {this.renderApplicationListTable(applications)}
         </div>

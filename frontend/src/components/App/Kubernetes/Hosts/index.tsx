@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps, Link } from 'react-router-dom'
-import { Row, Col, Table, Button, Tooltip, Modal, ModalBody, ModalHeader } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Row, Col, Table, Button, Tooltip, Modal, ModalBody, ModalHeader } from 'reactstrap'
 
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
-import { Kubernetes, FetchKubernetesByIdParam, IdParam, UserInfo } from '@src/apis'
+import { Kubernetes, FetchKubernetesByIdParam, IdParam, UserInfo, Project } from '@src/apis'
 import {
   fetchAllKubernetesDispatcher,
   deleteKubernetesDispatcher,
@@ -95,8 +95,8 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
   }
 
   render() {
-    const { fetchAllKubernetesStatus, userInfoStatus, settings } = this.props
-    const targetStatus: any = { hosts: fetchAllKubernetesStatus }
+    const { fetchProjectByIdStatus, fetchAllKubernetesStatus, userInfoStatus, settings } = this.props
+    const targetStatus: any = { project: fetchProjectByIdStatus, hosts: fetchAllKubernetesStatus }
 
     if (isAPISucceeded(settings) && settings.result.auth) {
       targetStatus.userInfoStatus = userInfoStatus
@@ -110,6 +110,7 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
   }
 
   renderKubernetes(status, canEdit) {
+    const project: Project = status.project
     const kubernetesHosts: Kubernetes[] = status.hosts
     const { deletionSubmitted } = this.state
     const submitted = deletionSubmitted
@@ -138,6 +139,10 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
     return (
       <Row className='justify-content-center'>
         <Col xs='10' className='pt-5'>
+          <Breadcrumb tag="nav" listTag="div">
+            <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+            <BreadcrumbItem active tag="span">{project.name}</BreadcrumbItem>
+          </Breadcrumb>
           {title}
           {this.renderKubernetesHostListTable(kubernetesHosts, canEdit)}
         </Col>
@@ -252,6 +257,7 @@ interface KubernetesState {
 }
 
 interface StateProps {
+  fetchProjectByIdStatus: APIRequest<Project>
   fetchAllKubernetesStatus: APIRequest<Kubernetes[]>
   deleteKubernetesStatus: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
@@ -260,6 +266,7 @@ interface StateProps {
 
 const mapStateToProps = (state): StateProps => {
   return {
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
     fetchAllKubernetesStatus: state.fetchAllKubernetesReducer.fetchAllKubernetes,
     deleteKubernetesStatus: state.deleteKubernetesReducer.deleteKubernetes,
     userInfoStatus: state.userInfoReducer.userInfo,

@@ -2,9 +2,9 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { Dispatch } from 'redux'
 import { withRouter, RouteComponentProps } from 'react-router'
-import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
 
-import { ProjectAccessControlList, UserInfo, AccessControlParam } from '@src/apis'
+import { ProjectAccessControlList, UserInfo, AccessControlParam, Project } from '@src/apis'
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
 import {
   addNotification,
@@ -20,6 +20,7 @@ import AddUserProjectRoleModal from './AddUserProjectRoleModal'
 import { EditUserProjectRoleModal } from './EditUserProjectRoleModal'
 
 interface StateProps {
+  fetchProjectByIdStatus: APIRequest<Project>
   saveProjectAccessControlStatus: APIRequest<boolean>
   fetchProjectAccessControlListStatus: APIRequest<ProjectAccessControlList[]>
   userInfoStatus: APIRequest<UserInfo>
@@ -86,8 +87,8 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
   }
 
   render() {
-    const { fetchProjectAccessControlListStatus, userInfoStatus } = this.props
-    const targetStatus = {fetchProjectAccessControlListStatus, userInfoStatus}
+    const { fetchProjectByIdStatus, fetchProjectAccessControlListStatus, userInfoStatus } = this.props
+    const targetStatus = {fetchProjectByIdStatus, fetchProjectAccessControlListStatus, userInfoStatus}
 
     return (
       <APIRequestResultsRenderer
@@ -97,11 +98,12 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
     )
   }
   renderProjectAccessControlList(results, canEdit) {
+    const project: Project = results.fetchProjectByIdStatus
     const projectAcl: ProjectAccessControlList[] = results.fetchProjectAccessControlListStatus
     const userInfo: UserInfo = results.userInfoStatus
-    return this.renderContent(projectAcl, userInfo, canEdit)
+    return this.renderContent(project, projectAcl, userInfo, canEdit)
   }
-  renderContent(projectAcl: ProjectAccessControlList[], userInfo: UserInfo, canEdit: boolean) {
+  renderContent(project: Project, projectAcl: ProjectAccessControlList[], userInfo: UserInfo, canEdit: boolean) {
     const { match, saveProjectAccessControl } = this.props
     const {
       isAddUserProjectRoleModalOpen, isEditUserProjectRoleModalOpen, editUserProjectRoleTarget
@@ -135,6 +137,10 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
     return (
       <div className='row justify-content-center'>
         <div className='col-10 pt-5'>
+          <Breadcrumb tag="nav" listTag="div">
+            <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+            <BreadcrumbItem active tag="span">{project.name}</BreadcrumbItem>
+          </Breadcrumb>
           <div className='d-flex justify-content-between align-items-center mb-4'>
             <h1>
               <i className='fas fa-unlock fa-fw mr-2'></i>
@@ -269,6 +275,7 @@ export default withRouter(
   connect(
     (state: any): StateProps => {
       return {
+        fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
         saveProjectAccessControlStatus: state.saveProjectAccessControlReducer.saveProjectAccessControl,
         fetchProjectAccessControlListStatus: state.fetchProjectAccessControlListReducer.fetchProjectAccessControlList,
         userInfoStatus: state.userInfoReducer.userInfo,

@@ -120,6 +120,7 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
     if (this.state.method === 'patch') {
       return (
         <DataServerForm
+          project={result.fetchProjectByIdStatus}
           onCancel={this.onCancel}
           onSubmit={this.onSubmit}
           method={this.state.method}
@@ -130,6 +131,7 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
     } else {
       return (
         <DataServerForm
+          project={result.fetchProjectByIdStatus}
           onCancel={this.onCancel}
           onSubmit={this.onSubmit}
           method={this.state.method}

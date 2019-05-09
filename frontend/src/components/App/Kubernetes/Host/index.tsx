@@ -4,7 +4,14 @@ import { RouterProps } from 'react-router'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
-import { Kubernetes, KubernetesParam, FetchKubernetesByIdParam, UserInfo, FetchProjectByIdParam } from '@src/apis'
+import {
+  Kubernetes,
+  KubernetesParam,
+  FetchKubernetesByIdParam,
+  UserInfo,
+  FetchProjectByIdParam,
+  Project
+} from '@src/apis'
 import {
   fetchProjectByIdDispatcher,
   saveKubernetesDispatcher,
@@ -93,8 +100,8 @@ class Host extends React.Component<HostProps, HostState> {
   }
 
   render() {
-    const { method, userInfoStatus, settings } = this.props
-    const targetStatus: any = {}
+    const { method, fetchProjectByIdStatus, userInfoStatus, settings } = this.props
+    const targetStatus: any = {project: fetchProjectByIdStatus}
 
     if (isAPISucceeded(settings) && settings.result.auth) {
       targetStatus.userInfoStatus = userInfoStatus
@@ -115,11 +122,13 @@ class Host extends React.Component<HostProps, HostState> {
       this.props.history.push(`/projects/${this.props.match.params.projectId}/kubernetes`)
       this.props.addNotification({ color: 'error', message: "You don't have a permission. Contact your Project admin." })
     }
+    const project: Project = result.project
 
     if (this.props.method === 'patch') {
       const properties = { ...result.host }
       return (
         <HostForm
+          project={project}
           onCancel={this.onCancel}
           onSubmit={this.onSubmit}
           method={this.props.method}
@@ -129,6 +138,7 @@ class Host extends React.Component<HostProps, HostState> {
     } else {
       return (
         <HostForm
+          project={project}
           onCancel={this.onCancel}
           onSubmit={this.onSubmit}
           method={this.props.method}
@@ -149,6 +159,7 @@ interface HostState {
 }
 
 interface StateProps {
+  fetchProjectByIdStatus: APIRequest<Project>
   saveKubernetesStatus: APIRequest<boolean>
   fetchKubernetesByIdStatus: APIRequest<any>
   userInfoStatus: APIRequest<UserInfo>
@@ -161,6 +172,7 @@ interface CustomProps {
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
+    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
     saveKubernetesStatus: state.saveKubernetesReducer.saveKubernetes,
     fetchKubernetesByIdStatus: state.fetchKubernetesByIdReducer.fetchKubernetesById,
     userInfoStatus: state.userInfoReducer.userInfo,
