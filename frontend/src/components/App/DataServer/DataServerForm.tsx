@@ -219,7 +219,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
           <BreadcrumbItem active tag="span">{project.name}</BreadcrumbItem>
         </Breadcrumb>
         <h1>
-          <i className='fas fa-plug fa-fw mr-2'></i>
+          <i className='fas fa-archive fa-fw mr-2'></i>
           {method === 'post' ? 'Add' : 'Edit'} DataServer
         </h1>
         <Formik

@@ -143,7 +143,7 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
           </Breadcrumb>
           <div className='d-flex justify-content-between align-items-center mb-4'>
             <h1>
-              <i className='fas fa-unlock fa-fw mr-2'></i>
+              <i className='fas fa-users-cog fa-fw mr-2'></i>
               Project Access Control List
             </h1>
             {canEdit ?

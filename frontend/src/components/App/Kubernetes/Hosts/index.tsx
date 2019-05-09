@@ -129,7 +129,7 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
     const title = (
       <div className='d-flex justify-content-between align-items-center mb-4'>
         <h1>
-          <i className='fas fa-plug fa-fw mr-3'></i>
+          <i className='fas fa-ship fa-fw mr-3'></i>
           Kubernetes
         </h1>
         {addButton}

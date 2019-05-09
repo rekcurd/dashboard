@@ -58,7 +58,7 @@ class HostFormImpl extends React.Component<HostFormProps> {
           <BreadcrumbItem active tag="span">{project.name}</BreadcrumbItem>
         </Breadcrumb>
         <h1>
-          <i className='fas fa-plug fa-fw mr-2'></i>
+          <i className='fas fa-ship fa-fw mr-2'></i>
           {isPost ? 'Add' : 'Edit'} Kubernetes Host
         </h1>
         <Formik
