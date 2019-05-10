@@ -118,7 +118,8 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
         <div className='col-10 pt-5'>
           <Breadcrumb tag="nav" listTag="div">
             <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
-            <BreadcrumbItem active tag="span">{project.name}</BreadcrumbItem>
+            <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+            <BreadcrumbItem active tag="span">Applications</BreadcrumbItem>
           </Breadcrumb>
           {title}
           {this.renderApplicationListTable(applications)}

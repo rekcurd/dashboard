@@ -141,7 +141,8 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
         <Col xs='10' className='pt-5'>
           <Breadcrumb tag="nav" listTag="div">
             <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
-            <BreadcrumbItem active tag="span">{project.name}</BreadcrumbItem>
+            <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+            <BreadcrumbItem active tag="span">Kubernetes</BreadcrumbItem>
           </Breadcrumb>
           {title}
           {this.renderKubernetesHostListTable(kubernetesHosts, canEdit)}

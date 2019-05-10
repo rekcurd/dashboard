@@ -139,7 +139,8 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
         <div className='col-10 pt-5'>
           <Breadcrumb tag="nav" listTag="div">
             <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
-            <BreadcrumbItem active tag="span">{project.name}</BreadcrumbItem>
+            <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+            <BreadcrumbItem active tag="span">Admin</BreadcrumbItem>
           </Breadcrumb>
           <div className='d-flex justify-content-between align-items-center mb-4'>
             <h1>

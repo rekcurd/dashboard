@@ -216,7 +216,8 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
       <div className='pt-3 pr-3 pl-3'>
         <Breadcrumb tag="nav" listTag="div">
           <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
-          <BreadcrumbItem active tag="span">{project.name}</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+          <BreadcrumbItem active tag="span">Data Servers</BreadcrumbItem>
         </Breadcrumb>
         <h1>
           <i className='fas fa-archive fa-fw mr-2'></i>
