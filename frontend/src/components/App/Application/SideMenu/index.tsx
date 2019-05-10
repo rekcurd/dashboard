@@ -31,7 +31,7 @@ class SideMenu extends React.Component<SideMenuProps, SideMenuState> {
   }
 
   render() {
-    const { fetchProjectByIdStatus, application, userInfoStatus } = this.props
+    const { project, application, userInfoStatus } = this.props
     const { projectId, applicationId } = this.props.match.params
 
     const mainContents = {
@@ -56,7 +56,7 @@ class SideMenu extends React.Component<SideMenuProps, SideMenuState> {
     }
 
     let kubernetesContents: React.ReactNode
-    if (fetchProjectByIdStatus.status === APIRequestStatusList.success && fetchProjectByIdStatus.result.useKubernetes) {
+    if (project.status === APIRequestStatusList.success && project.result.useKubernetes) {
       const serviceLevels = (parentPath: string) => {
         const contents = Object.values(serviceLevel).map((serviceLevelName: string) => {
           const path = `${parentPath}/${serviceLevelName}`
@@ -183,14 +183,14 @@ interface SideMenuState {
 }
 
 interface StateProps {
-  fetchProjectByIdStatus: APIRequest<Project>
+  project: APIRequest<Project>
   application: APIRequest<Application>
   userInfoStatus: APIRequest<UserInfo>
 }
 
 const mapStateToProps = (state): StateProps => {
   return {
-    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    project: state.fetchProjectByIdReducer.fetchProjectById,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     userInfoStatus: state.userInfoReducer.userInfo
   }

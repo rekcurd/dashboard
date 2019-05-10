@@ -100,8 +100,8 @@ class Host extends React.Component<HostProps, HostState> {
   }
 
   render() {
-    const { method, fetchProjectByIdStatus, userInfoStatus, settings } = this.props
-    const targetStatus: any = {project: fetchProjectByIdStatus}
+    const { method, project, userInfoStatus, settings } = this.props
+    const targetStatus: any = {project}
 
     if (isAPISucceeded(settings) && settings.result.auth) {
       targetStatus.userInfoStatus = userInfoStatus
@@ -159,7 +159,7 @@ interface HostState {
 }
 
 interface StateProps {
-  fetchProjectByIdStatus: APIRequest<Project>
+  project: APIRequest<Project>
   saveKubernetesStatus: APIRequest<boolean>
   fetchKubernetesByIdStatus: APIRequest<any>
   userInfoStatus: APIRequest<UserInfo>
@@ -172,7 +172,7 @@ interface CustomProps {
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
-    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    project: state.fetchProjectByIdReducer.fetchProjectById,
     saveKubernetesStatus: state.saveKubernetesReducer.saveKubernetes,
     fetchKubernetesByIdStatus: state.fetchKubernetesByIdReducer.fetchKubernetesById,
     userInfoStatus: state.userInfoReducer.userInfo,

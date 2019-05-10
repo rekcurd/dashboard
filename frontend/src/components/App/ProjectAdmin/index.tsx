@@ -20,7 +20,7 @@ import AddUserProjectRoleModal from './AddUserProjectRoleModal'
 import { EditUserProjectRoleModal } from './EditUserProjectRoleModal'
 
 interface StateProps {
-  fetchProjectByIdStatus: APIRequest<Project>
+  project: APIRequest<Project>
   saveProjectAccessControlStatus: APIRequest<boolean>
   fetchProjectAccessControlListStatus: APIRequest<ProjectAccessControlList[]>
   userInfoStatus: APIRequest<UserInfo>
@@ -87,8 +87,8 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
   }
 
   render() {
-    const { fetchProjectByIdStatus, fetchProjectAccessControlListStatus, userInfoStatus } = this.props
-    const targetStatus = {fetchProjectByIdStatus, fetchProjectAccessControlListStatus, userInfoStatus}
+    const { project, fetchProjectAccessControlListStatus, userInfoStatus } = this.props
+    const targetStatus = {project, fetchProjectAccessControlListStatus, userInfoStatus}
 
     return (
       <APIRequestResultsRenderer
@@ -98,7 +98,7 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
     )
   }
   renderProjectAccessControlList(results, canEdit) {
-    const project: Project = results.fetchProjectByIdStatus
+    const project: Project = results.project
     const projectAcl: ProjectAccessControlList[] = results.fetchProjectAccessControlListStatus
     const userInfo: UserInfo = results.userInfoStatus
     return this.renderContent(project, projectAcl, userInfo, canEdit)
@@ -145,7 +145,7 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
           <div className='d-flex justify-content-between align-items-center mb-4'>
             <h1>
               <i className='fas fa-users-cog fa-fw mr-2'></i>
-              Project Access Control List
+              Project Admin
             </h1>
             {canEdit ?
               <div>
@@ -276,7 +276,7 @@ export default withRouter(
   connect(
     (state: any): StateProps => {
       return {
-        fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+        project: state.fetchProjectByIdReducer.fetchProjectById,
         saveProjectAccessControlStatus: state.saveProjectAccessControlReducer.saveProjectAccessControl,
         fetchProjectAccessControlListStatus: state.fetchProjectAccessControlListReducer.fetchProjectAccessControlList,
         userInfoStatus: state.userInfoReducer.userInfo,

@@ -63,8 +63,8 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
   }
 
   render() {
-    const { fetchProjectByIdStatus, applications, userInfoStatus, settings } = this.props
-    const targetStatus: any = { fetchProjectByIdStatus, applications }
+    const { project, applications, userInfoStatus, settings } = this.props
+    const targetStatus: any = { project, applications }
     if (isAPISucceeded(settings) && settings.result.auth) {
       targetStatus.userInfoStatus = userInfoStatus
     }
@@ -80,7 +80,7 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
 
   renderApplications(result) {
     const applications: Application[] = result.applications
-    const project: Project = result.fetchProjectByIdStatus
+    const project: Project = result.project
     const { push } = this.props.history
     const submitSync = () => {
       this.props.syncKubernetes({projectId: this.props.match.params.projectId})
@@ -176,7 +176,7 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
 
 export interface StateProps {
   applications: APIRequest<Application[]>
-  fetchProjectByIdStatus: APIRequest<Project>
+  project: APIRequest<Project>
   syncKubernetes: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
   settings: APIRequest<any>
@@ -185,7 +185,7 @@ export interface StateProps {
 const mapStateToProps = (state) => {
   return {
     applications: state.fetchAllApplicationsReducer.fetchAllApplications,
-    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    project: state.fetchProjectByIdReducer.fetchProjectById,
     syncKubernetes: state.syncKubernetesReducer.syncKubernetes,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,
