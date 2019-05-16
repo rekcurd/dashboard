@@ -11,7 +11,9 @@ import { FormikInput } from '@common/Field'
 
 const DataServerSchema = Yup.object().shape({
   dataServerMode: Yup.string()
-    .oneOf([dataServerMode.local.toString(), dataServerMode.ceph_s3.toString(), dataServerMode.aws_s3.toString()])
+    .oneOf([
+      dataServerMode.local.toString(), dataServerMode.ceph_s3.toString(),
+      dataServerMode.aws_s3.toString(), dataServerMode.gcs.toString()])
     .required('Required'),
   cephAccessKey: Yup.string()
     .max(128),
@@ -30,6 +32,12 @@ const DataServerSchema = Yup.object().shape({
   awsSecretKey: Yup.string()
     .max(128),
   awsBucketName: Yup.string()
+    .max(128),
+  gcsAccessKey: Yup.string()
+    .max(128),
+  gcsSecretKey: Yup.string()
+    .max(128),
+  gcsBucketName: Yup.string()
     .max(128)
 });
 
@@ -167,6 +175,37 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
           </CardBody>
         </Card>
       )
+    } else if (this.state.dataServerMode === dataServerMode.gcs.toString()) {
+      fields = (
+        <Card className='mb-3'>
+          <CardBody>
+            <Field
+              name="gcsAccessKey"
+              label="GCS Access Key"
+              component={FormikInput}
+              className="form-control"
+              placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
+              required />
+            <Field
+              name="gcsSecretKey"
+              label="GCS Secret Key"
+              component={FormikInput}
+              className="form-control"
+              placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
+              required />
+            <Field
+              name="gcsBucketName"
+              label="GCS Bucket Name"
+              component={FormikInput}
+              className="form-control"
+              placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
+              required />
+          </CardBody>
+        </Card>
+      )
     } else {
       fields = null
     }
@@ -237,6 +276,9 @@ const defaultInitialValues = {
   awsAccessKey: '',
   awsSecretKey: '',
   awsBucketName: '',
+  gcsAccessKey: '',
+  gcsSecretKey: '',
+  gcsBucketName: '',
 }
 
 export interface CustomProps {
@@ -255,6 +297,9 @@ export interface CustomProps {
     awsAccessKey: string
     awsSecretKey: string
     awsBucketName: string
+    gcsAccessKey: string
+    gcsSecretKey: string
+    gcsBucketName: string
   }
 }
 

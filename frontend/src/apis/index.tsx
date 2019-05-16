@@ -53,6 +53,9 @@ export interface DataServerParam {
   awsAccessKey: string
   awsSecretKey: string
   awsBucketName: string
+  gcsAccessKey: string
+  gcsSecretKey: string
+  gcsBucketName: string
   registerDate?: Date
   method: string
 }
@@ -332,6 +335,9 @@ export class DataServer {
     public awsAccessKey: string = null,
     public awsSecretKey: string = null,
     public awsBucketName: string = null,
+    public gcsAccessKey: string = null,
+    public gcsSecretKey: string = null,
+    public gcsBucketName: string = null,
     public registerDate: Date = null
   ) { }
 }

@@ -9,7 +9,8 @@ export enum serviceLevel {
 export enum dataServerMode {
     local = 'local',
     ceph_s3  = 'ceph_s3',
-    aws_s3  = 'aws_s3'
+    aws_s3  = 'aws_s3',
+    gcs = 'gcs'
 }
 
 export enum projectRole {
@@ -30,6 +31,8 @@ export const apiConvertDataServerMode = (param) => {
         return dataServerMode.ceph_s3.toString()
     } else if (param === 'DataServerModeEnum.AWS_S3') {
         return dataServerMode.aws_s3.toString()
+    } else if (param === 'DataServerModeEnum.GCS') {
+        return dataServerMode.gcs.toString()
     } else {
         return false
     }

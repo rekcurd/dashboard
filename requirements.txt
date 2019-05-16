@@ -17,5 +17,5 @@ Flask-Migrate>=2.2.1 # MIT
 Flask-Script>=2.0.6 # BSD
 protobuf3-to-dict>=0.1.5 # Public Domain
 boto>=2.49.0 # MIT
-boto3>=1.9.0 # Apache-2.0
-urllib3==1.24.1 # MIT
+boto3>=1.9.38 # Apache-2.0
+urllib3>=1.24.2 # MIT

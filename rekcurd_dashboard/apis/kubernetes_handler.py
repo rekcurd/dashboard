@@ -314,7 +314,18 @@ def apply_rekcurd_to_kubernetes(
                 name="REKCURD_AWS_BUCKET_NAME",
                 value=str(data_server_model.aws_bucket_name or "xxx")
             ),
-            # TODO: GCP
+            client.V1EnvVar(
+                name="REKCURD_GCS_ACCESS_KEY",
+                value=str(data_server_model.gcs_access_key or "xxx")
+            ),
+            client.V1EnvVar(
+                name="REKCURD_GCS_SECRET_KEY",
+                value=str(data_server_model.gcs_secret_key or "xxx")
+            ),
+            client.V1EnvVar(
+                name="REKCURD_GCS_BUCKET_NAME",
+                value=str(data_server_model.gcs_bucket_name or "xxx")
+            ),
             client.V1EnvVar(
                 name="REKCURD_SERVICE_GIT_URL",
                 value=service_git_url
