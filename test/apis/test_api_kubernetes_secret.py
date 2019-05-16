@@ -1,6 +1,8 @@
 from functools import wraps
 from unittest.mock import patch, Mock, mock_open
 
+from werkzeug.exceptions import NotFound
+
 from rekcurd_dashboard.apis import GIT_ID_RSA, GIT_CONFIG
 
 from test.base import BaseTestCase, TEST_PROJECT_ID, TEST_APPLICATION_ID
@@ -47,6 +49,18 @@ class ApiGitKeyTest(BaseTestCase):
             self.__URL,
             data={'service_level': service_level, GIT_ID_RSA: git_id_rsa, GIT_CONFIG: git_config})
         self.assertEqual(200, response.status_code)
+
+    @patch('rekcurd_dashboard.apis.api_kubernetes_secret.load_secret')
+    def test_post_not_found(self, mock_load_secret):
+        mock_load_secret.side_effect = NotFound()
+        service_level = SERVICE_LEVEL
+        git_id_rsa = 'id_rsa'
+        git_config = 'config'
+        response = self.client.post(
+            self.__URL,
+            data={'service_level': service_level, GIT_ID_RSA: git_id_rsa, GIT_CONFIG: git_config})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(response.json, {'status': False, 'message': 'No Kubernetes is registered'})
 
     @mock_decorator()
     def test_patch(self):
