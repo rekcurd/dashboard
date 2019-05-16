@@ -278,7 +278,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
           <i className='fas fa-box fa-fw mr-2'></i>
           Add Service
         </Button>
-        {kubernetesMode ? kubeSyncButton : null}
+        {kubernetesMode ? null : null}
       </Col>
     )
 
