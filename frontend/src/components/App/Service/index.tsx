@@ -6,10 +6,9 @@ import { Row, Col } from 'reactstrap'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Service, Application, UserInfo, UserApplicationRole,
-  FetchApplicationByIdParam, ServiceDeploymentParam, Project
+  ServiceDeploymentParam, Project
 } from '@src/apis'
 import {
-  fetchApplicationByIdDispatcher,
   saveServiceDeploymentDispatcher,
   addNotification
 } from '@src/actions'
@@ -36,7 +35,6 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
     const { userInfoStatus, history } = this.props
     const { applicationId } = this.props.match.params
 
-    this.props.fetchApplicationById(this.props.match.params)
     const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
     if (userInfo) {
       const canEdit: boolean = userInfo.applicationRoles.some((userRole: UserApplicationRole) => {
@@ -141,14 +139,12 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
 )
 
 export interface DispatchProps {
-  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   saveServiceDeployment: (params: ServiceDeploymentParam) => Promise<void>
   addNotification: (params) => Promise<void>
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
-    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     saveServiceDeployment: (params: ServiceDeploymentParam) => saveServiceDeploymentDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }

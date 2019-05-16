@@ -1,9 +1,13 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 
-import { uploadModelDispatcher, addNotification } from '@src/actions/index'
+import {
+  fetchAllModelsDispatcher,
+  uploadModelDispatcher,
+  addNotification
+} from '@src/actions/index'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core/index'
-import { UploadModelParam } from '@src/apis'
+import { FetchModelByIdParam, UploadModelParam } from '@src/apis'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
 import * as Yup from "yup";
@@ -53,6 +57,7 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
       if (succeeded) {
         toggle()
         reload({color: 'success', message: 'Successfully added model'})
+        nextProps.fetchAllModels({projectId: nextProps.projectId, applicationId: nextProps.applicationId})
         return {submitting: false}
       } else if (failed) {
         nextProps.addNotification({color: 'error', message: 'Something went wrong with uploading model. Try again later'})
@@ -168,12 +173,14 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => {
 }
 
 export interface DispatchProps {
+  fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
   uploadModel: (params: UploadModelParam) => Promise<void>
   addNotification: (params) => any
 }
 
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
+    fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
     uploadModel: (params: UploadModelParam) => uploadModelDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }

@@ -116,6 +116,13 @@ export const saveServiceDeploymentDispatcher = asyncAPIRequestDispatcherCreator<
   Apis.saveServiceDeployment
 )
 
+export const saveKubernetesGitKeyActionCreators =
+  new APIRequestActionCreators<Apis.KubernetesGitKeyParam, boolean>('UPDATE_KUBERNETES_GIT_KEY')
+export const saveKubernetesGitKeyDispatcher = asyncAPIRequestDispatcherCreator<Apis.KubernetesGitKeyParam, boolean>(
+  saveKubernetesGitKeyActionCreators,
+  Apis.saveKubernetesGitKey
+)
+
 export const updateServiceRoutingActionCreators =
   new APIRequestActionCreators<Apis.ServiceRoutingParam, boolean>('UPDATE_SERVICE_ROUTING')
 export const updateServiceRoutingDispatcher = asyncAPIRequestDispatcherCreator<Apis.ServiceRoutingParam, boolean>(
@@ -214,8 +221,15 @@ export const fetchServiceByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.
   Apis.fetchServiceById
 )
 
+export const fetchKubernetesGitKeyActionCreators =
+  new APIRequestActionCreators<Apis.FetchKubernetesGitKeyParam, Apis.KubernetesGitKey>('FETCH_KUBERNETES_GIT_KEY_BY_ID')
+export const fetchKubernetesGitKeyDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchKubernetesGitKeyParam, Apis.KubernetesGitKey>(
+  fetchKubernetesGitKeyActionCreators,
+  Apis.fetchKubernetesGitKey
+)
+
 export const fetchServiceRoutingActionCreators =
-  new APIRequestActionCreators<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>('FETCH_SERVICE_ROUTE_BY_ID')
+  new APIRequestActionCreators<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>('FETCH_SERVICE_ROUTING_BY_ID')
 export const fetchServiceRoutingDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>(
   fetchServiceRoutingActionCreators,
   Apis.fetchServiceRouting

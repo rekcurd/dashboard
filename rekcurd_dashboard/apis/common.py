@@ -37,3 +37,10 @@ def kubernetes_cpu_to_float(cpu_str: str):
         return value * decimal_suffixes[suffix]
     else:
         raise ValueError(f'Please check the input CPU value: `{cpu_str}`')
+
+
+GIT_SSH_MOUNT_DIR: str = "/root/.ssh"
+GIT_SSH_MODE: int = 384  # equals to "0600"
+GIT_SECRET_PREFIX = "git"
+GIT_ID_RSA: str = "git_id_rsa"
+GIT_CONFIG: str = "config"

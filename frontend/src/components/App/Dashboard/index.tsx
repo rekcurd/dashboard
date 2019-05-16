@@ -7,12 +7,11 @@ import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Model, Service, SwitchModelParam, SyncKubernetesParam,
   Application, UserInfo,
-  FetchApplicationByIdParam, FetchModelByIdParam, FetchServiceParam,
+  FetchModelByIdParam, FetchServiceParam,
   IdParam, Project
 } from '@src/apis'
 import {
   addNotification,
-  fetchApplicationByIdDispatcher,
   fetchAllModelsDispatcher,
   fetchAllServicesDispatcher,
   switchModelsDispatcher,
@@ -66,7 +65,6 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
   }
 
   componentDidMount() {
-    this.props.fetchApplicationById(this.props.match.params)
     this.props.fetchAllModels(this.props.match.params)
     this.props.fetchAllServices(this.props.match.params)
   }
@@ -475,7 +473,6 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
 
   complete(param) {
     this.props.addNotification(param)
-    this.props.fetchAllModels(this.props.match.params)
     this.setState({
       submitted: false,
       selectedData: { services: [], models: [] }
@@ -513,7 +510,6 @@ const mapStateToProps = (state): StateProps => {
 
 export interface DispatchProps {
   addNotification
-  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
   fetchAllServices: (params: FetchServiceParam) => Promise<void>
   switchModels: (params: SwitchModelParam[]) => Promise<void>
@@ -525,7 +521,6 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
-    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
     fetchAllServices: (params: FetchServiceParam) => fetchAllServicesDispatcher(dispatch, params),
     switchModels: (params: SwitchModelParam[]) => switchModelsDispatcher(dispatch, params),

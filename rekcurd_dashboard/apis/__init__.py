@@ -51,12 +51,16 @@ api = RekcurdDashboardApi(
 )
 
 
-from .common import DatetimeToTimestamp, kubernetes_cpu_to_float, status_model
+from .common import (
+    DatetimeToTimestamp, kubernetes_cpu_to_float, status_model,
+    GIT_SSH_MODE, GIT_CONFIG, GIT_ID_RSA, GIT_SSH_MOUNT_DIR, GIT_SECRET_PREFIX
+)
 from .kubernetes_handler import (
     get_full_config_path, save_kubernetes_access_file, remove_kubernetes_access_file,
     update_kubernetes_deployment_info, apply_rekcurd_to_kubernetes, load_kubernetes_deployment_info,
     switch_model_assignment, backup_kubernetes_deployment, delete_kubernetes_deployment,
-    backup_istio_routing, load_istio_routing, apply_new_route_weight
+    backup_istio_routing, load_istio_routing, apply_new_route_weight,
+    load_secret, apply_secret, delete_secret
 )
 from .api_admin import admin_api_namespace
 from .api_project import project_api_namespace
@@ -67,6 +71,7 @@ from .api_service import service_api_namespace
 from .api_model import model_api_namespace
 from .api_service_deployment import service_deployment_api_namespace
 from .api_service_routing import service_routing_api_namespace
+from .api_kubernetes_secret import kubernetes_secret_api_namespace
 from .api_evaluation import evaluation_api_namespace
 from .api_misc import misc_api_namespace
 
@@ -107,5 +112,6 @@ api.add_namespace(service_api_namespace, path='/api')
 api.add_namespace(model_api_namespace, path='/api')
 api.add_namespace(service_deployment_api_namespace, path='/api')
 api.add_namespace(service_routing_api_namespace, path='/api')
+api.add_namespace(kubernetes_secret_api_namespace, path='/api')
 api.add_namespace(evaluation_api_namespace, path='/api')
 api.add_namespace(misc_api_namespace, path='/api')

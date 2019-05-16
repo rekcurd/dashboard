@@ -13,13 +13,15 @@ class ApiApplicationsTest(BaseTestCase):
 
     def test_post(self):
         application_name = 'new_app'
-        response = self.client.post(self.__URL, data={'application_name': application_name, 'description': 'test'})
+        response = self.client.post(
+            self.__URL, data={'application_name': application_name, 'use_git_key': False, 'description': 'test'})
         application_model = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_name == application_name).one_or_none()
         self.assertEqual(200, response.status_code)
         self.assertIsNotNone(application_model)
 
-        response = self.client.post(self.__URL, data={'application_name': application_name, 'description': 'test'})
+        response = self.client.post(
+            self.__URL, data={'application_name': application_name, 'use_git_key': False, 'description': 'test'})
         self.assertEqual(400, response.status_code)
 
 

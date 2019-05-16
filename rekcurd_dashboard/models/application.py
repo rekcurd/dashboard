@@ -2,7 +2,7 @@ import datetime
 from .dao import db
 
 from sqlalchemy import (
-    Column, Integer, String,
+    Column, Integer, String, Boolean,
     Text, DateTime, UniqueConstraint, ForeignKey
 )
 from sqlalchemy.orm import relationship

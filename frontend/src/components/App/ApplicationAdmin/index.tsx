@@ -5,7 +5,7 @@ import { withRouter, RouteComponentProps } from 'react-router'
 import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
 
 import {
-  ApplicationAccessControlList, Application, UserInfo, AccessControlParam, FetchApplicationByIdParam
+  ApplicationAccessControlList, Application, UserInfo, AccessControlParam
 } from '@src/apis'
 import {APIRequest, isAPIFailed, isAPISucceeded} from '@src/apis/Core'
 import {
@@ -13,7 +13,6 @@ import {
   AddNotificationAction,
   saveApplicationAccessControlDispatcher,
   fetchApplicationAccessControlListDispatcher,
-  fetchApplicationByIdDispatcher,
   deleteApplicationAccessControlDispatcher,
 } from '@src/actions'
 
@@ -34,7 +33,6 @@ interface DispatchProps {
   addNotification: (params) => AddNotificationAction
   saveApplicationAccessControl: (params: AccessControlParam) => Promise<void>
   fetchApplicationAccessControlList: (params: AccessControlParam) => Promise<void>
-  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   deleteApplicationAccessControl: (params: AccessControlParam) => Promise<void>
 }
 
@@ -70,7 +68,6 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
       applicationId: this.props.match.params.applicationId
     }
     this.props.fetchApplicationAccessControlList(params)
-    this.props.fetchApplicationById(params)
   }
 
   static getDerivedStateFromProps(nextProps: ApplicationAdminProps, prevState: ApplicationAdminState){
@@ -297,7 +294,6 @@ export default withRouter(
         addNotification: (params) => dispatch(addNotification(params)),
         saveApplicationAccessControl: (params: AccessControlParam) => saveApplicationAccessControlDispatcher(dispatch, params),
         fetchApplicationAccessControlList: (params: AccessControlParam) => fetchApplicationAccessControlListDispatcher(dispatch, params),
-        fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
         deleteApplicationAccessControl: (params: AccessControlParam) => deleteApplicationAccessControlDispatcher(dispatch, params)
       }
     }

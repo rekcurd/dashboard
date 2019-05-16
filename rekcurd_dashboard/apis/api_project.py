@@ -22,7 +22,7 @@ project_model_params = project_api_namespace.model('Project', {
     'use_kubernetes': fields.Boolean(
         required=True,
         description='Do you use Kubernetes?',
-        example='False'
+        default=False
     ),
     'description': fields.String(
         required=False,
@@ -103,13 +103,13 @@ class ApiProjectId(Resource):
 
         project_model = db.session.query(ProjectModel).filter(ProjectModel.project_id == project_id).first_or_404()
         is_update = False
-        if display_name is not None:
+        if display_name is not None and display_name != project_model.display_name:
             project_model.display_name = display_name
             is_update = True
-        if description is not None:
+        if description is not None and description != project_model.description:
             project_model.description = description
             is_update = True
-        if use_kubernetes is not None:
+        if use_kubernetes is not None and use_kubernetes != project_model.use_kubernetes:
             project_model.use_kubernetes = use_kubernetes
             is_update = True
         if is_update:

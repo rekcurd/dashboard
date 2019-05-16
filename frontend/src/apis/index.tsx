@@ -100,8 +100,8 @@ export async function saveKubernetes(params: KubernetesParam) {
 export interface ApplicationParam {
   applicationId?: string,
   projectId: number
-  description: string
   applicationName: string
+  description: string
   registerDate?: Date
   method: string
 }
@@ -193,6 +193,30 @@ export async function saveServiceDeployment(params: ServiceDeploymentParam): Pro
     return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/single_service_registration`, requestBody, convert, 'POST')
   }
 
+  throw new RangeError(`You specified wrong save method ${params.method}`)
+}
+
+export interface KubernetesGitKeyParam {
+  projectId: number
+  applicationId: string
+  serviceLevel: string
+  gitIdRsa: string
+  config: string
+  method: string
+}
+export async function saveKubernetesGitKey(params: KubernetesGitKeyParam): Promise<boolean> {
+  const requestBody = {
+    ...convertKeys(params, snakelize),
+    method: {} = {},
+  }
+
+  const convert = (result) => result.status
+
+  if (params.method === 'post') {
+    return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key`, requestBody, convert, 'POST')
+  } else if (params.method === 'patch') {
+    return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key`, requestBody, convert, 'PATCH')
+  }
   throw new RangeError(`You specified wrong save method ${params.method}`)
 }
 
@@ -376,8 +400,8 @@ export async function fetchKubernetesById(params: FetchKubernetesByIdParam): Pro
 
 export class Application {
   constructor(
-    public name: string,
     public applicationId: string,
+    public name: string,
     public description: string = '',
     public registerDate: Date = null,
     public projectId: number
@@ -409,7 +433,6 @@ export async function fetchApplicationById(params: FetchApplicationByIdParam): P
       {
         ...convertKeys(result, camelize),
         name: result.application_name,
-        applicationId: result.application_id,
         registerDate: new Date(result.register_date * 1000)
       }
     )
@@ -535,6 +558,27 @@ export async function fetchServiceById(params: FetchServiceByIdParam): Promise<S
       convert
     )
   }
+}
+
+export class KubernetesGitKey {
+  constructor(
+    public gitIdRsa: string,
+    public config: string
+  ) { }
+}
+export interface FetchKubernetesGitKeyParam {
+  projectId: number
+  applicationId: string
+  serviceLevel: string
+}
+export async function fetchKubernetesGitKey(params: FetchKubernetesGitKeyParam): Promise<KubernetesGitKey> {
+  const convert =
+    (result) => (
+      {
+        ...convertKeys(result, camelize)
+      }
+    )
+  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key?service_level=${params.serviceLevel}`, convert)
 }
 
 export class ServiceRoutingWeight {

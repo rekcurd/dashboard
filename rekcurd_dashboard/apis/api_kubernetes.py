@@ -129,7 +129,7 @@ class ApiKubernetesBackup(Resource):
     def post(self, project_id: int):
         """backup Kubernetes deployment"""
         kubernetes_models = KubernetesModel.query.filter_by(project_id=project_id).all()
-        if kubernetes_models:
+        if len(kubernetes_models):
             kubernetes_model = kubernetes_models[0]
             for application_model in ApplicationModel.query.filter_by(project_id=project_id).all():
                 service_level = None

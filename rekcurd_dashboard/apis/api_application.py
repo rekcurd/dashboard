@@ -1,10 +1,10 @@
 import uuid
 
 from flask_jwt_simple import get_jwt_identity
-from flask_restplus import Namespace, fields, Resource, reqparse
+from flask_restplus import Namespace, fields, Resource, reqparse, inputs
 
-from . import api, status_model, delete_kubernetes_deployment
-from rekcurd_dashboard.models import db, ApplicationModel, ApplicationUserRoleModel, ApplicationRole, KubernetesModel, ServiceModel
+from . import api, status_model, delete_kubernetes_deployment, delete_secret, GIT_SECRET_PREFIX
+from rekcurd_dashboard.models import db, ProjectModel, ApplicationModel, ApplicationUserRoleModel, ApplicationRole, KubernetesModel, ServiceModel
 from rekcurd_dashboard.utils import RekcurdDashboardException
 from rekcurd_dashboard.apis import DatetimeToTimestamp
 
@@ -89,7 +89,7 @@ class ApiApplications(Resource):
 @application_api_namespace.route('/projects/<int:project_id>/applications/<application_id>')
 class ApiApplicationId(Resource):
     edit_application_parser = reqparse.RequestParser()
-    edit_application_parser.add_argument('description', type=str, required=True, location='form')
+    edit_application_parser.add_argument('description', type=str, required=False, location='form')
 
     @application_api_namespace.marshal_with(application_model_params)
     def get(self, project_id: int, application_id: str):
@@ -102,25 +102,33 @@ class ApiApplicationId(Resource):
         """update_application"""
         args = self.edit_application_parser.parse_args()
         description = args['description']
+
         application_model = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
-        application_model.description = description
-        db.session.commit()
+        is_update = False
+        if description is not None and description != application_model.description:
+            application_model.description = description
+            is_update = True
+        if is_update:
+            db.session.commit()
         db.session.close()
         return {"status": True, "message": "Success."}
 
     @application_api_namespace.marshal_with(success_or_not)
     def delete(self, project_id: int, application_id: str):
         """delete_application"""
-        kubernetes_models = db.session.query(KubernetesModel).filter(
-            KubernetesModel.project_id == project_id).all()
+        project_model = db.session.query(ProjectModel).filter(
+            ProjectModel.project_id == project_id).first_or_404()
         application_model = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
         service_models = db.session.query(ServiceModel).filter(
             ServiceModel.application_id == application_id).all()
-        if len(kubernetes_models):
+        if project_model.use_kubernetes:
             """If Kubernetes mode, then request deletion to Kubernetes WebAPI"""
+            kubernetes_models = db.session.query(KubernetesModel).filter(
+                KubernetesModel.project_id == project_id).all()
             for service_model in service_models:
+                delete_secret(project_id, application_id, service_model.service_level, GIT_SECRET_PREFIX)
                 delete_kubernetes_deployment(kubernetes_models, application_id, service_model.service_id)
             db.session.flush()
         else:

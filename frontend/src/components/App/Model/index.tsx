@@ -6,11 +6,10 @@ import { Row, Col } from 'reactstrap'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Model, Application, UserInfo, UserApplicationRole,
-  UpdateModelParam, FetchApplicationByIdParam, FetchModelByIdParam
+  UpdateModelParam, FetchModelByIdParam
 } from '@src/apis'
 import {
   fetchModelByIdDispatcher,
-  fetchApplicationByIdDispatcher,
   updateModelDispatcher,
   addNotification
 } from '@src/actions'
@@ -36,8 +35,6 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
   componentDidMount() {
     const { userInfoStatus, history } = this.props
     const { applicationId } = this.props.match.params
-
-    this.props.fetchApplicationById(this.props.match.params)
 
     const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
     if (userInfo) {
@@ -131,7 +128,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps): StateProps => (
 
 export interface DispatchProps {
   fetchModelById: (params: FetchModelByIdParam) => Promise<void>
-  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   updateModel: (params: UpdateModelParam) => Promise<void>
   addNotification: (params) => Promise<void>
 }
@@ -139,7 +135,6 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     fetchModelById: (params: FetchModelByIdParam) => fetchModelByIdDispatcher(dispatch, params),
-    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     updateModel: (params: UpdateModelParam) => updateModelDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
