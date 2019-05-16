@@ -1,4 +1,5 @@
 from flask_restplus import Namespace, fields, Resource, reqparse
+from werkzeug.exceptions import NotFound
 
 from . import (
     status_model, load_secret, apply_secret, delete_secret,
@@ -61,6 +62,8 @@ class ApiGitKey(Resource):
         service_level = args["service_level"]
         try:
             string_data = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
+        except NotFound:
+            raise RekcurdDashboardException("No Kubernetes is registered")
         except:
             string_data = dict()
         if GIT_ID_RSA in string_data or GIT_CONFIG in string_data:
