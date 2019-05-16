@@ -119,3 +119,6 @@ e2e_test/test-models/
 
 # Mac OS temporary file
 .DS_Store
+
+# migrations
+migrations/
