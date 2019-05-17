@@ -1,4 +1,5 @@
 import uuid
+import datetime
 
 from flask_restplus import Namespace, fields, Resource, reqparse
 from flask_jwt_simple import get_jwt_identity
@@ -8,7 +9,8 @@ from werkzeug.datastructures import FileStorage
 from . import (
     api, DatetimeToTimestamp, status_model, update_kubernetes_deployment_info,
     save_kubernetes_access_file, remove_kubernetes_access_file, backup_kubernetes_deployment,
-    backup_istio_routing
+    backup_istio_routing, load_kubernetes_deployment_info, apply_rekcurd_to_kubernetes,
+    check_kubernetes_configfile
 )
 from rekcurd_dashboard.models import (
     db, KubernetesModel, ProjectUserRoleModel, ProjectRole, ApplicationModel, ServiceModel
@@ -107,6 +109,8 @@ class ApiKubernetes(Resource):
         description = args['description']
         exposed_host = args['exposed_host']
         exposed_port = args['exposed_port']
+
+        kubernetes_models = db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all()
         kubernetes_model = KubernetesModel(
             project_id=project_id, display_name=display_name, description=description,
             config_path=config_path, exposed_host=exposed_host, exposed_port=exposed_port)
@@ -114,7 +118,19 @@ class ApiKubernetes(Resource):
         db.session.flush()
         save_kubernetes_access_file(file, config_path)
         try:
-            update_kubernetes_deployment_info(kubernetes_model)
+            if len(kubernetes_models):
+                for application_model in ApplicationModel.query.filter_by(project_id=project_id).all():
+                    for service_model in ServiceModel.query.filter_by(application_id=application_model.application_id).all():
+                        deployment_info = load_kubernetes_deployment_info(
+                            project_id, application_model.application_id, service_model.service_id,
+                            kubernetes_models[0])
+                        deployment_info['commit_message'] = "Update at {0:%Y%m%d%H%M%S}".format(
+                            datetime.datetime.utcnow())
+                        apply_rekcurd_to_kubernetes(
+                            project_id=project_id, application_id=application_model.application_id,
+                            kubernetes_models=[kubernetes_model], is_creation_mode=True, **deployment_info)
+            else:
+                update_kubernetes_deployment_info(kubernetes_model)
             db.session.commit()
             db.session.close()
         except Exception as error:
@@ -204,7 +220,7 @@ class ApiKubernetesId(Resource):
             kubernetes_model.config_path = config_path
             save_kubernetes_access_file(file, config_path)
             try:
-                update_kubernetes_deployment_info(kubernetes_model)
+                check_kubernetes_configfile(kubernetes_model.config_path)
                 remove_kubernetes_access_file(prev_config_path)
             except Exception as error:
                 remove_kubernetes_access_file(config_path)

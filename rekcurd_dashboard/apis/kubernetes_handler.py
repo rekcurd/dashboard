@@ -47,6 +47,15 @@ def remove_kubernetes_access_file(config_path):
     return
 
 
+def check_kubernetes_configfile(config_path: str):
+    full_config_path = get_full_config_path(config_path)
+    from kubernetes import client, config
+    config.load_kube_config(full_config_path)
+    v1_api = client.AppsV1Api()
+    v1_api.list_deployment_for_all_namespaces(watch=False)
+    return
+
+
 def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel):
     """
     Load the latest deployment info from Kubernetes, and set them to dashboard DB tables.
@@ -136,9 +145,9 @@ def apply_rekcurd_to_kubernetes(
         resource_request_cpu: str, resource_request_memory: str, resource_limit_cpu: str,
         resource_limit_memory: str, commit_message: str, service_model_assignment: int,
         service_git_url: str = "", service_git_branch: str = "", service_boot_script: str = "",
-        debug_mode: bool = False, service_id: str = None,
+        debug_mode: bool = False, service_id: str = None, is_creation_mode: bool = False,
         display_name: str = None, description: str = None,
-        **kwargs) -> str:
+        kubernetes_models = None, **kwargs) -> str:
     """
     kubectl apply
     :param project_id:
@@ -166,18 +175,21 @@ def apply_rekcurd_to_kubernetes(
     :param service_boot_script:
     :param debug_mode:
     :param service_id:
+    :param is_creation_mode:
     :param display_name:
     :param description:
+    :param kubernetes_models:
     :param kwargs:
     :return:
     """
     __num_retry = 5
     progress_deadline_seconds = \
         int(__num_retry*policy_wait_seconds*replicas_maximum/(policy_max_surge+policy_max_unavailable))
-    is_creation_mode = False
     if service_id is None:
         is_creation_mode = True
         service_id = uuid.uuid4().hex
+    if kubernetes_models is None:
+        kubernetes_models = db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all()
     data_server_model: DataServerModel = db.session.query(DataServerModel).filter(
         DataServerModel.project_id == project_id).first_or_404()
     application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
@@ -228,7 +240,7 @@ def apply_rekcurd_to_kubernetes(
             ]
         }
 
-    for kubernetes_model in db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all():
+    for kubernetes_model in kubernetes_models:
         full_config_path = get_full_config_path(kubernetes_model.config_path)
         from kubernetes import config
         config.load_kube_config(full_config_path)
@@ -735,16 +747,19 @@ def apply_new_route_weight(
     return
 
 
-def load_kubernetes_deployment_info(project_id: int, application_id: str, service_id: str) -> dict:
+def load_kubernetes_deployment_info(project_id: int, application_id: str, service_id: str,
+                                    kubernetes_model: KubernetesModel = None) -> dict:
     """
     Load deployment info from Kubernetes.
     :param project_id:
     :param application_id:
     :param service_id:
+    :param kubernetes_model:
     :return:
     """
-    kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
-        KubernetesModel.project_id == project_id).first()
+    if kubernetes_model is None:
+        kubernetes_model = db.session.query(KubernetesModel).filter(
+            KubernetesModel.project_id == project_id).first()
     service_model: ServiceModel = db.session.query(ServiceModel).filter(
         ServiceModel.service_id == service_id).first_or_404()
 
