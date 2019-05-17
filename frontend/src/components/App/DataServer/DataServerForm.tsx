@@ -1,7 +1,9 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { Card, CardBody, Button, CardTitle, UncontrolledTooltip } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Card, CardBody, Button, CardTitle, UncontrolledTooltip } from 'reactstrap'
 import { dataServerMode } from '@components/Common/Enum'
+
+import { Project } from '@src/apis'
 
 import * as Yup from "yup";
 import { Field, Form, Formik } from "formik";
@@ -80,7 +82,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
   }
 
   render() {
-    const { onSubmit, onCancel, method, canEdit } = this.props
+    const { project, onSubmit, onCancel, method, canEdit } = this.props
     const initialValues = {
       ...this.props.initialValues
     }
@@ -212,8 +214,13 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
 
     return (
       <div className='pt-3 pr-3 pl-3'>
+        <Breadcrumb tag="nav" listTag="div">
+          <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+          <BreadcrumbItem active tag="span">Data Servers</BreadcrumbItem>
+        </Breadcrumb>
         <h1>
-          <i className='fas fa-plug fa-fw mr-2'></i>
+          <i className='fas fa-archive fa-fw mr-2'></i>
           {method === 'post' ? 'Add' : 'Edit'} DataServer
         </h1>
         <Formik
@@ -282,6 +289,7 @@ const defaultInitialValues = {
 }
 
 export interface CustomProps {
+  project: Project
   onCancel
   onSubmit
   method: string

@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router'
-import { Row, Col } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   UserInfo, ServiceRouting,
-  FetchServiceRoutingParam, ServiceRoutingParam
+  FetchServiceRoutingParam, ServiceRoutingParam, Project, Application
 } from '@src/apis'
 import {
   addNotification,
@@ -73,8 +73,8 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
   }
 
   render(): JSX.Element {
-    const { routings, userInfoStatus, settings } = this.props
-    const statuses: any = { }
+    const { project, application, routings, userInfoStatus, settings } = this.props
+    const statuses: any = { project, application }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
     }
@@ -91,22 +91,30 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
 
   renderContent(fetchedResults, canEdit) {
     const {projectId, applicationId, serviceLevel} = this.props.match.params
+    const project: Project = fetchedResults.project
+    const application = fetchedResults.application
     const routings = fetchedResults.routings
 
     if (routings) {
       return (
         <React.Fragment>
+          <Breadcrumb tag="nav" listTag="div">
+            <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+            <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+            <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications`}>Applications</BreadcrumbItem>
+            <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications/${application.applicationId}`}>{application.name}</BreadcrumbItem>
+            <BreadcrumbItem active tag="span">Routing</BreadcrumbItem>
+          </Breadcrumb>
           <Row className='align-items-center mb-5'>
             <Col xs='7'>
               <h1>
-                <i className='fas fa-ship fa-fw mr-2'></i>
-                {routings.applicationName}
+                <i className='fas fa-route fa-fw mr-2'></i>
+                Routing
               </h1>
             </Col>
           </Row>
           <h3>
-            <i className='fas fa-route fa-fw mr-2'></i>
-            Routing Weight ({serviceLevel})
+            Traffic Weight ({serviceLevel})
           </h3>
           <hr />
           <ServiceRoutingForm
@@ -143,6 +151,8 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
 }
 
 export interface StateProps {
+  project: APIRequest<Project>
+  application: APIRequest<Application>
   routings: APIRequest<ServiceRouting>
   updateServiceRoutingStatus: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
@@ -151,6 +161,8 @@ export interface StateProps {
 
 const mapStateToProps = (state): StateProps => {
   const props = {
+    project: state.fetchProjectByIdReducer.fetchProjectById,
+    application: state.fetchApplicationByIdReducer.fetchApplicationById,
     routings: state.fetchServiceRoutingReducer.fetchServiceRouting,
     updateServiceRoutingStatus: state.updateServiceRoutingReducer.updateServiceRouting,
     userInfoStatus: state.userInfoReducer.userInfo,

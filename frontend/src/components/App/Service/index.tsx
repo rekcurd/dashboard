@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
-import { Row, Col } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
@@ -70,8 +70,8 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
   }
 
   render() {
-    const { fetchProjectByIdStatus, application } = this.props
-    const targetStatus = { fetchProjectByIdStatus, application }
+    const { project, application } = this.props
+    const targetStatus = { project, application }
 
     return(
       <APIRequestResultsRenderer
@@ -84,22 +84,33 @@ class SaveService extends React.Component<ServiceProps, ServiceState> {
   renderForm(result, canEdit) {
     const { method } = this.props
     const { projectId, applicationId } = this.props.match.params
-    const project: Project = result.fetchProjectByIdStatus
+    const project: Project = result.project
+    const application = result.application
 
     if (!canEdit) {
       this.props.history.push(`/projects/${projectId}/applications/${applicationId}`)
     }
 
     return (
-      <Row className='justify-content-center'>
-        <Col md='10'>
-          <h1 className='mb-3'>
-            <i className='fas fa-box fa-fw mr-2'></i>
-            {method === 'patch' ? 'Edit' : 'Add'} Service
-          </h1>
-          <ServiceDeployment kubernetesMode={project.useKubernetes} method={method} />
-        </Col>
-      </Row>
+      <React.Fragment>
+        <Breadcrumb tag="nav" listTag="div">
+          <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications`}>Applications</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications/${application.applicationId}`}>{application.name}</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications/${application.applicationId}/services`}>Services</BreadcrumbItem>
+          <BreadcrumbItem active tag="span">{method === 'patch' ? 'Edit' : 'Add'} Service</BreadcrumbItem>
+        </Breadcrumb>
+        <Row className='justify-content-center'>
+          <Col md='10'>
+            <h1 className='mb-3'>
+              <i className='fas fa-box fa-fw mr-2'></i>
+              {method === 'patch' ? 'Edit' : 'Add'} Service
+            </h1>
+            <ServiceDeployment kubernetesMode={project.useKubernetes} method={method} />
+          </Col>
+        </Row>
+      </React.Fragment>
     )
   }
 }
@@ -115,7 +126,7 @@ interface ServiceState {
 }
 
 interface StateProps {
-  fetchProjectByIdStatus: APIRequest<Project>
+  project: APIRequest<Project>
   application: APIRequest<Application>
   service: APIRequest<Service>
   saveServiceDeploymentStatus: APIRequest<boolean>
@@ -128,7 +139,7 @@ interface CustomProps {
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
-    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    project: state.fetchProjectByIdReducer.fetchProjectById,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     service: state.fetchServiceByIdReducer.fetchServiceById,
     saveServiceDeploymentStatus: state.saveServiceDeploymentReducer.saveServiceDeployment,

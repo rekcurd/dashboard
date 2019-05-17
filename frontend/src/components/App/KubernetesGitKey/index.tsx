@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router'
-import { Row, Col } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   UserInfo, KubernetesGitKey,
-  FetchKubernetesGitKeyParam, KubernetesGitKeyParam, Application
+  FetchKubernetesGitKeyParam, KubernetesGitKeyParam, Application, Project
 } from '@src/apis'
 import {
   addNotification,
@@ -80,8 +80,8 @@ class KubernetesGitKeyImpl extends React.Component<KubernetesGitKeyProps, Kubern
   }
 
   render(): JSX.Element {
-    const { application, kubernetesGitKey, userInfoStatus, settings } = this.props
-    const statuses: any = { application }
+    const { project, application, kubernetesGitKey, userInfoStatus, settings } = this.props
+    const statuses: any = { project, application }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
     }
@@ -98,23 +98,28 @@ class KubernetesGitKeyImpl extends React.Component<KubernetesGitKeyProps, Kubern
 
   renderContent(fetchedResults, canEdit) {
     const {projectId, applicationId, serviceLevel} = this.props.match.params
-    const applicationName = fetchedResults.application.name
+    const project: Project = fetchedResults.project
+    const application = fetchedResults.application
     const kubernetesGitKey = fetchedResults.kubernetesGitKey
 
     return (
       <React.Fragment>
+        <Breadcrumb tag="nav" listTag="div">
+          <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications`}>Applications</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications/${application.applicationId}`}>{application.name}</BreadcrumbItem>
+          <BreadcrumbItem active tag="span">Git Key</BreadcrumbItem>
+        </Breadcrumb>
         <Row className='align-items-center mb-5'>
           <Col xs='7'>
             <h1>
-              <i className='fas fa-ship fa-fw mr-2'></i>
-              {applicationName}
+              <i className='fas fa-key fa-fw mr-2'></i>
+              Git Key
             </h1>
           </Col>
         </Row>
-        <h3>
-          <i className='fas fa-key fa-fw mr-2'></i>
-          Git SSH Key ({serviceLevel})
-        </h3>
+        <h3>{serviceLevel}</h3>
         <hr />
         <KubernetesGitKeyForm
           projectId={projectId}
@@ -142,6 +147,7 @@ class KubernetesGitKeyImpl extends React.Component<KubernetesGitKeyProps, Kubern
 }
 
 export interface StateProps {
+  project: APIRequest<Project>
   application: APIRequest<Application>
   kubernetesGitKey: APIRequest<KubernetesGitKey>
   saveKubernetesGitKeyStatus: APIRequest<boolean>
@@ -151,6 +157,7 @@ export interface StateProps {
 
 const mapStateToProps = (state): StateProps => {
   const props = {
+    project: state.fetchProjectByIdReducer.fetchProjectById,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     kubernetesGitKey: state.fetchKubernetesGitKeyReducer.fetchKubernetesGitKey,
     saveKubernetesGitKeyStatus: state.saveKubernetesGitKeyReducer.saveKubernetesGitKey,

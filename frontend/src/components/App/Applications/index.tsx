@@ -2,7 +2,7 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { RouteComponentProps } from 'react-router'
 import { withRouter, Link } from 'react-router-dom'
-import { Button } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Button } from 'reactstrap'
 
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
 import {
@@ -63,8 +63,8 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
   }
 
   render() {
-    const { fetchProjectByIdStatus, applications, userInfoStatus, settings } = this.props
-    const targetStatus: any = { fetchProjectByIdStatus, applications }
+    const { project, applications, userInfoStatus, settings } = this.props
+    const targetStatus: any = { project, applications }
     if (isAPISucceeded(settings) && settings.result.auth) {
       targetStatus.userInfoStatus = userInfoStatus
     }
@@ -80,7 +80,7 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
 
   renderApplications(result) {
     const applications: Application[] = result.applications
-    const project: Project = result.fetchProjectByIdStatus
+    const project: Project = result.project
     const { push } = this.props.history
     const submitSync = () => {
       this.props.syncKubernetes({projectId: this.props.match.params.projectId})
@@ -116,6 +116,11 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
     return (
       <div className='row justify-content-center'>
         <div className='col-10 pt-5'>
+          <Breadcrumb tag="nav" listTag="div">
+            <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+            <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+            <BreadcrumbItem active tag="span">Applications</BreadcrumbItem>
+          </Breadcrumb>
           {title}
           {this.renderApplicationListTable(applications)}
         </div>
@@ -171,7 +176,7 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
 
 export interface StateProps {
   applications: APIRequest<Application[]>
-  fetchProjectByIdStatus: APIRequest<Project>
+  project: APIRequest<Project>
   syncKubernetes: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
   settings: APIRequest<any>
@@ -180,7 +185,7 @@ export interface StateProps {
 const mapStateToProps = (state) => {
   return {
     applications: state.fetchAllApplicationsReducer.fetchAllApplications,
-    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    project: state.fetchProjectByIdReducer.fetchProjectById,
     syncKubernetes: state.syncKubernetesReducer.syncKubernetes,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,

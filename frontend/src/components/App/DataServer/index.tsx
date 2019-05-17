@@ -94,9 +94,9 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
   }
 
   render() {
-    const { fetchProjectByIdStatus, userInfoStatus, settings } = this.props
+    const { project, userInfoStatus, settings } = this.props
     const { method } = this.state
-    const targetStatus: any = {fetchProjectByIdStatus}
+    const targetStatus: any = {project}
 
     if (isAPISucceeded(settings) && settings.result.auth) {
       targetStatus.userInfoStatus = userInfoStatus
@@ -120,6 +120,7 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
     if (this.state.method === 'patch') {
       return (
         <DataServerForm
+          project={result.project}
           onCancel={this.onCancel}
           onSubmit={this.onSubmit}
           method={this.state.method}
@@ -130,6 +131,7 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
     } else {
       return (
         <DataServerForm
+          project={result.project}
           onCancel={this.onCancel}
           onSubmit={this.onSubmit}
           method={this.state.method}
@@ -152,7 +154,7 @@ interface DataServerState {
 }
 
 interface StateProps {
-  fetchProjectByIdStatus: APIRequest<Project>
+  project: APIRequest<Project>
   saveDataServerStatus: APIRequest<boolean>
   fetchDataServerStatus: APIRequest<any>
   userInfoStatus: APIRequest<UserInfo>
@@ -163,7 +165,7 @@ interface CustomProps {}
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
-    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    project: state.fetchProjectByIdReducer.fetchProjectById,
     saveDataServerStatus: state.saveDataServerReducer.saveDataServer,
     fetchDataServerStatus: state.fetchDataServerReducer.fetchDataServer,
     userInfoStatus: state.userInfoReducer.userInfo,
