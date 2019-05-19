@@ -41,6 +41,11 @@ class DataServer(object):
         api_handler.upload(data_server_model, filepath, local_filepath)
         return filepath
 
+    def download_file(
+            self, data_server_model: DataServerModel, filepath: str, local_filepath: str) -> None:
+        api_handler = self._get_handler(data_server_model)
+        api_handler.download(data_server_model, filepath, local_filepath)
+
     def delete_file(self, data_server_model: DataServerModel, filepath: str) -> None:
         api_handler = self._get_handler(data_server_model)
         api_handler.delete(data_server_model, filepath)
