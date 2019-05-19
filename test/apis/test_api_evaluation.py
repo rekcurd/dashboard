@@ -47,10 +47,7 @@ def patch_stub(func):
                    new=Mock(return_value=mock_stub_obj)), \
                 patch('rekcurd_dashboard.apis.api_evaluation.DataServer',
                       new=Mock(return_value=Mock())) as data_server:
-            data_server.return_value.upload_model = Mock()
-            data_server.return_value.upload_model.return_value = "filepath"
-            data_server.return_value.upload_evaluation_data = Mock()
-            data_server.return_value.upload_evaluation_data.return_value = "filepath"
+            data_server.return_value.upload_evaluation_data = Mock(return_value='filepath')
 
             return func(*args, **kwargs)
     return inner_method
@@ -59,6 +56,27 @@ def patch_stub(func):
 class ApiEvaluationTest(BaseTestCase):
     """Tests for ApiEvaluation.
     """
+    @patch_stub
+    def test_get_all(self):
+        create_eval_model(TEST_APPLICATION_ID, description='eval desc', save=True)
+        url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluations'
+        response = self.client.get(url)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(len(response.json), 1)
+        self.assertEqual(response.json[0]['evaluation_id'], 1)
+        self.assertEqual(response.json[0]['application_id'], TEST_APPLICATION_ID)
+        self.assertEqual(response.json[0]['description'], 'eval desc')
+
+    @patch_stub
+    @patch('rekcurd_dashboard.apis.api_evaluation.send_file')
+    @patch('rekcurd_dashboard.apis.api_evaluation.os')
+    def test_download(self, os_mock, send_file_mock):
+        send_file_mock.return_value = {'status': True}
+        create_data_server_model(save=True)
+        create_eval_model(TEST_APPLICATION_ID, description='eval desc', save=True)
+        url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluations/1/download'
+        response = self.client.get(url)
+        self.assertEqual(200, response.status_code)
 
     @patch_stub
     def test_post(self):
@@ -67,15 +85,20 @@ class ApiEvaluationTest(BaseTestCase):
         content_type = 'multipart/form-data'
         file_content = b'my file contents'
         response = self.client.post(
-            url, content_type=content_type, data={'file': (BytesIO(file_content), "file.txt")})
+            url, content_type=content_type,
+            data={'filepath': (BytesIO(file_content), "file.txt"), 'description': 'eval desc'})
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, {'status': True, 'evaluation_id': 1})
 
         # duplication check
         response = self.client.post(
-            url, content_type=content_type, data={'file': (BytesIO(file_content), "file.txt")})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json, {'status': True, 'evaluation_id': 1})
+            url, content_type=content_type,
+            data={'filepath': (BytesIO(file_content), "file.txt"), 'description': 'eval desc'})
+        self.assertEqual(400, response.status_code)
+
+        evaluation_model = EvaluationModel.query.filter_by(evaluation_id=1).one()
+        self.assertEqual(evaluation_model.application_id, TEST_APPLICATION_ID)
+        self.assertEqual(evaluation_model.description, 'eval desc')
 
     @patch_stub
     def test_delete(self):

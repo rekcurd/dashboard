@@ -23,6 +23,7 @@ class DataServerTest(unittest.TestCase):
         self.application_model = ApplicationModel(
             application_id="test", project_id=1, application_name="test", description="test")
         self.local_filepath = "test.data"
+        self.remote_filepath = "remote/test.data"
         self.data_server = DataServer()
 
     @patch_predictor()
@@ -59,5 +60,10 @@ class DataServerTest(unittest.TestCase):
 
     @patch_predictor()
     def test_delete_file(self):
-        self.assertIsNotNone(self.data_server.upload_evaluation_data(
-            self.data_server_model_local, self.application_model, self.local_filepath))
+        self.assertIsNone(self.data_server.delete_file(
+            self.data_server_model_local, self.remote_filepath))
+
+    @patch_predictor()
+    def test_donwload_file(self):
+        self.assertIsNone(self.data_server.download_file(
+            self.data_server_model_local, self.remote_filepath, self.local_filepath))
