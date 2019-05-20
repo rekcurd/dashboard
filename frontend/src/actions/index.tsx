@@ -144,6 +144,13 @@ export const updateModelDispatcher = asyncAPIRequestDispatcherCreator<Apis.Updat
   Apis.updateModel
 )
 
+export const uploadEvaluationActionCreators =
+  new APIRequestActionCreators<Apis.UploadEvaluationParam, boolean>('UPLOAD_EVALUATION')
+export const uploadEvaluationDispatcher = asyncAPIRequestDispatcherCreator<Apis.UploadEvaluationParam, boolean>(
+  uploadEvaluationActionCreators,
+  Apis.uploadEvaluation
+)
+
 export const fetchAllProjectsActionCreators =
   new APIRequestActionCreators<{}, Apis.Project[]>('FETCH_ALL_PROJECTS')
 export const fetchAllProjectsDispatcher = asyncAPIRequestDispatcherCreator<{}, Apis.Project[]>(
@@ -205,6 +212,13 @@ export const fetchModelByIdActionCreators =
 export const fetchModelByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchModelByIdParam, Apis.Model>(
   fetchModelByIdActionCreators,
   Apis.fetchModelById
+)
+
+export const fetchAllEvaluationsActionCreators =
+  new APIRequestActionCreators<Apis.FetchEvaluationByIdParam, Apis.Evaluation[]>('FETCH_ALL_EVALUATIONS')
+export const fetchAllEvaluationsDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchEvaluationByIdParam, Apis.Evaluation[]>(
+  fetchAllEvaluationsActionCreators,
+  Apis.fetchAllEvaluations
 )
 
 export const fetchAllServicesActionCreators =
@@ -282,6 +296,13 @@ export const deleteModelsActionCreators =
 export const deleteModelsDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam[], boolean[]>(
   deleteModelsActionCreators,
   Apis.deleteModels
+)
+
+export const deleteEvaluationsActionCreators =
+  new APIRequestActionCreators<Apis.IdParam[], boolean[]>('DELETE_EVALUTIONS')
+export const deleteEvaluationsDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam[], boolean[]>(
+  deleteEvaluationsActionCreators,
+  Apis.deleteEvaluations
 )
 
 // Login

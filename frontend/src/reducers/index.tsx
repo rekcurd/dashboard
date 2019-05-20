@@ -15,6 +15,7 @@ export class AppState {
     public updateServiceRouting: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public uploadModel: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public updateModel: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public uploadEvaluation: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public fetchAllProjects: APIRequest<Apis.Project[]> = { status: APIRequestStatusList.notStarted},
     public fetchProjectById: APIRequest<Apis.Project> = { status: APIRequestStatusList.notStarted},
     public fetchDataServer: APIRequest<Apis.DataServer> = { status: APIRequestStatusList.notStarted},
@@ -25,6 +26,7 @@ export class AppState {
     public fetchAllModels: APIRequest<Apis.Model[]> = { status: APIRequestStatusList.notStarted},
     public fetchModelById: APIRequest<Apis.Model> = { status: APIRequestStatusList.notStarted},
     public fetchAllServices: APIRequest<Apis.Service[]> = { status: APIRequestStatusList.notStarted},
+    public fetchAllEvaluations: APIRequest<Apis.Evaluation[]> = { status: APIRequestStatusList.notStarted},
     public fetchServiceById: APIRequest<Apis.Service> = { status: APIRequestStatusList.notStarted},
     public fetchKubernetesGitKey: APIRequest<Apis.KubernetesGitKey> = { status: APIRequestStatusList.notStarted},
     public fetchServiceRouting: APIRequest<Apis.ServiceRouting> = { status: APIRequestStatusList.notStarted},
@@ -35,6 +37,7 @@ export class AppState {
     public deleteApplication: APIRequest<boolean> = { status: APIRequestStatusList.notStarted },
     public deleteServices: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
     public deleteModels: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
+    public deleteEvaluations: APIRequest<boolean[]> = { status: APIRequestStatusList.notStarted },
     public login: APIRequest<Apis.AuthToken> = { status: APIRequestStatusList.notStarted },
     public settings: APIRequest<{}> = { status: APIRequestStatusList.notStarted },
     public userInfo: APIRequest<Apis.UserInfo> = { status: APIRequestStatusList.notStarted },
@@ -107,6 +110,8 @@ export const uploadModelReducer = APIRequestReducerCreator<Apis.UploadModelParam
   Actions.uploadModelActionCreators, 'uploadModel')
 export const updateModelReducer = APIRequestReducerCreator<Apis.UpdateModelParam, boolean>(
   Actions.updateModelActionCreators, 'updateModel')
+export const uploadEvaluationReducer = APIRequestReducerCreator<Apis.UploadEvaluationParam, boolean>(
+  Actions.uploadEvaluationActionCreators, 'uploadEvaluation')
 export const fetchAllProjectsReducer = APIRequestReducerCreator<{}, Apis.Project[]>(
   Actions.fetchAllProjectsActionCreators, 'fetchAllProjects')
 export const fetchProjectByIdReducer = APIRequestReducerCreator<Apis.FetchProjectByIdParam, Apis.Project>(
@@ -125,6 +130,8 @@ export const fetchAllModelsReducer = APIRequestReducerCreator<Apis.FetchModelByI
   Actions.fetchAllModelsActionCreators, 'fetchAllModels')
 export const fetchModelByIdReducer = APIRequestReducerCreator<Apis.FetchModelByIdParam, Apis.Model>(
   Actions.fetchModelByIdActionCreators, 'fetchModelById')
+export const fetchAllEvaluationsReducer = APIRequestReducerCreator<Apis.FetchEvaluationByIdParam, Apis.Evaluation[]>(
+  Actions.fetchAllEvaluationsActionCreators, 'fetchAllEvaluations')
 export const fetchAllServicesReducer = APIRequestReducerCreator<Apis.FetchServiceParam, Apis.Service[]>(
   Actions.fetchAllServicesActionCreators, 'fetchAllServices')
 export const fetchServiceByIdReducer = APIRequestReducerCreator<Apis.FetchServiceByIdParam, Apis.Service>(
@@ -147,6 +154,8 @@ export const deleteServicesReducer = APIRequestReducerCreator<Apis.IdParam[], bo
   Actions.deleteServicesActionCreators, 'deleteServices')
 export const deleteModelsReducer = APIRequestReducerCreator<Apis.IdParam[], boolean[]>(
   Actions.deleteModelsActionCreators, 'deleteModels')
+export const deleteEvaluationsReducer = APIRequestReducerCreator<Apis.IdParam[], boolean[]>(
+  Actions.deleteEvaluationsActionCreators, 'deleteEvaluations')
 export const loginReducer = APIRequestReducerCreator<Apis.LoginParam, Apis.AuthToken>(
   Actions.loginActionCreators, 'login')
 export const settingsReducer = APIRequestReducerCreator<{}, any>(
