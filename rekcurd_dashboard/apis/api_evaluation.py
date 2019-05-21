@@ -12,7 +12,7 @@ from . import DatetimeToTimestamp, status_model
 from rekcurd_dashboard.data_servers import DataServer
 from rekcurd_dashboard.models import (db, ApplicationModel, ServiceModel, EvaluationModel,
                                       EvaluationResultModel, DataServerModel, DataServerModeEnum,
-                                      ApplicationRole)
+                                      ApplicationRole, ModelModel)
 from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_dashboard.utils import HashUtil, RekcurdDashboardException, ApplicationUserRoleException
 from rekcurd_dashboard.auth import auth, fetch_application_role
@@ -187,7 +187,7 @@ class ApiEvaluate(Resource):
     eval_parser = reqparse.RequestParser()
     eval_parser.add_argument('model_id', location='form', type=int, required=True)
     eval_parser.add_argument('evaluation_id', location='form', type=int, required=False)
-    eval_parser.add_argument('overwrite', location='form', type=inputs.boolean, required=False)
+    eval_parser.add_argument('overwrite', location='form', type=inputs.boolean, required=False, default=False)
 
     @evaluation_api_namespace.expect(eval_parser)
     @evaluation_api_namespace.marshal_with(eval_metrics)
@@ -196,6 +196,7 @@ class ApiEvaluate(Resource):
         args = self.eval_parser.parse_args()
         eval_id = args.get('evaluation_id', None)
         model_id = args.get('model_id')
+        do_overwrite = args.get('overwrite')
         if eval_id:
             evaluation_model = EvaluationModel.query.filter_by(
                 application_id=application_id,
@@ -216,8 +217,9 @@ class ApiEvaluate(Resource):
         evaluation_result_model = db.session.query(EvaluationResultModel).filter(
             EvaluationResultModel.model_id == service_model.model_id,
             EvaluationResultModel.evaluation_id == evaluation_model.evaluation_id).one_or_none()
-        if evaluation_result_model is not None and args.get('overwrite', False):
-            return evaluation_result_model.result
+        if evaluation_result_model is not None and not do_overwrite:
+            raise RekcurdDashboardException(
+                "Evaluation with the model and data is already done before. Set overwrite = true for re-evaluation")
 
         eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.pkl".format(datetime.datetime.utcnow())
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
@@ -238,6 +240,7 @@ class ApiEvaluate(Resource):
             else:
                 evaluation_result_model.data_path = eval_result_path
                 evaluation_result_model.result = response_body
+                evaluation_result_model.register_date = datetime.datetime.utcnow()
             db.session.flush()
             response_body = evaluation_result_model.result
             db.session.commit()
@@ -246,9 +249,25 @@ class ApiEvaluate(Resource):
         return response_body
 
 
-@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluation_results/<int:eval_result_id>')
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluation_results')
 class ApiEvaluationResults(Resource):
+    def get(self, project_id: int, application_id: str):
+        """get all evaluation results and belonging models and evaluation data"""
+        rows = db.session.query(EvaluationModel, EvaluationResultModel, ModelModel)\
+            .filter(EvaluationModel.application_id == application_id,
+                    EvaluationResultModel.evaluation_id == EvaluationModel.evaluation_id,
+                    EvaluationResultModel.model_id == ModelModel.model_id).all()
+        results = []
+        for row in rows:
+            result = row.EvaluationResultModel.serialize
+            result['model'] = row.ModelModel.serialize
+            result['evaluation'] = row.EvaluationModel.serialize
+            results.append(result)
+        return results
 
+
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluation_results/<int:eval_result_id>')
+class ApiEvaluationResultId(Resource):
     def get(self, project_id: int, application_id: str, eval_result_id: int):
         """get detailed evaluation result"""
         eval_with_result = db.session.query(EvaluationModel, EvaluationResultModel)\

@@ -129,7 +129,6 @@ class RekcurdDashboardClient:
             raise Exception(response["message"])
         return response
 
-    @error_handling({"status": False})
     def run_evaluate_model(self, data_path:str, result_path:str):
         request_iterator = iter([rekcurd_pb2.EvaluateModelRequest(data_path=data_path, result_path=result_path)])
         metrics = self.stub.EvaluateModel(request_iterator, metadata=self.__metadata).metrics

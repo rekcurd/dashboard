@@ -127,6 +127,20 @@ class ApiEvaluationResultTest(BaseTestCase):
     """Tests for ApiEvaluationResult.
     """
     @patch_stub
+    def test_get_all(self):
+        evaluation_model = create_eval_model(TEST_APPLICATION_ID, description='eval desc', save=True)
+        create_eval_result_model(model_id=TEST_MODEL_ID,
+                                 evaluation_id=evaluation_model.evaluation_id,
+                                 save=True)
+        url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluation_results'
+        response = self.client.get(url)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(len(response.json), 1)
+        self.assertEqual(response.json[0]['evaluation_result_id'], 1)
+        self.assertEqual(response.json[0]['evaluation']['description'], 'eval desc')
+        self.assertEqual(response.json[0]['model']['description'], 'rekcurd-test-model')
+
+    @patch_stub
     def test_get(self):
         evaluation_model = create_eval_model(TEST_APPLICATION_ID, save=True)
         eval_result_model = create_eval_result_model(
@@ -231,8 +245,7 @@ class ApiEvaluateTest(BaseTestCase):
         url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluate'
         data = {'evaluation_id': evaluation_id, 'model_id': TEST_MODEL_ID}
         response = self.client.post(url, data=data)
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json, saved_response)
+        self.assertEqual(400, response.status_code)
 
         # overwrite
         response = self.client.post(url, data=dict(data, overwrite=True))
