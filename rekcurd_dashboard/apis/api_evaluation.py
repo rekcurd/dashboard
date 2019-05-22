@@ -65,6 +65,7 @@ class ApiEvaluations(Resource):
     upload_parser = reqparse.RequestParser()
     upload_parser.add_argument('filepath', location='files', type=FileStorage, required=True)
     upload_parser.add_argument('description', location='form', type=str, required=True)
+    upload_parser.add_argument('duplicated_ok', location='form', type=bool, required=False)
 
     @evaluation_api_namespace.expect(upload_parser)
     @evaluation_api_namespace.marshal_with(eval_data_upload)
@@ -79,9 +80,12 @@ class ApiEvaluations(Resource):
             EvaluationModel.application_id == application_id,
             EvaluationModel.checksum == checksum).one_or_none()
         if evaluation_model is not None:
-            raise RekcurdDashboardException(
-                'the file already exists. ID: {}, Description: {}'.format(
-                    evaluation_model.evaluation_id, evaluation_model.description))
+            if args.get('duplicated_ok', False):
+                return {"status": True, "evaluation_id": evaluation_model.evaluation_id}
+            else:
+                raise RekcurdDashboardException(
+                    'the file already exists. ID: {}, Description: {}'.format(
+                        evaluation_model.evaluation_id, evaluation_model.description))
 
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
