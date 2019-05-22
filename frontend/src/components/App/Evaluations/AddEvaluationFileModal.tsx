@@ -42,8 +42,8 @@ class AddEvaluationFileFormImpl extends React.Component<AddEvaluationFileFormPro
       applicationId,
       ...params
     }
+    uploadEvaluation(request)
     this.setState({submitting: true})
-    return uploadEvaluation(request)
   }
 
   static getDerivedStateFromProps(nextProps: AddEvaluationFileFormProps, prevState: AddEvaluationFileFormState){
