@@ -88,7 +88,7 @@ class AddEvaluationFileFormImpl extends React.Component<AddEvaluationFileFormPro
           validationSchema={AddEvaluationFileSchema}
           onSubmit={this.onSubmit}
           onReset={this.onCancel}>
-          {({ errors, touched, setFieldValue, isSubmitting }) => (
+          {({ errors, touched, setFieldValue }) => (
             <Form>
               <ModalHeader toggle={this.onCancel}>
                 <i className='fas fa-robot fa-fw mr-2'></i>
@@ -113,7 +113,7 @@ class AddEvaluationFileFormImpl extends React.Component<AddEvaluationFileFormPro
                   placeholder="Upload your file to be evaluated."
                   required />
               </ModalBody>
-              {this.renderFooterButtons(isSubmitting)}
+              {this.renderFooterButtons(this.state.submitting)}
             </Form>
           )}
         </Formik>
