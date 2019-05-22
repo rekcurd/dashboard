@@ -65,7 +65,7 @@ class ApiEvaluations(Resource):
     upload_parser = reqparse.RequestParser()
     upload_parser.add_argument('filepath', location='files', type=FileStorage, required=True)
     upload_parser.add_argument('description', location='form', type=str, required=True)
-    upload_parser.add_argument('duplicated_ok', location='form', type=bool, required=False)
+    upload_parser.add_argument('duplicated_ok', location='form', type=bool, required=False, default=False)
 
     @evaluation_api_namespace.expect(upload_parser)
     @evaluation_api_namespace.marshal_with(eval_data_upload)
@@ -74,13 +74,14 @@ class ApiEvaluations(Resource):
         args = self.upload_parser.parse_args()
         file = args['filepath']
         description = args['description']
+        duplicated_ok = args['duplicated_ok']
         checksum = HashUtil.checksum(file)
 
         evaluation_model = db.session.query(EvaluationModel).filter(
             EvaluationModel.application_id == application_id,
             EvaluationModel.checksum == checksum).one_or_none()
         if evaluation_model is not None:
-            if args.get('duplicated_ok', False):
+            if duplicated_ok:
                 return {"status": True, "evaluation_id": evaluation_model.evaluation_id}
             else:
                 raise RekcurdDashboardException(
