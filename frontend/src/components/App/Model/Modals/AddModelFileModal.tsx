@@ -42,8 +42,8 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
       applicationId,
       ...params
     }
+    uploadModel(request)
     this.setState({submitting: true})
-    return uploadModel(request)
   }
 
   static getDerivedStateFromProps(nextProps: AddModelFileFormProps, nextState: AddModelFileFormState){
