@@ -253,7 +253,6 @@ interface StateProps {
 
 const mapStateToProps = (state: any, extraProps: DashboardStatusFormCustomProps) => {
   return {
-    ...state.form,
     ...extraProps,
     initialValues: {
       switch: extraProps.deployStatus,

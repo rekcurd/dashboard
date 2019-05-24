@@ -161,7 +161,6 @@ interface StateProps {}
 
 const mapStateToProps = (state: any, extraProps: KubernetesGitKeyFormCustomProps) => {
   return {
-    ...state.form,
     ...extraProps,
     initialValues: {
       ...defaultInitialValues,

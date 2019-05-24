@@ -170,7 +170,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     fetchDataServerStatus: state.fetchDataServerReducer.fetchDataServer,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,
-    ...state.form,
     ...extraProps
   }
 )

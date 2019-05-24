@@ -167,7 +167,6 @@ interface StateProps {
 const mapStateToProps = (state: any, extraProps: CustomProps) => {
   return {
     uploadModelStatus: state.uploadModelReducer.uploadModel,
-    ...state.form,
     ...extraProps
   }
 }

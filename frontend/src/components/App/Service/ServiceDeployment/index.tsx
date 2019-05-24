@@ -399,7 +399,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     updateServiceStatus: state.updateServiceReducer.updateService,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,
-    ...state.form,
     ...extraProps
   }
 )

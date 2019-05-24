@@ -206,7 +206,6 @@ interface StateProps {}
 
 const mapStateToProps = (state: any, extraProps: ServiceRoutingFormCustomProps) => {
   return {
-    ...state.form,
     ...extraProps
   }
 }

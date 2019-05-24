@@ -185,7 +185,6 @@ interface StateProps {
 const mapStateToProps = (state: any, extraProps: ModelsDeleteFormCustomProps) => {
   // Map of model ID to delete flag
   return {
-    ...state.form,
     initialValues: {
       delete: {
         models: []

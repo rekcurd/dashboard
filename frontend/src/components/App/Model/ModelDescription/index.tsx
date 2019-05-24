@@ -126,7 +126,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
     fetchModelByIdStatus: state.fetchModelByIdReducer.fetchModelById,
     updateModelStatus: state.updateModelReducer.updateModel,
-    ...state.form,
     ...extraProps
   }
 )

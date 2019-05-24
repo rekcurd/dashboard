@@ -313,7 +313,6 @@ export interface CustomProps {
 
 export const DataServerForm = connect(
   (state: any, extraProps: CustomProps) => ({
-    ...state.form,
     initialValues: {
       ...defaultInitialValues,
       ...extraProps.initialValues

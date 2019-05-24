@@ -94,7 +94,6 @@ interface StateProps {
 const mapStateToProps = (state: any, extraProps: FormCustomProps) => (
   {
     saveProjectStatus: state.saveProjectReducer.saveProject,
-    ...state.form,
     ...extraProps
   }
 )

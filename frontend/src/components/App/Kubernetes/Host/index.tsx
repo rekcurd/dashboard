@@ -177,7 +177,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     fetchKubernetesByIdStatus: state.fetchKubernetesByIdReducer.fetchKubernetesById,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,
-    ...state.form,
     ...extraProps
   }
 )

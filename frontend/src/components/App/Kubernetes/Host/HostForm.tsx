@@ -161,7 +161,6 @@ export interface CustomProps {
 
 export const HostForm = connect(
   (state: any, extraProps: CustomProps) => ({
-    ...state.form,
     initialValues: {
       ...defaultInitialValues,
       ...extraProps.initialValues

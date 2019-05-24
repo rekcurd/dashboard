@@ -144,7 +144,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     service: state.fetchServiceByIdReducer.fetchServiceById,
     saveServiceDeploymentStatus: state.saveServiceDeploymentReducer.saveServiceDeployment,
     userInfoStatus: state.userInfoReducer.userInfo,
-    ...state.form,
     ...extraProps
   }
 )
