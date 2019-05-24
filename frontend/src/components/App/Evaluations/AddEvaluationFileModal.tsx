@@ -113,7 +113,7 @@ class AddEvaluationFileFormImpl extends React.Component<AddEvaluationFileFormPro
                   placeholder="Upload your file to be evaluated."
                   required />
               </ModalBody>
-              {this.renderFooterButtons(this.state.submitting)}
+              {this.renderFooterButtons()}
             </Form>
           )}
         </Formik>
@@ -126,8 +126,8 @@ class AddEvaluationFileFormImpl extends React.Component<AddEvaluationFileFormPro
    *
    * Put on footer of this modal
    */
-  renderFooterButtons(isSubmitting) {
-    if (isSubmitting) {
+  renderFooterButtons() {
+    if (this.state.submitting) {
       return(
         <ModalFooter>
           <div className='loader loader-primary loader-xs mr-2'/>
