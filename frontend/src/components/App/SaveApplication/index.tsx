@@ -24,9 +24,9 @@ class AddApplication extends React.Component<AddApplicationProps, AddApplication
     }
   }
 
-  static getDerivedStateFromProps(nextProps: AddApplicationProps, prevState: AddApplicationState){
+  static getDerivedStateFromProps(nextProps: AddApplicationProps, nextState: AddApplicationState){
     const { saveApplicationStatus } = nextProps
-    const { submitting, notified } = prevState
+    const { submitting, notified } = nextState
     const { push } = nextProps.history
     const { projectId } = nextProps.match.params
 

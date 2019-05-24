@@ -55,12 +55,12 @@ class Services extends React.Component<ServicesStatusProps, ServicesStatusState>
     this.props.fetchAllServices(this.props.match.params)
   }
 
-  static getDerivedStateFromProps(nextProps: ServicesStatusProps, prevState: ServicesStatusState){
+  static getDerivedStateFromProps(nextProps: ServicesStatusProps, nextState: ServicesStatusState){
     const {
       deleteServicesStatus,
       syncKubernetesStatus
     } = nextProps
-    const { submitted, syncSubmitted, syncNotified } = prevState
+    const { submitted, syncSubmitted, syncNotified } = nextState
 
     const checkAllApiResultSucceeded =
       (result: APIRequest<boolean[]>) =>

@@ -39,9 +39,9 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
     this.props.fetchKubernetes({projectId: this.props.match.params.projectId})
   }
 
-  static getDerivedStateFromProps(nextProps: KubernetesProps, prevState: KubernetesState){
+  static getDerivedStateFromProps(nextProps: KubernetesProps, nextState: KubernetesState){
     const { deleteKubernetesStatus } = nextProps
-    const { deletionSubmitted, deletionNotified } = prevState
+    const { deletionSubmitted, deletionNotified } = nextState
 
     if (deletionSubmitted && !deletionNotified) {
       const succeeded: boolean = isAPISucceeded<boolean>(deleteKubernetesStatus) && deleteKubernetesStatus.result

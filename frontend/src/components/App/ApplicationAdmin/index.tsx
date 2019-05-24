@@ -71,8 +71,8 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
     this.props.fetchApplicationAccessControlList(params)
   }
 
-  static getDerivedStateFromProps(nextProps: ApplicationAdminProps, prevState: ApplicationAdminState){
-    const { submitted } = prevState
+  static getDerivedStateFromProps(nextProps: ApplicationAdminProps, nextState: ApplicationAdminState){
+    const { submitted } = nextState
     const { deleteApplicationAccessControlStatus } = nextProps
 
     if (submitted) {

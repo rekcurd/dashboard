@@ -25,9 +25,9 @@ class SaveProject extends React.Component<SaveProjectProps, SaveProjectState> {
     }
   }
 
-  static getDerivedStateFromProps(nextProps: SaveProjectProps, prevState: SaveProjectState){
+  static getDerivedStateFromProps(nextProps: SaveProjectProps, nextState: SaveProjectState){
     const { saveProjectStatus } = nextProps
-    const { submitting, notified } = prevState
+    const { submitting, notified } = nextState
     const { push } = nextProps.history
 
     // Close modal when API successfully finished

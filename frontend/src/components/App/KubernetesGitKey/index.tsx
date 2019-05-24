@@ -47,9 +47,9 @@ class KubernetesGitKeyImpl extends React.Component<KubernetesGitKeyProps, Kubern
     this.props.fetchKubernetesGitKey(this.props.match.params)
   }
 
-  static getDerivedStateFromProps(nextProps: KubernetesGitKeyProps, prevState: KubernetesGitKeyState){
+  static getDerivedStateFromProps(nextProps: KubernetesGitKeyProps, nextState: KubernetesGitKeyState){
     const { saveKubernetesGitKeyStatus, kubernetesGitKey } = nextProps
-    const { submitted, notified } = prevState
+    const { submitted, notified } = nextState
 
     if (submitted && !notified) {
       const succeeded: boolean = isAPISucceeded<boolean>(saveKubernetesGitKeyStatus) && saveKubernetesGitKeyStatus.result
@@ -68,11 +68,11 @@ class KubernetesGitKeyImpl extends React.Component<KubernetesGitKeyProps, Kubern
         return { method: 'post', notified: true }
       } else if (isAPIFailed(kubernetesGitKey)) {
         return { method: 'post' }
-      } else if (prevState.method !== 'patch') {
+      } else if (nextState.method !== 'patch') {
         return { method: 'patch' }
       }
     }
-    if (prevState.serviceLevel != nextProps.match.params.serviceLevel) {
+    if (nextState.serviceLevel != nextProps.match.params.serviceLevel) {
       nextProps.fetchKubernetesGitKey(nextProps.match.params)
       return { serviceLevel: nextProps.match.params.serviceLevel, notified: false }
     }

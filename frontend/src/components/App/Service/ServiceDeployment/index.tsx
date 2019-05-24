@@ -62,11 +62,11 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
     }
   }
 
-  static getDerivedStateFromProps(nextProps: SaveServiceProps, prevState: SaveServiceState){
+  static getDerivedStateFromProps(nextProps: SaveServiceProps, nextState: SaveServiceState){
     const { updateServiceStatus, saveServiceDeploymentStatus } = nextProps
     const { push } = nextProps.history
     const { projectId, applicationId } = nextProps.match.params
-    const { submitting, notified } = prevState
+    const { submitting, notified } = nextState
 
     // Close modal when API successfully finished
     if (submitting && !notified) {

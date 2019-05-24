@@ -42,9 +42,9 @@ class ApplicationList extends React.Component<ApplicationProps, ApplicationState
     this.props.fetchApplications(this.props.match.params)
   }
 
-  static getDerivedStateFromProps(nextProps: ApplicationProps, prevState: ApplicationState){
+  static getDerivedStateFromProps(nextProps: ApplicationProps, nextState: ApplicationState){
     const { syncKubernetes } = nextProps
-    const { syncSubmitted, syncNotified } = prevState
+    const { syncSubmitted, syncNotified } = nextState
 
     if (syncSubmitted && !syncNotified) {
       const succeeded: boolean = isAPISucceeded<boolean>(syncKubernetes) && syncKubernetes.result

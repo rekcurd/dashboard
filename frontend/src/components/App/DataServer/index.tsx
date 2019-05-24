@@ -61,9 +61,9 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
     this.props.fetchDataServer(this.props.match.params)
   }
 
-  static getDerivedStateFromProps(nextProps: DataServerProps, prevState: DataServerState){
+  static getDerivedStateFromProps(nextProps: DataServerProps, nextState: DataServerState){
     const { saveDataServerStatus, fetchDataServerStatus } = nextProps
-    const { submitting, notified } = prevState
+    const { submitting, notified } = nextState
 
     // Handling submitted API results
     if (submitting && !notified) {

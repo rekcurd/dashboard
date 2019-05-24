@@ -67,8 +67,8 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
     this.props.fetchProjectAccessControlList(params)
   }
 
-  static getDerivedStateFromProps(nextProps: ProjectAdminProps, prevState: ProjectAdminState){
-    const { submitted } = prevState
+  static getDerivedStateFromProps(nextProps: ProjectAdminProps, nextState: ProjectAdminState){
+    const { submitted } = nextState
     const { deleteProjectAccessControlStatus } = nextProps
 
     if (submitted) {
