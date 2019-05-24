@@ -275,8 +275,8 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
           modelId: Number(id)
         }))
 
+    this.props.deleteModels(apiParams)
     this.setState({ submitted: true, notified: false })
-    return this.props.deleteModels(apiParams)
   }
 
   complete(param) {

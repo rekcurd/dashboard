@@ -99,8 +99,8 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
       ...parameters,
     }
 
+    updateModel(request)
     this.setState({ submitting: true, notified: false })
-    return updateModel(request)
   }
 
 }

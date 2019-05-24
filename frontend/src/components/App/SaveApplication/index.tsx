@@ -59,15 +59,15 @@ class AddApplication extends React.Component<AddApplicationProps, AddApplication
 
   onSubmit(parameters) {
     const { saveApplication } = this.props
-    this.setState({ submitting: true, notified: false })
 
-    return saveApplication(
+    saveApplication(
       {
         method: 'post',
         projectId: this.props.match.params.projectId,
         ...parameters,
       }
     )
+    this.setState({ submitting: true, notified: false })
   }
 
   render() {

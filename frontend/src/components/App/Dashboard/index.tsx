@@ -409,8 +409,8 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
               modelId: value ? value as number : undefined
             }))
 
+    switchModels(apiParams)
     this.setState({ submitted: true, notified: false })
-    return switchModels(apiParams)
   }
 
   /**

@@ -143,8 +143,8 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
       serviceWeights: serviceWeights
     }
 
+    this.props.updateServiceRouting(apiParams)
     this.setState({ submitted: true, notified: false })
-    return this.props.updateServiceRouting(apiParams)
   }
 
   onCancel() {}

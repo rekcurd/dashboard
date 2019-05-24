@@ -39,12 +39,12 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
   onSubmit(params) {
     const { saveDataServer } = this.props
 
-    this.setState({submitting: true, notified: false})
-    return saveDataServer({
+    saveDataServer({
       projectId: this.props.match.params.projectId,
       ...params,
       method: this.state.method
     })
+    this.setState({submitting: true, notified: false})
   }
 
   /**

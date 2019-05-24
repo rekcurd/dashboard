@@ -306,8 +306,8 @@ class Services extends React.Component<ServicesStatusProps, ServicesStatusState>
           serviceId: id
         }))
 
+    this.props.deleteServices(apiParams)
     this.setState({ submitted: true, notified: false })
-    return this.props.deleteServices(apiParams)
   }
 
   /**

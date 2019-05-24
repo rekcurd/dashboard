@@ -58,14 +58,14 @@ class SaveProject extends React.Component<SaveProjectProps, SaveProjectState> {
 
   onSubmit(parameters) {
     const { saveProject } = this.props
-    this.setState({ submitting: true, notified: false })
 
-    return saveProject(
+    saveProject(
       {
         method: 'post',
         ...parameters,
       }
     )
+    this.setState({ submitting: true, notified: false })
   }
 
   render() {
