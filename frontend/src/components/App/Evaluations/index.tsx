@@ -24,7 +24,6 @@ interface EvaluationsStatusState {
   isAddEvaluationFileModalOpen: boolean
   selectedData: IdParam[]
   submitted: boolean
-  notified: boolean
 }
 
 class Evaluations extends React.Component<EvaluationsStatusProps, EvaluationsStatusState> {
@@ -35,8 +34,7 @@ class Evaluations extends React.Component<EvaluationsStatusProps, EvaluationsSta
       isDeleteEvaluationsModalOpen: false,
       isAddEvaluationFileModalOpen: false,
       selectedData: [],
-      submitted: false,
-      notified: false
+      submitted: false
     }
 
     this.onSubmitDelete = this.onSubmitDelete.bind(this)
@@ -52,9 +50,9 @@ class Evaluations extends React.Component<EvaluationsStatusProps, EvaluationsSta
     this.props.fetchAllEvaluations(this.props.match.params)
   }
 
-  static getDerivedStateFromProps(nextProps: EvaluationsStatusProps, prevState: EvaluationsStatusState){
+  static getDerivedStateFromProps(nextProps: EvaluationsStatusProps, nextState: EvaluationsStatusState){
     const { deleteEvaluationsStatus } = nextProps
-    const { submitted } = prevState
+    const { submitted } = nextState
 
     const checkAllApiResultSucceeded =
       (result: APIRequest<boolean[]>) =>
@@ -70,14 +68,12 @@ class Evaluations extends React.Component<EvaluationsStatusProps, EvaluationsSta
         nextProps.fetchAllEvaluations(nextProps.match.params)
         return {
           submitted: false,
-          notified: true,
           selectedData: []
         }
       } else if (checkAllApiResultFailed(deleteEvaluationsStatus)) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong, try again later' })
         return {
           submitted: false,
-          notified: true,
           selectedData: []
         }
       }
@@ -274,8 +270,8 @@ class Evaluations extends React.Component<EvaluationsStatusProps, EvaluationsSta
           evaluationId: Number(id)
         }))
 
-    this.setState({ submitted: true, notified: false })
-    return this.props.deleteEvaluations(apiParams)
+    this.props.deleteEvaluations(apiParams)
+    this.setState({ submitted: true })
   }
 
   complete(param) {
