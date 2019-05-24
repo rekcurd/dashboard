@@ -88,7 +88,7 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
           validationSchema={AddModelFileSchema}
           onSubmit={this.onSubmit}
           onReset={this.onCancel}>
-          {({ errors, touched, setFieldValue, isSubmitting }) => (
+          {({ errors, touched, setFieldValue }) => (
             <Form>
               <ModalHeader toggle={this.onCancel}>
                 <i className='fas fa-robot fa-fw mr-2'></i>
@@ -113,7 +113,7 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
                   placeholder="Upload your machine learning model file."
                   required />
               </ModalBody>
-              {this.renderFooterButtons(isSubmitting)}
+              {this.renderFooterButtons()}
             </Form>
           )}
         </Formik>
@@ -126,8 +126,8 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
    *
    * Put on footer of this modal
    */
-  renderFooterButtons(isSubmitting) {
-    if (isSubmitting) {
+  renderFooterButtons() {
+    if (this.state.submitting) {
       return(
         <ModalFooter>
           <div className='loader loader-primary loader-xs mr-2'/>
