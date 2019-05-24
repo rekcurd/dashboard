@@ -46,12 +46,12 @@ class AddEvaluationFileFormImpl extends React.Component<AddEvaluationFileFormPro
     this.setState({submitting: true})
   }
 
-  static getDerivedStateFromProps(nextProps: AddEvaluationFileFormProps, prevState: AddEvaluationFileFormState){
+  static getDerivedStateFromProps(nextProps: AddEvaluationFileFormProps, nextState: AddEvaluationFileFormState){
     const {
       uploadEvaluationStatus, toggle, isModalOpen, reload
     } = nextProps
 
-    if (isModalOpen && prevState.submitting) {
+    if (isModalOpen && nextState.submitting) {
       const succeeded: boolean = isAPISucceeded<boolean>(uploadEvaluationStatus) && uploadEvaluationStatus.result
       const failed: boolean = (isAPISucceeded<boolean>(uploadEvaluationStatus) && !uploadEvaluationStatus.result) || isAPIFailed<boolean>(uploadEvaluationStatus)
       if (succeeded) {
