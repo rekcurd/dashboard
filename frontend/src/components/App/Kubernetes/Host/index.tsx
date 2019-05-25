@@ -77,10 +77,10 @@ class Host extends React.Component<HostProps, HostState> {
     }
   }
 
-  static getDerivedStateFromProps(nextProps: HostProps, nextState: HostState){
+  static getDerivedStateFromProps(nextProps: HostProps, prevState: HostState){
     const { saveKubernetesStatus } = nextProps
     const { push } = nextProps.history
-    const { submitting, notified } = nextState
+    const { submitting, notified } = prevState
 
     // Handling submitted API results
     if (submitting && !notified) {

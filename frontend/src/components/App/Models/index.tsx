@@ -53,9 +53,9 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
     this.props.fetchAllModels(this.props.match.params)
   }
 
-  static getDerivedStateFromProps(nextProps: ModelsStatusProps, nextState: ModelsStatusState){
+  static getDerivedStateFromProps(nextProps: ModelsStatusProps, prevState: ModelsStatusState){
     const { deleteModelsStatus } = nextProps
-    const { submitted } = nextState
+    const { submitted } = prevState
 
     const checkAllApiResultSucceeded =
       (result: APIRequest<boolean[]>) =>
@@ -275,8 +275,9 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
           modelId: Number(id)
         }))
 
-    this.props.deleteModels(apiParams)
+    const res = this.props.deleteModels(apiParams)
     this.setState({ submitted: true, notified: false })
+    return res
   }
 
   complete(param) {

@@ -69,7 +69,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
     this.props.fetchAllServices(this.props.match.params)
   }
 
-  static getDerivedStateFromProps(nextProps: DashboardStatusProps, nextState: DashboardStatusState){
+  static getDerivedStateFromProps(nextProps: DashboardStatusProps, prevState: DashboardStatusState){
     const {
       switchModelsStatus,
       deleteServicesStatus,
@@ -81,7 +81,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
       projectId,
       applicationId
     }
-    const { isSwitchMode, submitted, syncSubmitted, syncNotified } = nextState
+    const { isSwitchMode, submitted, syncSubmitted, syncNotified } = prevState
 
     const checkAllApiResultSucceeded =
       (result: APIRequest<boolean[]>) =>
@@ -409,8 +409,9 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
               modelId: value ? value as number : undefined
             }))
 
-    switchModels(apiParams)
+    const res = switchModels(apiParams)
     this.setState({ submitted: true, notified: false })
+    return res
   }
 
   /**

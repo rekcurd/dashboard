@@ -46,12 +46,12 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
     this.setState({submitting: true})
   }
 
-  static getDerivedStateFromProps(nextProps: AddModelFileFormProps, nextState: AddModelFileFormState){
+  static getDerivedStateFromProps(nextProps: AddModelFileFormProps, prevState: AddModelFileFormState){
     const {
       uploadModelStatus, toggle, isModalOpen, reload
     } = nextProps
 
-    if (isModalOpen && nextState.submitting) {
+    if (isModalOpen && prevState.submitting) {
       const succeeded: boolean = isAPISucceeded<boolean>(uploadModelStatus) && uploadModelStatus.result
       const failed: boolean = (isAPISucceeded<boolean>(uploadModelStatus) && !uploadModelStatus.result) || isAPIFailed<boolean>(uploadModelStatus)
       if (succeeded) {

@@ -48,10 +48,10 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
     }
   }
 
-  static getDerivedStateFromProps(nextProps: ModelProps, nextState: ModelState){
+  static getDerivedStateFromProps(nextProps: ModelProps, prevState: ModelState){
     const { updateModelStatus } = nextProps
     const { push } = nextProps.history
-    const { submitting, notified } = nextState
+    const { submitting, notified } = prevState
     const { projectId, applicationId } = nextProps.match.params
 
     // Close modal when API successfully finished

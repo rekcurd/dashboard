@@ -45,9 +45,9 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
     this.props.fetchServiceRouting(this.props.match.params)
   }
 
-  static getDerivedStateFromProps(nextProps: ServiceRoutingProps, nextState: ServiceRoutingState){
+  static getDerivedStateFromProps(nextProps: ServiceRoutingProps, prevState: ServiceRoutingState){
     const { updateServiceRoutingStatus, routings } = nextProps
-    const { submitted, notified } = nextState
+    const { submitted, notified } = prevState
 
     if (submitted && !notified) {
       const succeeded: boolean = isAPISucceeded<boolean>(updateServiceRoutingStatus) && updateServiceRoutingStatus.result
@@ -61,7 +61,7 @@ class ServiceRoutingImpl extends React.Component<ServiceRoutingProps, ServiceRou
         return { submitted: false, notified: true }
       }
     }
-    if (nextState.serviceLevel != nextProps.match.params.serviceLevel) {
+    if (prevState.serviceLevel != nextProps.match.params.serviceLevel) {
       nextProps.fetchServiceRouting(nextProps.match.params)
       return { serviceLevel: nextProps.match.params.serviceLevel, notified: false }
     }

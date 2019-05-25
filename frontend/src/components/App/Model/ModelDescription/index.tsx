@@ -34,11 +34,11 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
     this.props.fetchModelById(this.props.match.params)
   }
 
-  static getDerivedStateFromProps(nextProps: ModelDescriptionProps, nextState: ModelDescriptionState){
+  static getDerivedStateFromProps(nextProps: ModelDescriptionProps, prevState: ModelDescriptionState){
     const { updateModelStatus } = nextProps
     const { push } = nextProps.history
     const { projectId, applicationId } = nextProps.match.params
-    const { submitting, notified } = nextState
+    const { submitting, notified } = prevState
 
     // Close modal when API successfully finished
     if (submitting && !notified) {
@@ -99,8 +99,9 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
       ...parameters,
     }
 
-    updateModel(request)
+    const res = updateModel(request)
     this.setState({ submitting: true, notified: false })
+    return res
   }
 
 }

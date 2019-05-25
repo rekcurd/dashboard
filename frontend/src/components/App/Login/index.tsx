@@ -26,9 +26,9 @@ class Login extends React.Component<LoginProps, LoginState> {
     this.setState({ submitting: true })
   }
 
-  static getDerivedStateFromProps(nextProps: LoginProps, nextState: LoginState){
+  static getDerivedStateFromProps(nextProps: LoginProps, prevState: LoginState){
     const { loginStatus, history, fetchUserInfo } = nextProps
-    const { submitting } = nextState
+    const { submitting } = prevState
     if (submitting) {
       const succeeded: boolean = isAPISucceeded<AuthToken>(loginStatus)
       const failed: boolean = isAPIFailed<AuthToken>(loginStatus) || isAPIUnauthorized<AuthToken>(loginStatus)
