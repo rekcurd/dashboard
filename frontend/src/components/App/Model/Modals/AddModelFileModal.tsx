@@ -42,8 +42,9 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
       applicationId,
       ...params
     }
-    uploadModel(request)
+    const res = uploadModel(request)
     this.setState({submitting: true})
+    return res
   }
 
   static getDerivedStateFromProps(nextProps: AddModelFileFormProps, prevState: AddModelFileFormState){
@@ -86,9 +87,18 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
             filepath: null
           }}
           validationSchema={AddModelFileSchema}
-          onSubmit={this.onSubmit}
+          onSubmit={(values, {setSubmitting}) => {
+            this.onSubmit(values).then(
+              result => {
+                setSubmitting(false)
+              },
+              errors => {
+                setSubmitting(false)
+              }
+            )}
+          }
           onReset={this.onCancel}>
-          {({ errors, touched, setFieldValue }) => (
+          {({ errors, touched, setFieldValue, isSubmitting }) => (
             <Form>
               <ModalHeader toggle={this.onCancel}>
                 <i className='fas fa-robot fa-fw mr-2'></i>
@@ -113,7 +123,7 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
                   placeholder="Upload your machine learning model file."
                   required />
               </ModalBody>
-              {this.renderFooterButtons()}
+              {this.renderFooterButtons(isSubmitting)}
             </Form>
           )}
         </Formik>
@@ -126,8 +136,8 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
    *
    * Put on footer of this modal
    */
-  renderFooterButtons() {
-    if (this.state.submitting) {
+  renderFooterButtons(isSubmitting) {
+    if (isSubmitting) {
       return(
         <ModalFooter>
           <div className='loader loader-primary loader-xs mr-2'/>
