@@ -218,8 +218,8 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
         applicationId: match.params.applicationId,
         uid: removeUserApplicationRoleTarget
       })
-      this.setState({ submitted: true })
       this.toggleRemoveUserModalOpen()
+      this.setState({ submitted: true })
     }
     return (
       <Modal isOpen={isRemoveUserApplicationRoleModalOpen} toggle={cancel} size='sm'>

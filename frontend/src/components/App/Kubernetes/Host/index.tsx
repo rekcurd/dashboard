@@ -51,11 +51,11 @@ class Host extends React.Component<HostProps, HostState> {
       ? {kubernetesId: Number(this.props.match.params.kubernetesId)}
       : {}
 
-    this.setState({submitting: true, notified: false})
-    return saveKubernetes({
+    saveKubernetes({
       projectId: this.props.match.params.projectId,
       ...formParams, ...extraParams, method: method
     })
+    this.setState({submitting: true, notified: false})
   }
 
   /**
@@ -177,7 +177,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     fetchKubernetesByIdStatus: state.fetchKubernetesByIdReducer.fetchKubernetesById,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,
-    ...state.form,
     ...extraProps
   }
 )

@@ -346,8 +346,8 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
       ...parameters
     }
 
+    updateServiceDeployment(request)
     this.setState({ submitting: true, notified: false })
-    return updateServiceDeployment(request)
   }
 
   onDeploymentSubmit(parameters) {
@@ -362,8 +362,8 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
       ...parameters
     }
 
+    saveServiceDeployment(request)
     this.setState({ submitting: true, notified: false })
-    return saveServiceDeployment(request)
   }
 }
 
@@ -399,7 +399,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     updateServiceStatus: state.updateServiceReducer.updateService,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,
-    ...state.form,
     ...extraProps
   }
 )

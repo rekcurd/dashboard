@@ -42,8 +42,9 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
       applicationId,
       ...params
     }
+    const res = uploadModel(request)
     this.setState({submitting: true})
-    return uploadModel(request)
+    return res
   }
 
   static getDerivedStateFromProps(nextProps: AddModelFileFormProps, prevState: AddModelFileFormState){
@@ -86,7 +87,16 @@ class AddModelFileFormImpl extends React.Component<AddModelFileFormProps, AddMod
             filepath: null
           }}
           validationSchema={AddModelFileSchema}
-          onSubmit={this.onSubmit}
+          onSubmit={(values, {setSubmitting}) => {
+            this.onSubmit(values).then(
+              result => {
+                setSubmitting(false)
+              },
+              errors => {
+                setSubmitting(false)
+              }
+            )}
+          }
           onReset={this.onCancel}>
           {({ errors, touched, setFieldValue, isSubmitting }) => (
             <Form>
@@ -167,7 +177,6 @@ interface StateProps {
 const mapStateToProps = (state: any, extraProps: CustomProps) => {
   return {
     uploadModelStatus: state.uploadModelReducer.uploadModel,
-    ...state.form,
     ...extraProps
   }
 }

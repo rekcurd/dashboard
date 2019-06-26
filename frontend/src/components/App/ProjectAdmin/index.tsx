@@ -204,8 +204,8 @@ class ProjectAdmin extends React.Component<ProjectAdminProps, ProjectAdminState>
         projectId: match.params.projectId,
         uid: removeUserProjectRoleTarget
       })
-      this.setState({ submitted: true })
       this.toggleRemoveUserModalOpen()
+      this.setState({ submitted: true })
     }
     return (
       <Modal isOpen={isRemoveUserProjectRoleModalOpen} toggle={cancel} size='sm'>

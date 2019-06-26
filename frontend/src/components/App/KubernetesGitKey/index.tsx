@@ -139,8 +139,8 @@ class KubernetesGitKeyImpl extends React.Component<KubernetesGitKeyProps, Kubern
       method: this.state.method
     }
 
+    this.props.saveKubernetesGitKey(apiParams)
     this.setState({ submitted: true, notified: false })
-    return this.props.saveKubernetesGitKey(apiParams)
   }
 
   onCancel() {}

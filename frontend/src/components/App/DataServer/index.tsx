@@ -39,12 +39,12 @@ class DataServerComponent extends React.Component<DataServerProps, DataServerSta
   onSubmit(params) {
     const { saveDataServer } = this.props
 
-    this.setState({submitting: true, notified: false})
-    return saveDataServer({
+    saveDataServer({
       projectId: this.props.match.params.projectId,
       ...params,
       method: this.state.method
     })
+    this.setState({submitting: true, notified: false})
   }
 
   /**
@@ -170,7 +170,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     fetchDataServerStatus: state.fetchDataServerReducer.fetchDataServer,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,
-    ...state.form,
     ...extraProps
   }
 )
