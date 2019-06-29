@@ -270,8 +270,9 @@ class Evaluations extends React.Component<EvaluationsStatusProps, EvaluationsSta
           evaluationId: Number(id)
         }))
 
-    this.props.deleteEvaluations(apiParams)
+    const res = this.props.deleteEvaluations(apiParams)
     this.setState({ submitted: true })
+    return res
   }
 
   complete(param) {
