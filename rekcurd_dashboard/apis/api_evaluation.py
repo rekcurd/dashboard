@@ -153,6 +153,8 @@ class ApiEvaluationId(Resource):
 
 @evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluations/<int:evaluation_id>/download')
 class ApiEvaluationIdDownload(Resource):
+    @evaluation_api_namespace.response(200, description='return evaluation text file.')
+    @evaluation_api_namespace.produces(['text/plain'])
     def get(self, project_id: int, application_id: str, evaluation_id: int):
         """download evaluation data as file"""
         evaluation_model = db.session.query(EvaluationModel).filter(
