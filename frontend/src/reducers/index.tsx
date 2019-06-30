@@ -110,7 +110,7 @@ export const uploadModelReducer = APIRequestReducerCreator<Apis.UploadModelParam
   Actions.uploadModelActionCreators, 'uploadModel')
 export const updateModelReducer = APIRequestReducerCreator<Apis.UpdateModelParam, boolean>(
   Actions.updateModelActionCreators, 'updateModel')
-export const uploadEvaluationReducer = APIRequestReducerCreator<Apis.UploadEvaluationParam, boolean>(
+export const uploadEvaluationReducer = APIRequestReducerCreator<Apis.UploadEvaluationParam, Apis.UploadEvaluationResult>(
   Actions.uploadEvaluationActionCreators, 'uploadEvaluation')
 export const fetchAllProjectsReducer = APIRequestReducerCreator<{}, Apis.Project[]>(
   Actions.fetchAllProjectsActionCreators, 'fetchAllProjects')

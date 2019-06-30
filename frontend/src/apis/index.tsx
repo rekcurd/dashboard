@@ -281,6 +281,13 @@ export async function updateModel(params: UpdateModelParam): Promise<boolean> {
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/models/${params.modelId}`, requestBody, convert, 'PATCH')
 }
 
+export class UploadEvaluationResult {
+  constructor(
+    public evaluationId: number,
+    public message: string = '',
+    public status: boolean
+  ) { }
+}
 export interface UploadEvaluationParam {
   projectId: number
   applicationId: string
@@ -292,7 +299,14 @@ export async function uploadEvaluation(params: UploadEvaluationParam) {
     ...params
   }
 
-  const convert = (result) => result.status
+  const convert =
+    (result): UploadEvaluationResult => {
+      return {
+        evaluationId: result.evaluation_id,
+        message: result.message,
+        status: result.status,
+      }
+    }
 
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluations`, requestBody, convert, 'POST')
 }

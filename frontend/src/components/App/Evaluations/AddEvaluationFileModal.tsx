@@ -7,7 +7,7 @@ import {
   addNotification
 } from '@src/actions/index'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core/index'
-import { FetchEvaluationByIdParam, UploadEvaluationParam } from '@src/apis'
+import { FetchEvaluationByIdParam, UploadEvaluationParam, UploadEvaluationResult } from '@src/apis'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 
 import * as Yup from "yup";
@@ -52,15 +52,16 @@ class AddEvaluationFileFormImpl extends React.Component<AddEvaluationFileFormPro
     } = nextProps
 
     if (isModalOpen && nextState.submitting) {
-      const succeeded: boolean = isAPISucceeded<boolean>(uploadEvaluationStatus) && uploadEvaluationStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(uploadEvaluationStatus) && !uploadEvaluationStatus.result) || isAPIFailed<boolean>(uploadEvaluationStatus)
-      if (succeeded) {
+      if (isAPISucceeded<UploadEvaluationResult>(uploadEvaluationStatus) && uploadEvaluationStatus.result.message) {
+        nextProps.addNotification({color: 'error', message: uploadEvaluationStatus.result.message})
+        return {submitting: false}
+      } else if (isAPISucceeded<UploadEvaluationResult>(uploadEvaluationStatus) && uploadEvaluationStatus.result.status) {
         toggle()
         reload({color: 'success', message: 'Successfully added evaluation'})
         nextProps.fetchAllEvaluations({projectId: nextProps.projectId, applicationId: nextProps.applicationId})
         return {submitting: false}
-      } else if (failed) {
-        nextProps.addNotification({color: 'error', message: uploadEvaluationStatus['error']['message']})
+      } else if (isAPIFailed<UploadEvaluationResult>(uploadEvaluationStatus)) {
+        nextProps.addNotification({color: 'error', message: uploadEvaluationStatus.error.message})
         return {submitting: false}
       }
     }
@@ -161,7 +162,7 @@ interface CustomProps {
 }
 
 interface StateProps {
-  uploadEvaluationStatus: APIRequest<boolean>
+  uploadEvaluationStatus: APIRequest<UploadEvaluationResult>
 }
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => {

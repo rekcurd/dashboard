@@ -145,8 +145,8 @@ export const updateModelDispatcher = asyncAPIRequestDispatcherCreator<Apis.Updat
 )
 
 export const uploadEvaluationActionCreators =
-  new APIRequestActionCreators<Apis.UploadEvaluationParam, boolean>('UPLOAD_EVALUATION')
-export const uploadEvaluationDispatcher = asyncAPIRequestDispatcherCreator<Apis.UploadEvaluationParam, boolean>(
+  new APIRequestActionCreators<Apis.UploadEvaluationParam, Apis.UploadEvaluationResult>('UPLOAD_EVALUATION')
+export const uploadEvaluationDispatcher = asyncAPIRequestDispatcherCreator<Apis.UploadEvaluationParam, Apis.UploadEvaluationResult>(
   uploadEvaluationActionCreators,
   Apis.uploadEvaluation
 )

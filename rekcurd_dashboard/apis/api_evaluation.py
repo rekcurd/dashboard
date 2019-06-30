@@ -33,6 +33,7 @@ eval_metrics = evaluation_api_namespace.model('Evaluation result', {
 })
 eval_data_upload = evaluation_api_namespace.model('Result of uploading evaluation data', {
     'status': fields.Boolean(required=True),
+    'message': fields.String(required=False),
     'evaluation_id': fields.Integer(required=True, description='ID of uploaded data')
 })
 evaluation_params = evaluation_api_namespace.model('Evaluation', {
@@ -77,19 +78,16 @@ class ApiEvaluations(Resource):
         args = self.upload_parser.parse_args()
         file = args['filepath']
         description = args['description']
-        duplicated_ok = args['duplicated_ok']
         checksum = HashUtil.checksum(file)
 
         evaluation_model = db.session.query(EvaluationModel).filter(
             EvaluationModel.application_id == application_id,
             EvaluationModel.checksum == checksum).one_or_none()
         if evaluation_model is not None:
-            if duplicated_ok:
-                return {"status": True, "evaluation_id": evaluation_model.evaluation_id}
-            else:
-                raise RekcurdDashboardException(
-                    'the file already exists. ID: {}, Description: {}'.format(
-                        evaluation_model.evaluation_id, evaluation_model.description))
+            return {"status": True,
+                    "message": 'The file already exists. Description: {}'.format(
+                        evaluation_model.description),
+                    "evaluation_id": evaluation_model.evaluation_id}
 
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()

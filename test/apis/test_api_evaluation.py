@@ -88,22 +88,17 @@ class ApiEvaluationTest(BaseTestCase):
             url, content_type=content_type,
             data={'filepath': (BytesIO(file_content), "file.txt"), 'description': 'eval desc'})
         self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json, {'status': True, 'evaluation_id': 1})
+        self.assertEqual(response.json, {'status': True, 'evaluation_id': 1, 'message': None})
 
-        # duplication check
-        response = self.client.post(
-            url, content_type=content_type,
-            data={'filepath': (BytesIO(file_content), "file.txt"), 'description': 'eval desc'})
-        self.assertEqual(400, response.status_code)
-
-        # duplication check
         response = self.client.post(
             url, content_type=content_type,
             data={'filepath': (BytesIO(file_content), "file.txt"),
-                 'description': 'eval desc',
-                 'duplicated_ok': True})
+                  'description': 'eval desc'})
         self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json, {'status': True, 'evaluation_id': 1})
+        self.assertEqual(response.json,
+                         {'status': True,
+                          'message': 'The file already exists. Description: eval desc',
+                          'evaluation_id': 1})
 
         evaluation_model = EvaluationModel.query.filter_by(evaluation_id=1).one()
         self.assertEqual(evaluation_model.application_id, TEST_APPLICATION_ID)
