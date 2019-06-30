@@ -5,14 +5,17 @@ import os
 
 from flask import abort, send_file
 from flask_restplus import Namespace, fields, Resource, reqparse, inputs
+from flask_jwt_simple import get_jwt_identity
 from werkzeug.datastructures import FileStorage
 
 from . import DatetimeToTimestamp, status_model
 from rekcurd_dashboard.data_servers import DataServer
 from rekcurd_dashboard.models import (db, ApplicationModel, ServiceModel, EvaluationModel,
-                                      EvaluationResultModel, DataServerModel, DataServerModeEnum)
+                                      EvaluationResultModel, DataServerModel, DataServerModeEnum,
+                                      ApplicationRole)
 from rekcurd_dashboard.core import RekcurdDashboardClient
-from rekcurd_dashboard.utils import HashUtil, RekcurdDashboardException
+from rekcurd_dashboard.utils import HashUtil, RekcurdDashboardException, ApplicationUserRoleException
+from rekcurd_dashboard.auth import auth, fetch_application_role
 
 
 evaluation_api_namespace = Namespace('evaluation', description='Evaluation API Endpoint.')
@@ -157,6 +160,11 @@ class ApiEvaluationIdDownload(Resource):
     @evaluation_api_namespace.produces(['text/plain'])
     def get(self, project_id: int, application_id: str, evaluation_id: int):
         """download evaluation data as file"""
+        if auth.is_enabled():
+            user_id = get_jwt_identity()
+            application_user_role = fetch_application_role(user_id, application_id)
+            if application_user_role == ApplicationRole.viewer:
+                raise ApplicationUserRoleException("Viewer role is not allowed to see evaluation data")
         evaluation_model = db.session.query(EvaluationModel).filter(
             EvaluationModel.application_id == application_id,
             EvaluationModel.evaluation_id == evaluation_id).first_or_404()
