@@ -143,9 +143,9 @@ def create_service_model(
 
 def create_eval_model(
         application_id=TEST_APPLICATION_ID, checksum='abcde',
-        data_path='my_data_path', save=False) -> EvaluationModel:
+        data_path='my_data_path', description='desc', save=False) -> EvaluationModel:
     evaluation_model = EvaluationModel(
-        checksum=checksum, application_id=application_id, data_path=data_path)
+        checksum=checksum, application_id=application_id, description=description, data_path=data_path)
     if save:
         db.session.add(evaluation_model)
         db.session.commit()

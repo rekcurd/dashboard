@@ -1,17 +1,21 @@
 import datetime
 import tempfile
 from itertools import chain
+import os
 
-from flask import abort
+from flask import abort, send_file
 from flask_restplus import Namespace, fields, Resource, reqparse, inputs
+from flask_jwt_simple import get_jwt_identity
 from werkzeug.datastructures import FileStorage
 
-from . import status_model
+from . import DatetimeToTimestamp, status_model
 from rekcurd_dashboard.data_servers import DataServer
 from rekcurd_dashboard.models import (db, ApplicationModel, ServiceModel, EvaluationModel,
-                                      EvaluationResultModel, DataServerModel, DataServerModeEnum)
+                                      EvaluationResultModel, DataServerModel, DataServerModeEnum,
+                                      ApplicationRole)
 from rekcurd_dashboard.core import RekcurdDashboardClient
-from rekcurd_dashboard.utils import HashUtil, RekcurdDashboardException
+from rekcurd_dashboard.utils import HashUtil, RekcurdDashboardException, ApplicationUserRoleException
+from rekcurd_dashboard.auth import auth, fetch_application_role
 
 
 evaluation_api_namespace = Namespace('evaluation', description='Evaluation API Endpoint.')
@@ -29,28 +33,61 @@ eval_metrics = evaluation_api_namespace.model('Evaluation result', {
 })
 eval_data_upload = evaluation_api_namespace.model('Result of uploading evaluation data', {
     'status': fields.Boolean(required=True),
+    'message': fields.String(required=False),
     'evaluation_id': fields.Integer(required=True, description='ID of uploaded data')
+})
+evaluation_params = evaluation_api_namespace.model('Evaluation', {
+    'evaluation_id': fields.Integer(
+        readOnly=True,
+        description='Evaluation ID.'
+    ),
+    'checksum': fields.String(
+        readOnly=True,
+        description='Checksum for file content'
+    ),
+    'application_id': fields.String(
+        readOnly=True,
+        description='Application ID.'
+    ),
+    'description': fields.String(
+        readOnly=True,
+        description='Description of evaluation data'
+    ),
+    'data_path': fields.String(
+        readOnly=True,
+        description='Evaluation file path'
+    ),
+    'register_date': DatetimeToTimestamp(
+        readOnly=True,
+        description='Register date'
+    )
 })
 
 
 @evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluations')
 class ApiEvaluations(Resource):
     upload_parser = reqparse.RequestParser()
-    upload_parser.add_argument('file', location='files', type=FileStorage, required=True)
+    upload_parser.add_argument('filepath', location='files', type=FileStorage, required=True)
+    upload_parser.add_argument('description', location='form', type=str, required=True)
+    upload_parser.add_argument('duplicated_ok', location='form', type=bool, required=False, default=False)
 
     @evaluation_api_namespace.expect(upload_parser)
     @evaluation_api_namespace.marshal_with(eval_data_upload)
     def post(self, project_id: int, application_id: str):
         """update data to be evaluated"""
         args = self.upload_parser.parse_args()
-        file = args['file']
+        file = args['filepath']
+        description = args['description']
         checksum = HashUtil.checksum(file)
 
         evaluation_model = db.session.query(EvaluationModel).filter(
             EvaluationModel.application_id == application_id,
             EvaluationModel.checksum == checksum).one_or_none()
         if evaluation_model is not None:
-            return {"status": True, "evaluation_id": evaluation_model.evaluation_id}
+            return {"status": True,
+                    "message": 'The file already exists. Description: {}'.format(
+                        evaluation_model.description),
+                    "evaluation_id": evaluation_model.evaluation_id}
 
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
@@ -73,17 +110,23 @@ class ApiEvaluations(Resource):
             """Otherwise, upload file."""
             with tempfile.NamedTemporaryFile() as fp:
                 fp.write(file.read())
+                fp.flush()
                 data_server = DataServer()
                 eval_data_path = data_server.upload_evaluation_data(data_server_model, application_model, fp.name)
 
         evaluation_model = EvaluationModel(
-            checksum=checksum, application_id=application_id, data_path=eval_data_path)
+            checksum=checksum, application_id=application_id, data_path=eval_data_path, description=description)
         db.session.add(evaluation_model)
         db.session.flush()
         evaluation_id = evaluation_model.evaluation_id
         db.session.commit()
         db.session.close()
         return {"status": True, "evaluation_id": evaluation_id}
+
+    @evaluation_api_namespace.marshal_list_with(evaluation_params)
+    def get(self, project_id: int, application_id: str):
+        """get_evaluations"""
+        return EvaluationModel.query.filter_by(application_id=application_id).all()
 
 
 @evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluations/<int:evaluation_id>')
@@ -107,6 +150,36 @@ class ApiEvaluationId(Resource):
         db.session.commit()
         db.session.close()
         return {"status": True, "message": "Success."}
+
+
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluations/<int:evaluation_id>/download')
+class ApiEvaluationIdDownload(Resource):
+    @evaluation_api_namespace.response(200, description='return evaluation text file.')
+    @evaluation_api_namespace.produces(['text/plain'])
+    def get(self, project_id: int, application_id: str, evaluation_id: int):
+        """download evaluation data as file"""
+        if auth.is_enabled():
+            user_id = get_jwt_identity()
+            application_user_role = fetch_application_role(user_id, application_id)
+            if application_user_role == ApplicationRole.viewer:
+                raise ApplicationUserRoleException("Viewer role is not allowed to see evaluation data")
+        evaluation_model = db.session.query(EvaluationModel).filter(
+            EvaluationModel.application_id == application_id,
+            EvaluationModel.evaluation_id == evaluation_id).first_or_404()
+
+        data_server_model: DataServerModel = db.session.query(
+            DataServerModel).filter(DataServerModel.project_id == project_id).first_or_404()
+        data_server = DataServer()
+        local_filepath = 'tmp.eval'
+        data_server.download_file(data_server_model,
+                                  evaluation_model.data_path,
+                                  local_filepath)
+
+        response = send_file(local_filepath, as_attachment=True,
+                             attachment_filename='evaluation_{}.txt'.format(evaluation_id),
+                             mimetype='text/plain')
+        os.remove(local_filepath)
+        return response
 
 
 @evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluate')

@@ -55,6 +55,17 @@ class SideMenu extends React.Component<SideMenuProps, SideMenuState> {
       ]
     }
 
+    const evaluationContents = {
+      title: 'Evaluation',
+      items: [
+        {
+          text: 'Data',
+          path: 'evaluations',
+          icon: 'file',
+        },
+      ]
+    }
+
     let kubernetesContents: React.ReactNode
     if (project.status === APIRequestStatusList.success && project.result.useKubernetes) {
       const serviceLevels = (parentPath: string) => {
@@ -151,6 +162,7 @@ class SideMenu extends React.Component<SideMenuProps, SideMenuState> {
           { /* Whole Menu*/ }
           <ul className='nav flex-column navbar-light'>
             {generatedMenu(mainContents)}
+            {generatedMenu(evaluationContents)}
             {kubernetesContents ? kubernetesContents : null}
             {adminContents ? generatedMenu(adminContents) : null}
           </ul>

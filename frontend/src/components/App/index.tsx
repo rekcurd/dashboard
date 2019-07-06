@@ -25,6 +25,7 @@ import Services from './Services'
 import Service from './Service'
 import Models from './Models'
 import Model from './Model'
+import Evaluations from './Evaluations'
 import KubernetesGitKey from './KubernetesGitKey'
 import ServiceRouting from './ServiceRouting'
 
@@ -151,6 +152,7 @@ class ApplicationsRoute extends React.Component<ApplicationsRouteProps> {
           <Route exact path='/projects/:projectId/applications/:applicationId/dashboard' component={Dashboard} />
           <Route exact path='/projects/:projectId/applications/:applicationId/services' component={Services} />
           <Route exact path='/projects/:projectId/applications/:applicationId/models' component={Models} />
+          <Route exact path='/projects/:projectId/applications/:applicationId/evaluations' component={Evaluations} />
           <Redirect exact from='/projects/:projectId/applications/:applicationId/git_key'
                     to='/projects/:projectId/applications/:applicationId/git_key/development' />
           <Route exact path='/projects/:projectId/applications/:applicationId/git_key/:serviceLevel'

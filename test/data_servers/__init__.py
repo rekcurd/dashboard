@@ -6,7 +6,9 @@ def patch_predictor():
     def test_method(func):
         @wraps(func)
         def inner_method(*args, **kwargs):
-            with patch('rekcurd_dashboard.data_servers.LocalHandler.upload',
+            with patch('rekcurd_dashboard.data_servers.LocalHandler.download',
+                          new=Mock(return_value=None)) as _, \
+                    patch('rekcurd_dashboard.data_servers.LocalHandler.upload',
                           new=Mock(return_value=None)) as _, \
                     patch('rekcurd_dashboard.data_servers.LocalHandler.delete',
                           new=Mock(return_value=None)) as _, \
