@@ -69,7 +69,6 @@ class ApiEvaluations(Resource):
     upload_parser = reqparse.RequestParser()
     upload_parser.add_argument('filepath', location='files', type=FileStorage, required=True)
     upload_parser.add_argument('description', location='form', type=str, required=True)
-    upload_parser.add_argument('duplicated_ok', location='form', type=bool, required=False, default=False)
 
     @evaluation_api_namespace.expect(upload_parser)
     @evaluation_api_namespace.marshal_with(eval_data_upload)
