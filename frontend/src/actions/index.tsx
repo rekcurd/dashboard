@@ -158,6 +158,13 @@ export const evaluateDispatcher = asyncAPIRequestDispatcherCreator<Apis.Evaluate
   Apis.evaluate
 )
 
+export const reEvaluateActionCreators =
+  new APIRequestActionCreators<Apis.EvaluateParam, boolean>('REEVALUATE')
+export const reEvaluateDispatcher = asyncAPIRequestDispatcherCreator<Apis.EvaluateParam, boolean>(
+  reEvaluateActionCreators,
+  Apis.reEvaluate
+)
+
 export const fetchAllProjectsActionCreators =
   new APIRequestActionCreators<{}, Apis.Project[]>('FETCH_ALL_PROJECTS')
 export const fetchAllProjectsDispatcher = asyncAPIRequestDispatcherCreator<{}, Apis.Project[]>(

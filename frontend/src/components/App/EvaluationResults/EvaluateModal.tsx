@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import {
   fetchAllEvaluationResultsDispatcher,
   evaluateDispatcher,
+  reEvaluateDispatcher,
   addNotification
 } from '@src/actions/index'
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core/index'
@@ -14,7 +15,6 @@ import * as Yup from "yup";
 import { Field, Form, Formik } from "formik";
 import { CustomInput } from 'reactstrap'
 import { FormikInput } from '@common/Field'
-
 
 const EvaluateSchema = Yup.object().shape({
   model_id: Yup.number()
@@ -38,31 +38,37 @@ class EvaluateFormImpl extends React.Component<EvaluateFormProps, EvaluateFormSt
   }
 
   onSubmit(params) {
-    const { projectId, applicationId, evaluate } = this.props
+    const { projectId, applicationId, evaluate, reEvaluate } = this.props
     const request = {
       projectId,
       applicationId,
       ...params
     }
-    evaluate(request)
+    if (this.state.overwrite) {
+      reEvaluate(request)
+    } else {
+      evaluate(request)
+    }
     this.setState({submitting: true})
   }
 
   static getDerivedStateFromProps(nextProps: EvaluateFormProps, prevState: EvaluateFormState){
     const {
-      evaluateStatus, toggle, isModalOpen, reload
+      evaluateStatus, reEvaluateStatus, toggle, isModalOpen, reload
     } = nextProps
 
+    const apiStatus: APIRequest<boolean> = prevState.overwrite ? reEvaluateStatus : evaluateStatus
+
     if (isModalOpen && prevState.submitting) {
-      const succeeded: boolean = isAPISucceeded<boolean>(evaluateStatus) && evaluateStatus.result
-      const failed: boolean = (isAPISucceeded<boolean>(evaluateStatus) && !evaluateStatus.result) || isAPIFailed<boolean>(evaluateStatus)
+      const succeeded: boolean = isAPISucceeded<boolean>(apiStatus) && apiStatus.result
+      const failed: boolean = (isAPISucceeded<boolean>(apiStatus) && !apiStatus.result) || isAPIFailed<boolean>(apiStatus)
       if (succeeded) {
         toggle()
         reload({color: 'success', message: 'Successfully evaluated model'})
         nextProps.fetchAllEvaluationResults({projectId: nextProps.projectId, applicationId: nextProps.applicationId})
         return {submitting: false}
       } else if (failed) {
-        nextProps.addNotification({color: 'error', message: evaluateStatus['error']['message']})
+        nextProps.addNotification({color: 'error', message: apiStatus['error']['message']})
         return {submitting: false}
       }
     }
@@ -196,11 +202,13 @@ interface CustomProps {
 
 interface StateProps {
   evaluateStatus: APIRequest<boolean>
+  reEvaluateStatus: APIRequest<boolean>
 }
 
 const mapStateToProps = (state: any, extraProps: CustomProps) => {
   return {
     evaluateStatus: state.evaluateReducer.evaluate,
+    reEvaluateStatus: state.reEvaluateReducer.reEvaluate,
     ...extraProps
   }
 }
@@ -208,6 +216,7 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => {
 export interface DispatchProps {
   fetchAllEvaluationResults: (params: FetchEvaluationResultByIdParam) => Promise<void>
   evaluate: (params: EvaluateParam) => Promise<void>
+  reEvaluate: (params: EvaluateParam) => Promise<void>
   addNotification: (params) => any
 }
 
@@ -215,6 +224,7 @@ const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     fetchAllEvaluationResults: (params: FetchEvaluationResultByIdParam) => fetchAllEvaluationResultsDispatcher(dispatch, params),
     evaluate: (params: EvaluateParam) => evaluateDispatcher(dispatch, params),
+    reEvaluate: (params: EvaluateParam) => reEvaluateDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }
 }

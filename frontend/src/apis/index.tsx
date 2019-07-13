@@ -327,6 +327,16 @@ export async function evaluate(params: EvaluateParam) {
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluate`, requestBody, convert, 'POST')
 }
 
+export async function reEvaluate(params: EvaluateParam) {
+  const requestBody = {
+    ...params
+  }
+
+  const convert = (result) => result.status
+
+  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluate`, requestBody, convert, 'PUT')
+}
+
 // GET APIs
 export class Project {
   constructor(

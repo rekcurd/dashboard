@@ -18,6 +18,7 @@ export class AppState {
     public uploadEvaluation: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public fetchAllProjects: APIRequest<Apis.Project[]> = { status: APIRequestStatusList.notStarted},
     public evaluate: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
+    public reEvaluate: APIRequest<boolean> = { status: APIRequestStatusList.notStarted},
     public fetchProjectById: APIRequest<Apis.Project> = { status: APIRequestStatusList.notStarted},
     public fetchDataServer: APIRequest<Apis.DataServer> = { status: APIRequestStatusList.notStarted},
     public fetchAllKubernetes: APIRequest<Apis.Kubernetes[]> = { status: APIRequestStatusList.notStarted},
@@ -117,6 +118,8 @@ export const uploadEvaluationReducer = APIRequestReducerCreator<Apis.UploadEvalu
   Actions.uploadEvaluationActionCreators, 'uploadEvaluation')
 export const evaluateReducer = APIRequestReducerCreator<Apis.EvaluateParam, boolean>(
   Actions.evaluateActionCreators, 'evaluate')
+export const reEvaluateReducer = APIRequestReducerCreator<Apis.EvaluateParam, boolean>(
+  Actions.reEvaluateActionCreators, 'reEvaluate')
 export const fetchAllProjectsReducer = APIRequestReducerCreator<{}, Apis.Project[]>(
   Actions.fetchAllProjectsActionCreators, 'fetchAllProjects')
 export const fetchProjectByIdReducer = APIRequestReducerCreator<Apis.FetchProjectByIdParam, Apis.Project>(
