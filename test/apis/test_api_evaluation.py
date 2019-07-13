@@ -169,12 +169,10 @@ class ApiEvaluationResultTest(BaseTestCase):
             f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/'
             f'evaluation_results/{eval_result_model.evaluation_result_id}')
         self.assertEqual(404, response.status_code)
-        self.assertEqual(response.json, {'status': False, 'message': 'Result Not Found.'})
 
         response = self.client.get(
             f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluation_results/101')
         self.assertEqual(404, response.status_code)
-        self.assertEqual(response.json, {'status': False, 'message': 'Not Found.'})
 
     @patch_stub
     def test_delete(self):

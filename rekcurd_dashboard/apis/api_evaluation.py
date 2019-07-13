@@ -8,6 +8,7 @@ from flask import abort, send_file
 from flask_restplus import Namespace, fields, Resource, reqparse
 from flask_jwt_simple import get_jwt_identity
 from werkzeug.datastructures import FileStorage
+from werkzeug.exceptions import NotFound
 
 from . import DatetimeToTimestamp, status_model
 from .api_model import model_model_params
@@ -341,7 +342,7 @@ class ApiEvaluationResultId(Resource):
                     EvaluationResultModel.evaluation_id == EvaluationModel.evaluation_id,
                     EvaluationResultModel.evaluation_result_id == eval_result_id).one_or_none()
         if eval_with_result is None:
-            return {"status": False, "message": "Not Found."}, 404
+            raise NotFound("Not Found.")
 
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
@@ -356,7 +357,7 @@ class ApiEvaluationResultId(Resource):
         response_body = list(rekcurd_dashboard_client.run_evaluation_data(
             evaluation_model.data_path, evaluation_result_model.data_path))
         if len(response_body) == 0:
-            return {"status": False, "message": "Result Not Found."}, 404
+            raise NotFound("Result Not Found.")
 
         return {
             'status': all(r['status'] for r in response_body),
