@@ -247,8 +247,24 @@ class ApiEvaluateTest(BaseTestCase):
         response = self.client.post(url, data=data)
         self.assertEqual(400, response.status_code)
 
-        # overwrite
-        response = self.client.post(url, data=dict(data, overwrite=True))
+    @patch_stub
+    def test_post_not_found(self):
+        evaluation_id = create_eval_model(TEST_APPLICATION_ID, save=True).evaluation_id
+        non_exist_model_id = 100
+        response = self.client.post(
+            f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluate',
+            data={'evaluation_id': evaluation_id, 'model_id': non_exist_model_id})
+        self.assertEqual(404, response.status_code)
+
+    @patch_stub
+    def test_put(self):
+        evaluation_id = create_eval_model(TEST_APPLICATION_ID, save=True).evaluation_id
+        create_eval_result_model(
+            model_id=TEST_MODEL_ID, evaluation_id=evaluation_id, result=json.dumps(self.default_response), save=True)
+
+        url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluate'
+        data = {'evaluation_id': evaluation_id, 'model_id': TEST_MODEL_ID}
+        response = self.client.put(url, data=data)
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json, self.default_response)
 
@@ -258,10 +274,9 @@ class ApiEvaluateTest(BaseTestCase):
         self.assertEqual(evaluation_model.result, self.default_response)
 
     @patch_stub
-    def test_post_not_found(self):
+    def test_put_new(self):
         evaluation_id = create_eval_model(TEST_APPLICATION_ID, save=True).evaluation_id
-        non_exist_model_id = 100
-        response = self.client.post(
-            f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluate',
-            data={'evaluation_id': evaluation_id, 'model_id': non_exist_model_id})
-        self.assertEqual(404, response.status_code)
+        url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluate'
+        data = {'evaluation_id': evaluation_id, 'model_id': TEST_MODEL_ID}
+        response = self.client.put(url, data=data)
+        self.assertEqual(400, response.status_code)

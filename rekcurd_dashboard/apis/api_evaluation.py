@@ -2,9 +2,10 @@ import datetime
 import tempfile
 from itertools import chain
 import os
+from typing import Optional, Tuple
 
 from flask import abort, send_file
-from flask_restplus import Namespace, fields, Resource, reqparse, inputs
+from flask_restplus import Namespace, fields, Resource, reqparse
 from flask_jwt_simple import get_jwt_identity
 from werkzeug.datastructures import FileStorage
 
@@ -187,16 +188,58 @@ class ApiEvaluate(Resource):
     eval_parser = reqparse.RequestParser()
     eval_parser.add_argument('model_id', location='form', type=int, required=True)
     eval_parser.add_argument('evaluation_id', location='form', type=int, required=False)
-    eval_parser.add_argument('overwrite', location='form', type=inputs.boolean, required=False, default=False)
 
     @evaluation_api_namespace.expect(eval_parser)
     @evaluation_api_namespace.marshal_with(eval_metrics)
     def post(self, project_id: int, application_id: str):
-        """evaluate"""
+        """evaluate model"""
         args = self.eval_parser.parse_args()
         eval_id = args.get('evaluation_id', None)
         model_id = args.get('model_id')
-        do_overwrite = args.get('overwrite')
+        service_model, evaluation_model, evaluation_result_model = self._get_models(application_id, model_id, eval_id)
+        if evaluation_result_model is not None:
+            raise RekcurdDashboardException("The evaluation result already exists")
+
+        response_body, eval_result_path = self._evaluate(application_id, service_model, evaluation_model)
+        if response_body['status']:
+            evaluation_result_model = EvaluationResultModel(
+                model_id=service_model.model_id,
+                data_path=eval_result_path,
+                evaluation_id=evaluation_model.evaluation_id,
+                result=response_body)
+            db.session.add(evaluation_result_model)
+            db.session.flush()
+            response_body = evaluation_result_model.result
+            db.session.commit()
+
+        db.session.close()
+        return response_body
+
+    @evaluation_api_namespace.expect(eval_parser)
+    @evaluation_api_namespace.marshal_with(eval_metrics)
+    def put(self, project_id: int, application_id: str):
+        """re-evaluate model"""
+        args = self.eval_parser.parse_args()
+        eval_id = args.get('evaluation_id', None)
+        model_id = args.get('model_id')
+        service_model, evaluation_model, evaluation_result_model = self._get_models(application_id, model_id, eval_id)
+        if evaluation_result_model is None:
+            raise RekcurdDashboardException("The evaluation result does not exist yet")
+
+        response_body, eval_result_path = self._evaluate(application_id, service_model, evaluation_model)
+        if response_body['status']:
+            evaluation_result_model.data_path = eval_result_path
+            evaluation_result_model.result = response_body
+            evaluation_result_model.register_date = datetime.datetime.utcnow()
+            db.session.flush()
+            response_body = evaluation_result_model.result
+            db.session.commit()
+
+        db.session.close()
+        return response_body
+
+    def _get_models(self, application_id: str, model_id: int,
+                    eval_id: Optional[int]) -> Tuple[ServiceModel, EvaluationModel, Optional[EvaluationResultModel]]:
         if eval_id:
             evaluation_model = EvaluationModel.query.filter_by(
                 application_id=application_id,
@@ -217,36 +260,17 @@ class ApiEvaluate(Resource):
         evaluation_result_model = db.session.query(EvaluationResultModel).filter(
             EvaluationResultModel.model_id == service_model.model_id,
             EvaluationResultModel.evaluation_id == evaluation_model.evaluation_id).one_or_none()
-        if evaluation_result_model is not None and not do_overwrite:
-            raise RekcurdDashboardException(
-                "Evaluation with the model and data is already done before. Set overwrite = true for re-evaluation")
 
+        return service_model, evaluation_model, evaluation_result_model
+
+    def _evaluate(self, application_id: str, service_model: ServiceModel, evaluation_model: EvaluationModel):
         eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.pkl".format(datetime.datetime.utcnow())
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
         rekcurd_dashboard_client = RekcurdDashboardClient(
             host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
             service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
-        response_body = rekcurd_dashboard_client.run_evaluate_model(evaluation_model.data_path, eval_result_path)
-
-        if response_body['status']:
-            if evaluation_result_model is None:
-                evaluation_result_model = EvaluationResultModel(
-                    model_id=service_model.model_id,
-                    data_path=eval_result_path,
-                    evaluation_id=evaluation_model.evaluation_id,
-                    result=response_body)
-                db.session.add(evaluation_result_model)
-            else:
-                evaluation_result_model.data_path = eval_result_path
-                evaluation_result_model.result = response_body
-                evaluation_result_model.register_date = datetime.datetime.utcnow()
-            db.session.flush()
-            response_body = evaluation_result_model.result
-            db.session.commit()
-
-        db.session.close()
-        return response_body
+        return rekcurd_dashboard_client.run_evaluate_model(evaluation_model.data_path, eval_result_path), eval_result_path
 
 
 @evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluation_results')
