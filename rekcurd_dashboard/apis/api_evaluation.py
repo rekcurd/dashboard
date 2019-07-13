@@ -10,6 +10,7 @@ from flask_jwt_simple import get_jwt_identity
 from werkzeug.datastructures import FileStorage
 
 from . import DatetimeToTimestamp, status_model
+from .api_model import model_model_params
 from rekcurd_dashboard.data_servers import DataServer
 from rekcurd_dashboard.models import (db, ApplicationModel, ServiceModel, EvaluationModel,
                                       EvaluationResultModel, DataServerModel, DataServerModeEnum,
@@ -21,7 +22,7 @@ from rekcurd_dashboard.auth import auth, fetch_application_role
 
 evaluation_api_namespace = Namespace('evaluation', description='Evaluation API Endpoint.')
 success_or_not = evaluation_api_namespace.model('Success', status_model)
-eval_metrics = evaluation_api_namespace.model('Evaluation result', {
+_eval_metrics = {
     'num': fields.Integer(required=True, description='number of evaluated data'),
     'accuracy': fields.Float(required=True, description='accuracy of evaluation'),
     'fvalue': fields.List(fields.Float, required=True, description='F-value of evaluation'),
@@ -29,9 +30,12 @@ eval_metrics = evaluation_api_namespace.model('Evaluation result', {
     'recall': fields.List(fields.Float, required=True, description='recall of evaluation'),
     'option': fields.Raw(),
     'label': fields.Raw(),
-    'status': fields.Boolean(required=True),
     'result_id': fields.Integer(required=True, description='ID of evaluation result')
-})
+}
+eval_metrics = evaluation_api_namespace.model('EvaluationMetrics', _eval_metrics)
+eval_metrics_params = evaluation_api_namespace.model('EvaluationResultMetrics', dict({
+    'status': fields.Boolean(required=True),
+}, **_eval_metrics))
 eval_data_upload = evaluation_api_namespace.model('Result of uploading evaluation data', {
     'status': fields.Boolean(required=True),
     'message': fields.String(required=False),
@@ -62,6 +66,43 @@ evaluation_params = evaluation_api_namespace.model('Evaluation', {
         readOnly=True,
         description='Register date'
     )
+})
+evaluation_result_params = evaluation_api_namespace.model('EvaluationResult', {
+    'evaluation_result_id': fields.Integer(
+        readOnly=True,
+        description='Evaluation Result ID.'
+    ),
+    'model_id': fields.Integer(
+        readOnly=True,
+        description='Model ID.'
+    ),
+    'data_path': fields.String(
+        readOnly=True,
+        description='Evaluation file path'
+    ),
+    'evaluation_id': fields.Integer(
+        readOnly=True,
+        description='Evaluation ID.'
+    ),
+    'register_date': DatetimeToTimestamp(
+        readOnly=True,
+        description='Register date'
+    ),
+    'result': fields.Nested(eval_metrics, readOnly=True),
+    'evaluation': fields.Nested(evaluation_params, readOnly=True),
+    'model': fields.Nested(model_model_params, readOnly=True)
+})
+evaluation_detail = evaluation_api_namespace.model('EvaluationDetail', {
+    'input': fields.Raw(),
+    'output': fields.Raw(),
+    'label': fields.Raw(),
+    'score': fields.Raw(),
+    'is_correct': fields.Boolean(),
+})
+evaluation_detail_params = evaluation_api_namespace.model('EvaluationResultDetail', {
+    'status': fields.Boolean(required=True),
+    'metrics': fields.Nested(eval_metrics, readOnly=True),
+    'details': fields.List(fields.Nested(evaluation_detail, readOnly=True), readOnly=True)
 })
 
 
@@ -190,7 +231,7 @@ class ApiEvaluate(Resource):
     eval_parser.add_argument('evaluation_id', location='form', type=int, required=False)
 
     @evaluation_api_namespace.expect(eval_parser)
-    @evaluation_api_namespace.marshal_with(eval_metrics)
+    @evaluation_api_namespace.marshal_with(eval_metrics_params)
     def post(self, project_id: int, application_id: str):
         """evaluate model"""
         args = self.eval_parser.parse_args()
@@ -216,7 +257,7 @@ class ApiEvaluate(Resource):
         return response_body
 
     @evaluation_api_namespace.expect(eval_parser)
-    @evaluation_api_namespace.marshal_with(eval_metrics)
+    @evaluation_api_namespace.marshal_with(eval_metrics_params)
     def put(self, project_id: int, application_id: str):
         """re-evaluate model"""
         args = self.eval_parser.parse_args()
@@ -275,6 +316,7 @@ class ApiEvaluate(Resource):
 
 @evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluation_results')
 class ApiEvaluationResults(Resource):
+    @evaluation_api_namespace.marshal_list_with(evaluation_result_params)
     def get(self, project_id: int, application_id: str):
         """get all evaluation results and belonging models and evaluation data"""
         rows = db.session.query(EvaluationModel, EvaluationResultModel, ModelModel)\
@@ -292,6 +334,7 @@ class ApiEvaluationResults(Resource):
 
 @evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluation_results/<int:eval_result_id>')
 class ApiEvaluationResultId(Resource):
+    @evaluation_api_namespace.marshal_with(evaluation_detail_params)
     def get(self, project_id: int, application_id: str, eval_result_id: int):
         """get detailed evaluation result"""
         eval_with_result = db.session.query(EvaluationModel, EvaluationResultModel)\
