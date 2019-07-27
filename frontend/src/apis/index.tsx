@@ -586,7 +586,7 @@ export async function fetchAllEvaluationResults(params: FetchEvaluationResultByI
         evaluationId: result.evaluation_id,
         modelDescription: result.model.description,
         evaluationDescription: result.evaluation.description,
-        registerDate: new Date(Date.parse(result.register_date + ' GMT'))
+        registerDate: new Date(result.register_date * 1000)
       }
     })
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluation_results`, convert)
