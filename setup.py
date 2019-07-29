@@ -62,6 +62,7 @@ setup(
     name=PACKAGE_NAME,
     version=VERSION,
     description="A WebUI for managing machine learning services of Rekcurd.",
+    long_description_content_type='text/markdown',
     author_email="",
     author="Rekcurd team and contributors",
     license="Apache License Version 2.0",
