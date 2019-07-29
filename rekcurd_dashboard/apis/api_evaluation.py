@@ -213,7 +213,6 @@ class ApiEvaluationIdDownload(Resource):
             DataServerModel).filter(DataServerModel.project_id == project_id).first_or_404()
         data_server = DataServer()
         with tempfile.NamedTemporaryFile() as fp:
-            print(fp.name)
             data_server.download_file(data_server_model,
                                       evaluation_model.data_path,
                                       fp.name)
