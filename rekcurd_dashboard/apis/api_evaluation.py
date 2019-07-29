@@ -212,16 +212,15 @@ class ApiEvaluationIdDownload(Resource):
         data_server_model: DataServerModel = db.session.query(
             DataServerModel).filter(DataServerModel.project_id == project_id).first_or_404()
         data_server = DataServer()
-        local_filepath = 'tmp.eval'
-        data_server.download_file(data_server_model,
-                                  evaluation_model.data_path,
-                                  local_filepath)
+        with tempfile.NamedTemporaryFile() as fp:
+            data_server.download_file(data_server_model,
+                                      evaluation_model.data_path,
+                                      fp.name)
 
-        response = send_file(local_filepath, as_attachment=True,
-                             attachment_filename='evaluation_{}.txt'.format(evaluation_id),
-                             mimetype='text/plain')
-        os.remove(local_filepath)
-        return response
+            response = send_file(open(fp.name, 'rb'), as_attachment=True,
+                                 attachment_filename='evaluation_{}.txt'.format(evaluation_id),
+                                 mimetype='text/plain')
+            return response
 
 
 @evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluate')
