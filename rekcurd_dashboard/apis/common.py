@@ -1,4 +1,5 @@
 from flask_restplus import fields
+from datetime import datetime
 
 
 status_model = {
@@ -13,6 +14,8 @@ status_model = {
 
 class DatetimeToTimestamp(fields.Raw):
     def format(self, value):
+        if isinstance(value, str):
+            value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
         return value.timestamp()
 
 
@@ -37,3 +40,10 @@ def kubernetes_cpu_to_float(cpu_str: str):
         return value * decimal_suffixes[suffix]
     else:
         raise ValueError(f'Please check the input CPU value: `{cpu_str}`')
+
+
+GIT_SSH_MOUNT_DIR: str = "/root/.ssh"
+GIT_SSH_MODE: int = 384  # equals to "0600"
+GIT_SECRET_PREFIX = "git"
+GIT_ID_RSA: str = "git_id_rsa"
+GIT_CONFIG: str = "config"

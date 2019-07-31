@@ -1,18 +1,17 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router'
-import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Model, Service, SwitchModelParam, SyncKubernetesParam,
   Application, UserInfo,
-  FetchApplicationByIdParam, FetchModelByIdParam, FetchServiceParam,
+  FetchModelByIdParam, FetchServiceParam,
   IdParam, Project
 } from '@src/apis'
 import {
   addNotification,
-  fetchApplicationByIdDispatcher,
   fetchAllModelsDispatcher,
   fetchAllServicesDispatcher,
   switchModelsDispatcher,
@@ -66,7 +65,6 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
   }
 
   componentDidMount() {
-    this.props.fetchApplicationById(this.props.match.params)
     this.props.fetchAllModels(this.props.match.params)
     this.props.fetchAllServices(this.props.match.params)
   }
@@ -174,8 +172,8 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
   // Render methods
 
   render(): JSX.Element {
-    const { fetchProjectByIdStatus, application, models, services, userInfoStatus, settings } = this.props
-    const statuses: any = { models, services, application, fetchProjectByIdStatus }
+    const { project, application, models, services, userInfoStatus, settings } = this.props
+    const statuses: any = { models, services, application, project }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
     }
@@ -196,8 +194,8 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
    */
   renderDashboardStatus(fetchedResults, canEdit): JSX.Element {
     const { onSubmit, onCancel, toggleSwitchMode } = this
-    const project: Project = fetchedResults.fetchProjectByIdStatus
-    const applicationName = fetchedResults.application.name
+    const project: Project = fetchedResults.project
+    const application = fetchedResults.application
     const { projectId, applicationId } = this.props.match.params
 
     const services: Service[] = fetchedResults.services
@@ -218,17 +216,24 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
           toggleSwitchMode={toggleSwitchMode}
           onSubmit={onSubmit}
           onCancel={onCancel} />,
-        applicationName,
-        project.useKubernetes,
+        project,
+        application,
         canEdit
       )
     )
   }
 
-  renderContent = (content: JSX.Element, applicationName, kubernetesMode, canEdit: boolean): JSX.Element => {
+  renderContent = (content: JSX.Element, project: Project, application: Application, canEdit: boolean): JSX.Element => {
     return (
       <div className='pb-5'>
-        {this.renderTitle(applicationName, kubernetesMode, canEdit)}
+        <Breadcrumb tag="nav" listTag="div">
+          <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications`}>Applications</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications/${application.applicationId}`}>{application.name}</BreadcrumbItem>
+          <BreadcrumbItem active tag="span">Dashboard</BreadcrumbItem>
+        </Breadcrumb>
+        {this.renderTitle(project.useKubernetes, canEdit)}
         <AddModelFileModal
           projectId={this.props.match.params.projectId}
           applicationId={this.props.match.params.applicationId}
@@ -237,7 +242,6 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
           reload={this.complete}
         />
         <h3>
-          <i className='fas fa-chart-line fa-fw mr-2'></i>
           Service Status
         </h3>
         <hr />
@@ -247,7 +251,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
     )
   }
 
-  renderTitle = (applicationName, kubernetesMode, canEdit: boolean): JSX.Element => {
+  renderTitle = (kubernetesMode: boolean, canEdit: boolean): JSX.Element => {
     const { push } = this.props.history
     const { projectId, applicationId} = this.props.match.params
 
@@ -280,7 +284,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
           <i className='fas fa-box fa-fw mr-2'></i>
           Add Service
         </Button>
-        {kubernetesMode ? kubeSyncButton : null}
+        {kubernetesMode ? null : null}
       </Col>
     )
 
@@ -288,8 +292,8 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
       <Row className='align-items-center mb-5'>
         <Col xs='7'>
           <h1>
-            <i className='fas fa-ship fa-fw mr-2'></i>
-            {applicationName}
+            <i className='fas fa-chart-line fa-fw mr-2'></i>
+            Dashboard
           </h1>
         </Col>
         {canEdit ? buttons : null}
@@ -405,8 +409,9 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
               modelId: value ? value as number : undefined
             }))
 
+    const res = switchModels(apiParams)
     this.setState({ submitted: true, notified: false })
-    return switchModels(apiParams)
+    return res
   }
 
   /**
@@ -475,7 +480,6 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
 
   complete(param) {
     this.props.addNotification(param)
-    this.props.fetchAllModels(this.props.match.params)
     this.setState({
       submitted: false,
       selectedData: { services: [], models: [] }
@@ -484,7 +488,7 @@ class Dashboard extends React.Component<DashboardStatusProps, DashboardStatusSta
 }
 
 export interface StateProps {
-  fetchProjectByIdStatus: APIRequest<Project>
+  project: APIRequest<Project>
   application: APIRequest<Application>
   models: APIRequest<Model[]>
   services: APIRequest<Service[]>
@@ -498,7 +502,7 @@ export interface StateProps {
 
 const mapStateToProps = (state): StateProps => {
   return {
-    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    project: state.fetchProjectByIdReducer.fetchProjectById,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     models: state.fetchAllModelsReducer.fetchAllModels,
     services: state.fetchAllServicesReducer.fetchAllServices,
@@ -513,7 +517,6 @@ const mapStateToProps = (state): StateProps => {
 
 export interface DispatchProps {
   addNotification
-  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
   fetchAllServices: (params: FetchServiceParam) => Promise<void>
   switchModels: (params: SwitchModelParam[]) => Promise<void>
@@ -525,7 +528,6 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
-    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
     fetchAllServices: (params: FetchServiceParam) => fetchAllServicesDispatcher(dispatch, params),
     switchModels: (params: SwitchModelParam[]) => switchModelsDispatcher(dispatch, params),

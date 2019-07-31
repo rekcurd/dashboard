@@ -1,7 +1,9 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-import { Card, CardBody, Button, CardTitle, UncontrolledTooltip } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Card, CardBody, Button, CardTitle, UncontrolledTooltip } from 'reactstrap'
 import { dataServerMode } from '@components/Common/Enum'
+
+import { Project } from '@src/apis'
 
 import * as Yup from "yup";
 import { Field, Form, Formik } from "formik";
@@ -11,7 +13,9 @@ import { FormikInput } from '@common/Field'
 
 const DataServerSchema = Yup.object().shape({
   dataServerMode: Yup.string()
-    .oneOf([dataServerMode.local.toString(), dataServerMode.ceph_s3.toString(), dataServerMode.aws_s3.toString()])
+    .oneOf([
+      dataServerMode.local.toString(), dataServerMode.ceph_s3.toString(),
+      dataServerMode.aws_s3.toString(), dataServerMode.gcs.toString()])
     .required('Required'),
   cephAccessKey: Yup.string()
     .max(128),
@@ -30,6 +34,12 @@ const DataServerSchema = Yup.object().shape({
   awsSecretKey: Yup.string()
     .max(128),
   awsBucketName: Yup.string()
+    .max(128),
+  gcsAccessKey: Yup.string()
+    .max(128),
+  gcsSecretKey: Yup.string()
+    .max(128),
+  gcsBucketName: Yup.string()
     .max(128)
 });
 
@@ -72,7 +82,7 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
   }
 
   render() {
-    const { onSubmit, onCancel, method, canEdit } = this.props
+    const { project, onSubmit, onCancel, method, canEdit } = this.props
     const initialValues = {
       ...this.props.initialValues
     }
@@ -167,14 +177,50 @@ class DataServerFormImpl extends React.Component<DataServerFormProps, DataServer
           </CardBody>
         </Card>
       )
+    } else if (this.state.dataServerMode === dataServerMode.gcs.toString()) {
+      fields = (
+        <Card className='mb-3'>
+          <CardBody>
+            <Field
+              name="gcsAccessKey"
+              label="GCS Access Key"
+              component={FormikInput}
+              className="form-control"
+              placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
+              required />
+            <Field
+              name="gcsSecretKey"
+              label="GCS Secret Key"
+              component={FormikInput}
+              className="form-control"
+              placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
+              required />
+            <Field
+              name="gcsBucketName"
+              label="GCS Bucket Name"
+              component={FormikInput}
+              className="form-control"
+              placeholder="e.g. 'xxxxx'"
+              disabled={!canEdit}
+              required />
+          </CardBody>
+        </Card>
+      )
     } else {
       fields = null
     }
 
     return (
       <div className='pt-3 pr-3 pl-3'>
+        <Breadcrumb tag="nav" listTag="div">
+          <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+          <BreadcrumbItem active tag="span">Data Servers</BreadcrumbItem>
+        </Breadcrumb>
         <h1>
-          <i className='fas fa-plug fa-fw mr-2'></i>
+          <i className='fas fa-archive fa-fw mr-2'></i>
           {method === 'post' ? 'Add' : 'Edit'} DataServer
         </h1>
         <Formik
@@ -237,9 +283,13 @@ const defaultInitialValues = {
   awsAccessKey: '',
   awsSecretKey: '',
   awsBucketName: '',
+  gcsAccessKey: '',
+  gcsSecretKey: '',
+  gcsBucketName: '',
 }
 
 export interface CustomProps {
+  project: Project
   onCancel
   onSubmit
   method: string
@@ -255,12 +305,14 @@ export interface CustomProps {
     awsAccessKey: string
     awsSecretKey: string
     awsBucketName: string
+    gcsAccessKey: string
+    gcsSecretKey: string
+    gcsBucketName: string
   }
 }
 
 export const DataServerForm = connect(
   (state: any, extraProps: CustomProps) => ({
-    ...state.form,
     initialValues: {
       ...defaultInitialValues,
       ...extraProps.initialValues

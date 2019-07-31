@@ -143,7 +143,6 @@ type ServiceConfigFormProps = CustomProps
 
 export const ServiceConfigForm = connect(
   (state: any, extraProps: CustomProps) => ({
-    ...state.form,
     ...extraProps,
   })
 )(ServiceConfigFormImpl)

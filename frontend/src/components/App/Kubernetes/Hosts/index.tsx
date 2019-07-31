@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps, Link } from 'react-router-dom'
-import { Row, Col, Table, Button, Tooltip, Modal, ModalBody, ModalHeader } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Row, Col, Table, Button, Tooltip, Modal, ModalBody, ModalHeader } from 'reactstrap'
 
 import { APIRequestResultsRenderer } from '@common/APIRequestResultsRenderer'
 import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
-import { Kubernetes, FetchKubernetesByIdParam, IdParam, UserInfo } from '@src/apis'
+import { Kubernetes, FetchKubernetesByIdParam, IdParam, UserInfo, Project } from '@src/apis'
 import {
   fetchAllKubernetesDispatcher,
   deleteKubernetesDispatcher,
@@ -95,8 +95,8 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
   }
 
   render() {
-    const { fetchAllKubernetesStatus, userInfoStatus, settings } = this.props
-    const targetStatus: any = { hosts: fetchAllKubernetesStatus }
+    const { project, hosts, userInfoStatus, settings } = this.props
+    const targetStatus: any = { project, hosts }
 
     if (isAPISucceeded(settings) && settings.result.auth) {
       targetStatus.userInfoStatus = userInfoStatus
@@ -110,6 +110,7 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
   }
 
   renderKubernetes(status, canEdit) {
+    const project: Project = status.project
     const kubernetesHosts: Kubernetes[] = status.hosts
     const { deletionSubmitted } = this.state
     const submitted = deletionSubmitted
@@ -128,7 +129,7 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
     const title = (
       <div className='d-flex justify-content-between align-items-center mb-4'>
         <h1>
-          <i className='fas fa-plug fa-fw mr-3'></i>
+          <i className='fas fa-ship fa-fw mr-3'></i>
           Kubernetes
         </h1>
         {addButton}
@@ -138,6 +139,11 @@ class Hosts extends React.Component<KubernetesProps, KubernetesState> {
     return (
       <Row className='justify-content-center'>
         <Col xs='10' className='pt-5'>
+          <Breadcrumb tag="nav" listTag="div">
+            <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+            <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+            <BreadcrumbItem active tag="span">Kubernetes</BreadcrumbItem>
+          </Breadcrumb>
           {title}
           {this.renderKubernetesHostListTable(kubernetesHosts, canEdit)}
         </Col>
@@ -252,7 +258,8 @@ interface KubernetesState {
 }
 
 interface StateProps {
-  fetchAllKubernetesStatus: APIRequest<Kubernetes[]>
+  project: APIRequest<Project>
+  hosts: APIRequest<Kubernetes[]>
   deleteKubernetesStatus: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
   settings: APIRequest<any>
@@ -260,7 +267,8 @@ interface StateProps {
 
 const mapStateToProps = (state): StateProps => {
   return {
-    fetchAllKubernetesStatus: state.fetchAllKubernetesReducer.fetchAllKubernetes,
+    project: state.fetchProjectByIdReducer.fetchProjectById,
+    hosts: state.fetchAllKubernetesReducer.fetchAllKubernetes,
     deleteKubernetesStatus: state.deleteKubernetesReducer.deleteKubernetes,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,

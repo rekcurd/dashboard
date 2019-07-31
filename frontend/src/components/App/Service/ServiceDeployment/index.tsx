@@ -8,11 +8,12 @@ import * as Yup from "yup";
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Service, Model, FetchServiceByIdParam,
-  FetchModelByIdParam, ServiceDeploymentParam, UpdateServiceParam, UserInfo
+  FetchModelByIdParam, ServiceDeploymentParam, UpdateServiceParam, UserInfo, FetchServiceParam
 } from '@src/apis'
 import {
   fetchServiceByIdDispatcher,
   fetchAllModelsDispatcher,
+  fetchAllServicesDispatcher,
   saveServiceDeploymentDispatcher,
   updateServiceDispatcher,
   addNotification
@@ -74,6 +75,7 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
       if (deploySucceeded) {
         nextProps.addNotification({ color: 'success', message: 'Successfully saved service' })
         push(`/projects/${projectId}/applications/${applicationId}`)
+        nextProps.fetchAllServices(nextProps.match.params)
         return { submitting: false, notified: true }
       } else if (deployFailed) {
         nextProps.addNotification({ color: 'error', message: 'Something went wrong. Try again later' })
@@ -344,8 +346,8 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
       ...parameters
     }
 
+    updateServiceDeployment(request)
     this.setState({ submitting: true, notified: false })
-    return updateServiceDeployment(request)
   }
 
   onDeploymentSubmit(parameters) {
@@ -360,8 +362,8 @@ class ServiceDeployment extends React.Component<SaveServiceProps, SaveServiceSta
       ...parameters
     }
 
+    saveServiceDeployment(request)
     this.setState({ submitting: true, notified: false })
-    return saveServiceDeployment(request)
   }
 }
 
@@ -397,13 +399,13 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
     updateServiceStatus: state.updateServiceReducer.updateService,
     userInfoStatus: state.userInfoReducer.userInfo,
     settings: state.settingsReducer.settings,
-    ...state.form,
     ...extraProps
   }
 )
 
 export interface DispatchProps {
   fetchServiceById: (params: FetchServiceByIdParam) => Promise<void>
+  fetchAllServices: (params: FetchServiceParam) => Promise<void>
   fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
   saveServiceDeployment: (params: ServiceDeploymentParam) => Promise<void>
   updateServiceDeployment: (params: UpdateServiceParam) => Promise<void>
@@ -413,6 +415,7 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     fetchServiceById: (params: FetchServiceByIdParam) => fetchServiceByIdDispatcher(dispatch, params),
+    fetchAllServices: (params: FetchServiceParam) => fetchAllServicesDispatcher(dispatch, params),
     fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
     saveServiceDeployment: (params: ServiceDeploymentParam) => saveServiceDeploymentDispatcher(dispatch, params),
     updateServiceDeployment: (params: UpdateServiceParam) => updateServiceDispatcher(dispatch, params),

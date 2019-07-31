@@ -6,7 +6,8 @@ from . import (
 )
 from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_dashboard.models import (
-    db, KubernetesModel, DataServerModel, DataServerModeEnum, ApplicationModel, ServiceModel, ModelModel
+    db, ProjectModel, KubernetesModel, DataServerModel,
+    DataServerModeEnum, ApplicationModel, ServiceModel, ModelModel
 )
 from rekcurd_dashboard.protobuf import rekcurd_pb2
 
@@ -95,15 +96,15 @@ class ApiServiceId(Resource):
         """switch_service_model_assignment"""
         args = self.switch_model_parser.parse_args()
         model_id = args['model_id']
-        kubernetes_models = db.session.query(KubernetesModel).filter(
-            KubernetesModel.project_id == project_id).all()
+        project_model = db.session.query(ProjectModel).filter(
+            ProjectModel.project_id == project_id).first_or_404()
         data_server_model: DataServerModel = db.session.query(DataServerModel).filter(
             DataServerModel.project_id == project_id).first_or_404()
         service_model: ServiceModel = db.session.query(ServiceModel).filter(
             ServiceModel.service_id == service_id).first_or_404()
         if service_model.model_id == model_id:
             raise RekcurdDashboardException("No need to switch model.")
-        if len(kubernetes_models) and data_server_model.data_server_mode != DataServerModeEnum.LOCAL:
+        if project_model.use_kubernetes and data_server_model.data_server_mode != DataServerModeEnum.LOCAL:
             """If Kubernetes mode and data_sever_mode is not LOCAL, then request switch to Kubernetes WebAPI"""
             switch_model_assignment(project_id, application_id, service_id, model_id)
             response_body = {"status": True, "message": "Success."}
@@ -153,10 +154,12 @@ class ApiServiceId(Resource):
     @service_api_namespace.marshal_with(success_or_not)
     def delete(self, project_id: int, application_id: str, service_id: str):
         """delete_service"""
-        kubernetes_models = db.session.query(KubernetesModel).filter(
-            KubernetesModel.project_id == project_id).all()
-        if len(kubernetes_models):
+        project_model = db.session.query(ProjectModel).filter(
+            ProjectModel.project_id == project_id).first_or_404()
+        if project_model.use_kubernetes:
             """If Kubernetes mode, then request deletion to Kubernetes WebAPI"""
+            kubernetes_models = db.session.query(KubernetesModel).filter(
+                KubernetesModel.project_id == project_id).all()
             delete_kubernetes_deployment(kubernetes_models, application_id, service_id)
         else:
             """Otherwise, delete DB entry."""

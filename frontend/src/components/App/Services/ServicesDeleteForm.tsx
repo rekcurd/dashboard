@@ -205,7 +205,6 @@ interface StateProps {
 
 const mapStateToProps = (state: any, extraProps: ServicesDeleteFormCustomProps) => {
   return {
-    ...state.form,
     initialValues: {
       delete: {
         services: []

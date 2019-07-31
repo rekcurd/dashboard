@@ -3,7 +3,7 @@ from .dao import db
 from sqlalchemy import (
     Column, Integer, DateTime,
     String, UniqueConstraint,
-    ForeignKey
+    ForeignKey, Text
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import backref
@@ -23,6 +23,7 @@ class EvaluationModel(db.Model):
     evaluation_id = Column(Integer, primary_key=True, autoincrement=True)
     checksum = Column(String(128), nullable=False)
     application_id = Column(String, ForeignKey('applications.application_id', ondelete="CASCADE"), nullable=False)
+    description = Column(Text, nullable=False)
     data_path = Column(String(512), nullable=False)
     register_date = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
@@ -36,6 +37,7 @@ class EvaluationModel(db.Model):
             'evaluation_id': self.evaluation_id,
             'checksum': self.checksum,
             'application_id': self.application_id,
+            'description': self.description,
             'data_path': self.data_path,
             'register_date': self.register_date.strftime('%Y-%m-%d %H:%M:%S'),
         }

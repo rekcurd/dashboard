@@ -15,7 +15,7 @@ data_server_model_params = data_server_api_namespace.model('DataServer', {
     ),
     'data_server_mode': fields.String(
         required=True,
-        description='Data server mode. [local/ceph_s3/aws_s3]',
+        description='Data server mode. [local/ceph_s3/aws_s3/gcs]',
     ),
     'ceph_access_key': fields.String(
         required=False,
@@ -53,6 +53,18 @@ data_server_model_params = data_server_api_namespace.model('DataServer', {
         required=False,
         description='AWS S3 API bucket name.'
     ),
+    'gcs_access_key': fields.String(
+        required=False,
+        description='GCS API access key.'
+    ),
+    'gcs_secret_key': fields.String(
+        required=False,
+        description='GCS API secret key.'
+    ),
+    'gcs_bucket_name': fields.String(
+        required=False,
+        description='GCS API bucket name.'
+    ),
     'register_date': DatetimeToTimestamp(
         readOnly=True,
         description='Register date.'
@@ -62,8 +74,8 @@ data_server_model_params = data_server_api_namespace.model('DataServer', {
 data_server_parser = reqparse.RequestParser()
 data_server_parser.add_argument(
     'data_server_mode', location='form', type=str, required=True,
-    choices=('local', 'ceph_s3', 'aws_s3'),
-    help='Data server mode. [local/ceph_s3/aws_s3].')
+    choices=('local', 'ceph_s3', 'aws_s3', 'gcs'),
+    help='Data server mode. [local/ceph_s3/aws_s3/gcs].')
 data_server_parser.add_argument(
     'ceph_access_key', location='form', type=str, required=False,
     default='',
@@ -100,6 +112,18 @@ data_server_parser.add_argument(
     'aws_bucket_name', location='form', type=str, required=False,
     default='',
     help='AWS S3 API bucket name.')
+data_server_parser.add_argument(
+    'gcs_access_key', location='form', type=str, required=False,
+    default='',
+    help='GCS API access key.')
+data_server_parser.add_argument(
+    'gcs_secret_key', location='form', type=str, required=False,
+    default='',
+    help='GCS API secret key.')
+data_server_parser.add_argument(
+    'gcs_bucket_name', location='form', type=str, required=False,
+    default='',
+    help='GCS API bucket name.')
 
 
 @data_server_api_namespace.route('/projects/<int:project_id>/data_servers')
@@ -125,6 +149,9 @@ class ApiDataServers(Resource):
         aws_access_key = args['aws_access_key']
         aws_secret_key = args['aws_secret_key']
         aws_bucket_name = args['aws_bucket_name']
+        gcs_access_key = args['gcs_access_key']
+        gcs_secret_key = args['gcs_secret_key']
+        gcs_bucket_name = args['gcs_bucket_name']
         if data_server_mode_enum == DataServerModeEnum.LOCAL:
             pass
         elif data_server_mode_enum == DataServerModeEnum.CEPH_S3:
@@ -141,6 +168,12 @@ class ApiDataServers(Resource):
             else:
                 raise RekcurdDashboardException(
                     "Need to set \"aws_bucket_name\"")
+        elif data_server_mode_enum == DataServerModeEnum.GCS:
+            if gcs_access_key and gcs_secret_key and gcs_bucket_name:
+                pass
+            else:
+                raise RekcurdDashboardException(
+                    "Need to set \"gcs_access_key\", \"gcs_secret_key\" and \"gcs_bucket_name\"")
         else:
             raise RekcurdDashboardException("Invalid data server mode specified.")
 
@@ -153,7 +186,8 @@ class ApiDataServers(Resource):
             ceph_access_key=ceph_access_key, ceph_secret_key=ceph_secret_key,
             ceph_host=ceph_host, ceph_port=ceph_port, ceph_is_secure=ceph_is_secure,
             ceph_bucket_name=ceph_bucket_name, aws_access_key=aws_access_key,
-            aws_secret_key=aws_secret_key, aws_bucket_name=aws_bucket_name)
+            aws_secret_key=aws_secret_key, aws_bucket_name=aws_bucket_name,
+            gcs_access_key=gcs_access_key, gcs_secret_key=gcs_secret_key, gcs_bucket_name=gcs_bucket_name)
         db.session.add(data_server_model)
         db.session.commit()
         db.session.close()
@@ -175,6 +209,9 @@ class ApiDataServers(Resource):
         aws_access_key = args['aws_access_key']
         aws_secret_key = args['aws_secret_key']
         aws_bucket_name = args['aws_bucket_name']
+        gcs_access_key = args['gcs_access_key']
+        gcs_secret_key = args['gcs_secret_key']
+        gcs_bucket_name = args['gcs_bucket_name']
 
         data_server_model: DataServerModel = db.session.query(DataServerModel).filter(
             DataServerModel.project_id == project_id).first_or_404()
@@ -209,6 +246,15 @@ class ApiDataServers(Resource):
         if aws_bucket_name is not None:
             is_updated = True
             data_server_model.aws_bucket_name = aws_bucket_name
+        if gcs_access_key is not None:
+            is_updated = True
+            data_server_model.gcs_access_key = gcs_access_key
+        if gcs_secret_key is not None:
+            is_updated = True
+            data_server_model.gcs_secret_key = gcs_secret_key
+        if gcs_bucket_name is not None:
+            is_updated = True
+            data_server_model.gcs_bucket_name = gcs_bucket_name
 
         if data_server_mode_enum == DataServerModeEnum.LOCAL:
             pass
@@ -227,6 +273,13 @@ class ApiDataServers(Resource):
             else:
                 raise RekcurdDashboardException(
                     "Need to set \"aws_bucket_name\"")
+        elif data_server_mode_enum == DataServerModeEnum.GCS:
+            if data_server_model.gcs_access_key and data_server_model.gcs_secret_key and \
+                    data_server_model.gcs_bucket_name:
+                pass
+            else:
+                raise RekcurdDashboardException(
+                    "Need to set \"gcs_access_key\", \"gcs_secret_key\" and \"gcs_bucket_name\"")
         else:
             raise RekcurdDashboardException("Invalid data server mode specified.")
 

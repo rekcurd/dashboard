@@ -51,6 +51,12 @@ Check the belows in detail.
 - [Backend](./rekcurd_dashboard/README.md)
 - [Frontend](./frontend/README.md)
 
+##### Generate settings
+You can generate the template of `settings.yml` file.
+```bash
+$ rekcurd_dashboard template
+```
+
 ##### Boot command
 ```bash
 $ rekcurd_dashboard db --settings settings.yml init

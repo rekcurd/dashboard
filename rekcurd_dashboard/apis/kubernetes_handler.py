@@ -1,12 +1,18 @@
+import base64
 import json
 import uuid
 
 from datetime import datetime
 from pathlib import Path
 
-from . import api, RekcurdDashboardException
-from .common import kubernetes_cpu_to_float
-from rekcurd_dashboard.models import db, DataServerModel, KubernetesModel, ApplicationModel, ServiceModel, ModelModel
+from . import (
+    api, RekcurdDashboardException, kubernetes_cpu_to_float,
+    GIT_SECRET_PREFIX, GIT_ID_RSA, GIT_CONFIG, GIT_SSH_MODE, GIT_SSH_MOUNT_DIR
+)
+from rekcurd_dashboard.models import (
+    db, DataServerModel, KubernetesModel, ApplicationModel,
+    ServiceModel, ModelModel
+)
 
 
 def get_full_config_path(filename: str):
@@ -41,9 +47,18 @@ def remove_kubernetes_access_file(config_path):
     return
 
 
+def check_kubernetes_configfile(config_path: str):
+    full_config_path = get_full_config_path(config_path)
+    from kubernetes import client, config
+    config.load_kube_config(full_config_path)
+    v1_api = client.AppsV1Api()
+    v1_api.list_deployment_for_all_namespaces(watch=False)
+    return
+
+
 def update_kubernetes_deployment_info(kubernetes_model: KubernetesModel):
     """
-    Update Kubernetes deployment info.
+    Load the latest deployment info from Kubernetes, and set them to dashboard DB tables.
     :param kubernetes_model:
     :return:
     """
@@ -130,9 +145,9 @@ def apply_rekcurd_to_kubernetes(
         resource_request_cpu: str, resource_request_memory: str, resource_limit_cpu: str,
         resource_limit_memory: str, commit_message: str, service_model_assignment: int,
         service_git_url: str = "", service_git_branch: str = "", service_boot_script: str = "",
-        debug_mode: bool = False, service_id: str = None,
+        debug_mode: bool = False, service_id: str = None, is_creation_mode: bool = False,
         display_name: str = None, description: str = None,
-        **kwargs) -> str:
+        kubernetes_models = None, **kwargs) -> str:
     """
     kubectl apply
     :param project_id:
@@ -160,18 +175,21 @@ def apply_rekcurd_to_kubernetes(
     :param service_boot_script:
     :param debug_mode:
     :param service_id:
+    :param is_creation_mode:
     :param display_name:
     :param description:
+    :param kubernetes_models:
     :param kwargs:
     :return:
     """
     __num_retry = 5
     progress_deadline_seconds = \
         int(__num_retry*policy_wait_seconds*replicas_maximum/(policy_max_surge+policy_max_unavailable))
-    is_creation_mode = False
     if service_id is None:
         is_creation_mode = True
         service_id = uuid.uuid4().hex
+    if kubernetes_models is None:
+        kubernetes_models = db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all()
     data_server_model: DataServerModel = db.session.query(DataServerModel).filter(
         DataServerModel.project_id == project_id).first_or_404()
     application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
@@ -180,9 +198,51 @@ def apply_rekcurd_to_kubernetes(
     model_model: ModelModel = db.session.query(ModelModel).filter(
         ModelModel.model_id == service_model_assignment).first_or_404()
 
-    for kubernetes_model in db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all():
+    from kubernetes import client
+    try:
+        git_secret = load_secret(project_id, application_id, service_level, GIT_SECRET_PREFIX)
+    except:
+        git_secret = None
+    volume_mounts = dict()
+    volumes = dict()
+    if git_secret:
+        connector_name = "sec-git-name"
+        secret_name = "sec-{}-{}".format(GIT_SECRET_PREFIX, application_id)
+        volume_mounts = {
+            'volume_mounts': [
+                client.V1VolumeMount(
+                    name=connector_name,
+                    mount_path=GIT_SSH_MOUNT_DIR,
+                    read_only=True
+                )
+            ]
+        }
+        volumes = {
+            'volumes': [
+                client.V1Volume(
+                    name=connector_name,
+                    secret=client.V1SecretVolumeSource(
+                        secret_name=secret_name,
+                        items=[
+                            client.V1KeyToPath(
+                                key=GIT_ID_RSA,
+                                path=GIT_ID_RSA,
+                                mode=GIT_SSH_MODE
+                            ),
+                            client.V1KeyToPath(
+                                key=GIT_CONFIG,
+                                path=GIT_CONFIG,
+                                mode=GIT_SSH_MODE
+                            )
+                        ]
+                    )
+                )
+            ]
+        }
+
+    for kubernetes_model in kubernetes_models:
         full_config_path = get_full_config_path(kubernetes_model.config_path)
-        from kubernetes import client, config
+        from kubernetes import config
         config.load_kube_config(full_config_path)
 
         pod_env = [
@@ -266,7 +326,18 @@ def apply_rekcurd_to_kubernetes(
                 name="REKCURD_AWS_BUCKET_NAME",
                 value=str(data_server_model.aws_bucket_name or "xxx")
             ),
-            # TODO: GCP
+            client.V1EnvVar(
+                name="REKCURD_GCS_ACCESS_KEY",
+                value=str(data_server_model.gcs_access_key or "xxx")
+            ),
+            client.V1EnvVar(
+                name="REKCURD_GCS_SECRET_KEY",
+                value=str(data_server_model.gcs_secret_key or "xxx")
+            ),
+            client.V1EnvVar(
+                name="REKCURD_GCS_BUCKET_NAME",
+                value=str(data_server_model.gcs_bucket_name or "xxx")
+            ),
             client.V1EnvVar(
                 name="REKCURD_SERVICE_GIT_URL",
                 value=service_git_url
@@ -370,10 +441,12 @@ def apply_rekcurd_to_kubernetes(
                                 ),
                                 security_context=client.V1SecurityContext(
                                     privileged=True
-                                )
+                                ),
+                                **volume_mounts
                             )
                         ],
-                        node_selector={"host": service_level}
+                        node_selector={"host": service_level},
+                        **volumes
                     )
                 )
             )
@@ -481,8 +554,7 @@ def apply_rekcurd_to_kubernetes(
                 "apiVersion": "networking.istio.io/v1alpha3",
                 "kind": "VirtualService",
                 "metadata": {
-                    "labels": {"rekcurd-worker": "True", "id": application_id,
-                               "name": application_name, "sel": service_id},
+                    "labels": {"rekcurd-worker": "True", "id": application_id, "name": application_name},
                     "name": "ing-vs-{0}".format(application_id),
                     "namespace": service_level
                 },
@@ -675,16 +747,19 @@ def apply_new_route_weight(
     return
 
 
-def load_kubernetes_deployment_info(project_id: int, application_id: str, service_id: str) -> dict:
+def load_kubernetes_deployment_info(project_id: int, application_id: str, service_id: str,
+                                    kubernetes_model: KubernetesModel = None) -> dict:
     """
     Load deployment info from Kubernetes.
     :param project_id:
     :param application_id:
     :param service_id:
+    :param kubernetes_model:
     :return:
     """
-    kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
-        KubernetesModel.project_id == project_id).first()
+    if kubernetes_model is None:
+        kubernetes_model = db.session.query(KubernetesModel).filter(
+            KubernetesModel.project_id == project_id).first()
     service_model: ServiceModel = db.session.query(ServiceModel).filter(
         ServiceModel.service_id == service_id).first_or_404()
 
@@ -872,3 +947,98 @@ def backup_istio_routing(kubernetes_model: KubernetesModel, application_model: A
               Path(save_dir, "ing-vs-{0}.json".format(
                   application_model.application_id)).open("w", encoding='utf-8'), ensure_ascii=False, indent=2)
     return
+
+
+def load_secret(project_id: int, application_id: str, service_level: str, name_prefix: str):
+    if len(name_prefix) > 3:
+        raise RekcurdDashboardException("name_prefix must be up to 3 characters.")
+    kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
+        KubernetesModel.project_id == project_id).first_or_404()
+    full_config_path = get_full_config_path(kubernetes_model.config_path)
+    from kubernetes import client, config
+    config.load_kube_config(full_config_path)
+    core_v1_api = client.CoreV1Api()
+    name = "sec-{}-{}".format(name_prefix, application_id)
+    secret_body = core_v1_api.read_namespaced_secret(
+        name=name,
+        namespace=service_level,
+        exact=True,
+        export=True
+    )
+    string_data: dict = secret_body.data
+    for key in string_data.keys():
+        string_data[key] = base64.b64decode(string_data[key]).decode()
+    return string_data
+
+
+def apply_secret(project_id: int, application_id: str, service_level: str, string_data: dict, name_prefix: str):
+    if len(name_prefix) > 3:
+        raise RekcurdDashboardException("name_prefix must be up to 3 characters.")
+    application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
+        ApplicationModel.application_id == application_id).first_or_404()
+    for kubernetes_model in db.session.query(KubernetesModel).filter(KubernetesModel.project_id == project_id).all():
+        full_config_path = get_full_config_path(kubernetes_model.config_path)
+        from kubernetes import client, config
+        config.load_kube_config(full_config_path)
+        core_v1_api = client.CoreV1Api()
+        name = "sec-{}-{}".format(name_prefix, application_id)
+        v1_secret = client.V1Secret(
+            api_version="v1",
+            kind="Secret",
+            metadata=client.V1ObjectMeta(
+                name=name,
+                namespace=service_level,
+                labels={"rekcurd-worker": "True", "id": application_model.application_id,
+                        "name": application_model.application_name}
+            ),
+            string_data=string_data,
+            type="Opaque")
+        try:
+            core_v1_api.read_namespaced_secret(
+                name=name,
+                namespace=service_level,
+                exact=True,
+                export=True
+            )
+            is_creation_mode = False
+        except:
+            is_creation_mode = True
+        if is_creation_mode:
+            api.logger.info("Secret created")
+            core_v1_api.create_namespaced_secret(
+                namespace=service_level,
+                body=v1_secret)
+        else:
+            api.logger.info("Secret patched")
+            core_v1_api.patch_namespaced_secret(
+                name=name,
+                namespace=service_level,
+                body=v1_secret)
+    return
+
+
+def delete_secret(project_id: int, application_id: str, service_level: str, name_prefix: str):
+    if len(name_prefix) > 3:
+        raise RekcurdDashboardException("name_prefix must be up to 3 characters.")
+    kubernetes_model: KubernetesModel = db.session.query(KubernetesModel).filter(
+        KubernetesModel.project_id == project_id).first_or_404()
+    full_config_path = get_full_config_path(kubernetes_model.config_path)
+    from kubernetes import client, config
+    config.load_kube_config(full_config_path)
+    core_v1_api = client.CoreV1Api()
+    try:
+        name = "sec-{}-{}".format(name_prefix, application_id)
+        core_v1_api.read_namespaced_secret(
+            name=name,
+            namespace=service_level,
+            exact=True,
+            export=True
+        )
+        core_v1_api.delete_namespaced_secret(
+            name=name,
+            namespace=service_level,
+            body=client.V1DeleteOptions()
+        )
+        return
+    except:
+        return

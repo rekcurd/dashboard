@@ -57,6 +57,12 @@ class ApiDataServersTest(BaseTestCase):
                   'aws_access_key': "xxx", 'aws_secret_key': "xxx", 'aws_bucket_name': "xxx"})
         self.assertEqual(200, response.status_code)
 
+        response = self.client.patch(
+            self.__URL,
+            data={'data_server_mode': DataServerModeEnum.GCS.value,
+                  'gcs_access_key': "xxx", 'gcs_secret_key': "xxx", 'gcs_bucket_name': "xxx"})
+        self.assertEqual(200, response.status_code)
+
     def test_delete(self):
         data_server_mode = DataServerModeEnum.AWS_S3.value
         response = self.client.post(self.__URL, data={'data_server_mode': data_server_mode})

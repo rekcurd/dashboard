@@ -53,6 +53,9 @@ export interface DataServerParam {
   awsAccessKey: string
   awsSecretKey: string
   awsBucketName: string
+  gcsAccessKey: string
+  gcsSecretKey: string
+  gcsBucketName: string
   registerDate?: Date
   method: string
 }
@@ -100,8 +103,8 @@ export async function saveKubernetes(params: KubernetesParam) {
 export interface ApplicationParam {
   applicationId?: string,
   projectId: number
-  description: string
   applicationName: string
+  description: string
   registerDate?: Date
   method: string
 }
@@ -196,6 +199,30 @@ export async function saveServiceDeployment(params: ServiceDeploymentParam): Pro
   throw new RangeError(`You specified wrong save method ${params.method}`)
 }
 
+export interface KubernetesGitKeyParam {
+  projectId: number
+  applicationId: string
+  serviceLevel: string
+  gitIdRsa: string
+  config: string
+  method: string
+}
+export async function saveKubernetesGitKey(params: KubernetesGitKeyParam): Promise<boolean> {
+  const requestBody = {
+    ...convertKeys(params, snakelize),
+    method: {} = {},
+  }
+
+  const convert = (result) => result.status
+
+  if (params.method === 'post') {
+    return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key`, requestBody, convert, 'POST')
+  } else if (params.method === 'patch') {
+    return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key`, requestBody, convert, 'PATCH')
+  }
+  throw new RangeError(`You specified wrong save method ${params.method}`)
+}
+
 export interface ServiceWeightParam {
   serviceId: string
   serviceWeight: number
@@ -254,6 +281,62 @@ export async function updateModel(params: UpdateModelParam): Promise<boolean> {
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/models/${params.modelId}`, requestBody, convert, 'PATCH')
 }
 
+export class UploadEvaluationResult {
+  constructor(
+    public evaluationId: number,
+    public message: string = '',
+    public status: boolean
+  ) { }
+}
+export interface UploadEvaluationParam {
+  projectId: number
+  applicationId: string
+  description: string
+  filepath: File
+}
+export async function uploadEvaluation(params: UploadEvaluationParam) {
+  const requestBody = {
+    ...params
+  }
+
+  const convert =
+    (result): UploadEvaluationResult => {
+      return {
+        evaluationId: result.evaluation_id,
+        message: result.message,
+        status: result.status,
+      }
+    }
+
+  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluations`, requestBody, convert, 'POST')
+}
+
+export interface EvaluateParam {
+  projectId: number
+  applicationId: string
+  modelId: number
+  evaluationId: number
+}
+export async function evaluate(params: EvaluateParam) {
+  const requestBody = {
+    ...params
+  }
+
+  const convert = (result) => result.status
+
+  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluate`, requestBody, convert, 'POST')
+}
+
+export async function reEvaluate(params: EvaluateParam) {
+  const requestBody = {
+    ...params
+  }
+
+  const convert = (result) => result.status
+
+  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluate`, requestBody, convert, 'PUT')
+}
+
 // GET APIs
 export class Project {
   constructor(
@@ -308,6 +391,9 @@ export class DataServer {
     public awsAccessKey: string = null,
     public awsSecretKey: string = null,
     public awsBucketName: string = null,
+    public gcsAccessKey: string = null,
+    public gcsSecretKey: string = null,
+    public gcsBucketName: string = null,
     public registerDate: Date = null
   ) { }
 }
@@ -376,8 +462,8 @@ export async function fetchKubernetesById(params: FetchKubernetesByIdParam): Pro
 
 export class Application {
   constructor(
-    public name: string,
     public applicationId: string,
+    public name: string,
     public description: string = '',
     public registerDate: Date = null,
     public projectId: number
@@ -409,7 +495,6 @@ export async function fetchApplicationById(params: FetchApplicationByIdParam): P
       {
         ...convertKeys(result, camelize),
         name: result.application_name,
-        applicationId: result.application_id,
         registerDate: new Date(result.register_date * 1000)
       }
     )
@@ -453,6 +538,58 @@ export async function fetchModelById(params: FetchModelByIdParam): Promise<Model
     `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/models/${params.modelId}`,
     convert
   )
+}
+
+export class Evaluation {
+  constructor(
+    public evaluationId: number,
+    public description: string = '',
+    public registerDate: Date = null
+  ) { }
+}
+export interface FetchEvaluationByIdParam {
+  evaluationId?: number
+  projectId: number
+  applicationId: string
+}
+export async function fetchAllEvaluations(params: FetchEvaluationByIdParam): Promise<Evaluation[]> {
+  const convert =
+    (results) => results.map((result): Evaluation => {
+      return {
+        description: result.description,
+        evaluationId: result.evaluation_id,
+        registerDate: new Date(result.register_date * 1000)
+      }
+    })
+  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluations`, convert)
+}
+
+export class EvaluationResult {
+  constructor(
+    public evaluationResultId: number,
+    public evaluationId: number,
+    public modelDescription: string = '',
+    public evaluationDescription: string = '',
+    public registerDate: Date = null
+  ) { }
+}
+export interface FetchEvaluationResultByIdParam {
+  evaluationResultId?: number
+  projectId: number
+  applicationId: string
+}
+export async function fetchAllEvaluationResults(params: FetchEvaluationResultByIdParam): Promise<EvaluationResult[]> {
+  const convert =
+    (results) => results.map((result): EvaluationResult => {
+      return {
+        evaluationResultId: result.evaluation_result_id,
+        evaluationId: result.evaluation_id,
+        modelDescription: result.model.description,
+        evaluationDescription: result.evaluation.description,
+        registerDate: new Date(result.register_date * 1000)
+      }
+    })
+  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluation_results`, convert)
 }
 
 export class Service {
@@ -535,6 +672,27 @@ export async function fetchServiceById(params: FetchServiceByIdParam): Promise<S
       convert
     )
   }
+}
+
+export class KubernetesGitKey {
+  constructor(
+    public gitIdRsa: string,
+    public config: string
+  ) { }
+}
+export interface FetchKubernetesGitKeyParam {
+  projectId: number
+  applicationId: string
+  serviceLevel: string
+}
+export async function fetchKubernetesGitKey(params: FetchKubernetesGitKeyParam): Promise<KubernetesGitKey> {
+  const convert =
+    (result) => (
+      {
+        ...convertKeys(result, camelize)
+      }
+    )
+  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/git_key?service_level=${params.serviceLevel}`, convert)
 }
 
 export class ServiceRoutingWeight {
@@ -629,6 +787,8 @@ export interface IdParam {
   applicationId?: string
   serviceId?: string
   modelId?: number
+  evaluationId?: number
+  evaluationResultId?: number
 }
 
 export async function deleteKubernetes(params: IdParam): Promise<any> {
@@ -676,6 +836,32 @@ export async function deleteModels(params: IdParam[]): Promise<Array<Promise<boo
   const entryPoints = params.map(
     (param) =>
       `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${param.projectId}/applications/${param.applicationId}/models/${param.modelId}`
+  )
+  const requestList = params.map(
+    (param) => ({ options: { method: 'DELETE' } })
+  )
+
+  return APICore.rawMultiRequest<boolean>(entryPoints, convert, requestList)
+}
+
+export async function deleteEvaluations(params: IdParam[]): Promise<Array<Promise<boolean>>> {
+  const convert = (result) => result.status
+  const entryPoints = params.map(
+    (param) =>
+      `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${param.projectId}/applications/${param.applicationId}/evaluations/${param.evaluationId}`
+  )
+  const requestList = params.map(
+    (param) => ({ options: { method: 'DELETE' } })
+  )
+
+  return APICore.rawMultiRequest<boolean>(entryPoints, convert, requestList)
+}
+
+export async function deleteEvaluationResults(params: IdParam[]): Promise<Array<Promise<boolean>>> {
+  const convert = (result) => result.status
+  const entryPoints = params.map(
+    (param) =>
+      `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${param.projectId}/applications/${param.applicationId}/evaluation_results/${param.evaluationResultId}`
   )
   const requestList = params.map(
     (param) => ({ options: { method: 'DELETE' } })

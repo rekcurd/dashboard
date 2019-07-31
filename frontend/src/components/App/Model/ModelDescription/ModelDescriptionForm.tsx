@@ -100,7 +100,6 @@ interface ModelDescriptionFormState {}
 
 export const ModelDescriptionForm = connect(
   (state: any, extraProps: CustomProps) => ({
-    ...state.form,
     ...extraProps,
     initialValues: {
       ...defaultInitialValues,

@@ -99,8 +99,9 @@ class ModelDescription extends React.Component<ModelDescriptionProps, ModelDescr
       ...parameters,
     }
 
+    const res = updateModel(request)
     this.setState({ submitting: true, notified: false })
-    return updateModel(request)
+    return res
   }
 
 }
@@ -126,7 +127,6 @@ const mapStateToProps = (state: any, extraProps: CustomProps) => (
   {
     fetchModelByIdStatus: state.fetchModelByIdReducer.fetchModelById,
     updateModelStatus: state.updateModelReducer.updateModel,
-    ...state.form,
     ...extraProps
   }
 )

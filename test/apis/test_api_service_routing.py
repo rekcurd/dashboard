@@ -3,7 +3,7 @@ import json
 from functools import wraps
 from unittest.mock import patch, Mock, mock_open
 
-from test.base import create_kubernetes_model, BaseTestCase, TEST_PROJECT_ID, TEST_APPLICATION_ID, TEST_SERVICE_ID
+from test.base import BaseTestCase, TEST_PROJECT_ID, TEST_APPLICATION_ID, TEST_SERVICE_ID
 
 
 def mock_decorator():
@@ -36,7 +36,6 @@ class ApiServiceRoutingTest(BaseTestCase):
 
     @mock_decorator()
     def test_get(self):
-        create_kubernetes_model(save=True)
         response = self.client.get(self.__URL+'?service_level=development')
         self.assertEqual(200, response.status_code)
         self.assertIsNotNone(response)

@@ -5,6 +5,7 @@ import argparse
 
 from rekcurd_dashboard import _version
 
+from .template_handler import template_handler
 from .server_handler import server_handler
 from .db_handler import db_handler
 
@@ -14,6 +15,13 @@ def create_parser():
     parser.add_argument(
         '--version', '-v', action='version', version=_version.__version__)
     subparsers = parser.add_subparsers()
+
+    # template
+    parser_template = subparsers.add_parser(
+        'template', help='see `rekcurd_dashboard template -h`')
+    parser_template.add_argument(
+        '--dir', required=False, help='Optional destination directory', default='./')
+    parser_template.set_defaults(handler=template_handler)
 
     # server
     parser_server = subparsers.add_parser(

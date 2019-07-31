@@ -2,18 +2,17 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { Dispatch } from 'redux'
 import { withRouter, RouteComponentProps } from 'react-router'
-import { Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Table, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
 
 import {
-  ApplicationAccessControlList, Application, UserInfo, AccessControlParam, FetchApplicationByIdParam
+  ApplicationAccessControlList, Application, UserInfo, AccessControlParam, Project
 } from '@src/apis'
-import {APIRequest, isAPIFailed, isAPISucceeded} from '@src/apis/Core'
+import { APIRequest, isAPIFailed, isAPISucceeded } from '@src/apis/Core'
 import {
   addNotification,
   AddNotificationAction,
   saveApplicationAccessControlDispatcher,
   fetchApplicationAccessControlListDispatcher,
-  fetchApplicationByIdDispatcher,
   deleteApplicationAccessControlDispatcher,
 } from '@src/actions'
 
@@ -23,9 +22,10 @@ import AddUserApplicationRoleModal from './AddUserApplicationRoleModal'
 import { EditUserApplicationRoleModal } from './EditUserApplicationRoleModal'
 
 interface StateProps {
+  project: APIRequest<Project>
   saveApplicationAccessControlStatus: APIRequest<boolean>
   fetchApplicationAccessControlListStatus: APIRequest<ApplicationAccessControlList[]>
-  fetchApplicationByIdStatus: APIRequest<Application>
+  application: APIRequest<Application>
   userInfoStatus: APIRequest<UserInfo>
   deleteApplicationAccessControlStatus: APIRequest<boolean>
 }
@@ -34,7 +34,6 @@ interface DispatchProps {
   addNotification: (params) => AddNotificationAction
   saveApplicationAccessControl: (params: AccessControlParam) => Promise<void>
   fetchApplicationAccessControlList: (params: AccessControlParam) => Promise<void>
-  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   deleteApplicationAccessControl: (params: AccessControlParam) => Promise<void>
 }
 
@@ -70,7 +69,6 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
       applicationId: this.props.match.params.applicationId
     }
     this.props.fetchApplicationAccessControlList(params)
-    this.props.fetchApplicationById(params)
   }
 
   static getDerivedStateFromProps(nextProps: ApplicationAdminProps, prevState: ApplicationAdminState){
@@ -93,8 +91,8 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
   }
 
   render() {
-    const { fetchApplicationByIdStatus, fetchApplicationAccessControlListStatus, userInfoStatus } = this.props
-    const targetStatus = {fetchApplicationByIdStatus, fetchApplicationAccessControlListStatus, userInfoStatus}
+    const { project, application, fetchApplicationAccessControlListStatus, userInfoStatus } = this.props
+    const targetStatus = {project, application, fetchApplicationAccessControlListStatus, userInfoStatus}
 
     return (
       <APIRequestResultsRenderer
@@ -104,12 +102,13 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
     )
   }
   renderApplicationAccessControlList(results, canEdit) {
-    const application: Application = results.fetchApplicationByIdStatus
+    const project: Project = results.project
+    const application: Application = results.application
     const applicationAcl: ApplicationAccessControlList[] = results.fetchApplicationAccessControlListStatus
     const userInfo: UserInfo = results.userInfoStatus
-    return this.renderContent(application, applicationAcl, userInfo, canEdit)
+    return this.renderContent(project, application, applicationAcl, userInfo, canEdit)
   }
-  renderContent(application: Application, applicationAcl: ApplicationAccessControlList[],
+  renderContent(project: Project, application: Application, applicationAcl: ApplicationAccessControlList[],
                 userInfo: UserInfo, canEdit: boolean) {
     const { match, saveApplicationAccessControl } = this.props
     const {
@@ -143,11 +142,18 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
     })
     return (
       <div className='pb-5'>
+        <Breadcrumb tag="nav" listTag="div">
+          <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications`}>Applications</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications/${application.applicationId}`}>{application.name}</BreadcrumbItem>
+          <BreadcrumbItem active tag="span">Admin</BreadcrumbItem>
+        </Breadcrumb>
         <Row className='align-items-center mb-5'>
           <Col xs='7'>
             <h1>
-              <i className='fas fa-ship fa-fw mr-2'></i>
-              {application.name}
+              <i className='fas fa-user-lock fa-fw mr-2'></i>
+              Application Admin
             </h1>
           </Col>
           {canEdit ?
@@ -186,8 +192,7 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
           </React.Fragment> : null
         }
         <h3>
-          <i className='fas fa-unlock fa-fw mr-2'></i>
-          Application Access Control List
+          Access Control List
         </h3>
         <hr />
         <Table hover className='mb-3'>
@@ -213,8 +218,8 @@ class ApplicationAdmin extends React.Component<ApplicationAdminProps, Applicatio
         applicationId: match.params.applicationId,
         uid: removeUserApplicationRoleTarget
       })
-      this.setState({ submitted: true })
       this.toggleRemoveUserModalOpen()
+      this.setState({ submitted: true })
     }
     return (
       <Modal isOpen={isRemoveUserApplicationRoleModalOpen} toggle={cancel} size='sm'>
@@ -285,9 +290,10 @@ export default withRouter(
   connect(
     (state: any): StateProps => {
       return {
+        project: state.fetchProjectByIdReducer.fetchProjectById,
         saveApplicationAccessControlStatus: state.saveApplicationAccessControlReducer.saveApplicationAccessControl,
         fetchApplicationAccessControlListStatus: state.fetchApplicationAccessControlListReducer.fetchApplicationAccessControlList,
-        fetchApplicationByIdStatus: state.fetchApplicationByIdReducer.fetchApplicationById,
+        application: state.fetchApplicationByIdReducer.fetchApplicationById,
         userInfoStatus: state.userInfoReducer.userInfo,
         deleteApplicationAccessControlStatus: state.deleteApplicationAccessControlReducer.deleteApplicationAccessControl
       }
@@ -297,7 +303,6 @@ export default withRouter(
         addNotification: (params) => dispatch(addNotification(params)),
         saveApplicationAccessControl: (params: AccessControlParam) => saveApplicationAccessControlDispatcher(dispatch, params),
         fetchApplicationAccessControlList: (params: AccessControlParam) => fetchApplicationAccessControlListDispatcher(dispatch, params),
-        fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
         deleteApplicationAccessControl: (params: AccessControlParam) => deleteApplicationAccessControlDispatcher(dispatch, params)
       }
     }

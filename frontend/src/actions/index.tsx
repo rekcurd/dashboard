@@ -116,6 +116,13 @@ export const saveServiceDeploymentDispatcher = asyncAPIRequestDispatcherCreator<
   Apis.saveServiceDeployment
 )
 
+export const saveKubernetesGitKeyActionCreators =
+  new APIRequestActionCreators<Apis.KubernetesGitKeyParam, boolean>('UPDATE_KUBERNETES_GIT_KEY')
+export const saveKubernetesGitKeyDispatcher = asyncAPIRequestDispatcherCreator<Apis.KubernetesGitKeyParam, boolean>(
+  saveKubernetesGitKeyActionCreators,
+  Apis.saveKubernetesGitKey
+)
+
 export const updateServiceRoutingActionCreators =
   new APIRequestActionCreators<Apis.ServiceRoutingParam, boolean>('UPDATE_SERVICE_ROUTING')
 export const updateServiceRoutingDispatcher = asyncAPIRequestDispatcherCreator<Apis.ServiceRoutingParam, boolean>(
@@ -135,6 +142,27 @@ export const updateModelActionCreators =
 export const updateModelDispatcher = asyncAPIRequestDispatcherCreator<Apis.UpdateModelParam, boolean>(
   updateModelActionCreators,
   Apis.updateModel
+)
+
+export const uploadEvaluationActionCreators =
+  new APIRequestActionCreators<Apis.UploadEvaluationParam, Apis.UploadEvaluationResult>('UPLOAD_EVALUATION')
+export const uploadEvaluationDispatcher = asyncAPIRequestDispatcherCreator<Apis.UploadEvaluationParam, Apis.UploadEvaluationResult>(
+  uploadEvaluationActionCreators,
+  Apis.uploadEvaluation
+)
+
+export const evaluateActionCreators =
+  new APIRequestActionCreators<Apis.EvaluateParam, boolean>('EVALUATE')
+export const evaluateDispatcher = asyncAPIRequestDispatcherCreator<Apis.EvaluateParam, boolean>(
+  evaluateActionCreators,
+  Apis.evaluate
+)
+
+export const reEvaluateActionCreators =
+  new APIRequestActionCreators<Apis.EvaluateParam, boolean>('REEVALUATE')
+export const reEvaluateDispatcher = asyncAPIRequestDispatcherCreator<Apis.EvaluateParam, boolean>(
+  reEvaluateActionCreators,
+  Apis.reEvaluate
 )
 
 export const fetchAllProjectsActionCreators =
@@ -200,6 +228,20 @@ export const fetchModelByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.Fe
   Apis.fetchModelById
 )
 
+export const fetchAllEvaluationsActionCreators =
+  new APIRequestActionCreators<Apis.FetchEvaluationByIdParam, Apis.Evaluation[]>('FETCH_ALL_EVALUATIONS')
+export const fetchAllEvaluationsDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchEvaluationByIdParam, Apis.Evaluation[]>(
+  fetchAllEvaluationsActionCreators,
+  Apis.fetchAllEvaluations
+)
+
+export const fetchAllEvaluationResultsActionCreators =
+  new APIRequestActionCreators<Apis.FetchEvaluationResultByIdParam, Apis.EvaluationResult[]>('FETCH_ALL_EVALUATION_RESULTS')
+export const fetchAllEvaluationResultsDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchEvaluationResultByIdParam, Apis.EvaluationResult[]>(
+  fetchAllEvaluationResultsActionCreators,
+  Apis.fetchAllEvaluationResults
+)
+
 export const fetchAllServicesActionCreators =
   new APIRequestActionCreators<Apis.FetchServiceParam, Apis.Service[]>('FETCH_ALL_SERVICES')
 export const fetchAllServicesDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchServiceParam, Apis.Service[]>(
@@ -214,8 +256,15 @@ export const fetchServiceByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.
   Apis.fetchServiceById
 )
 
+export const fetchKubernetesGitKeyActionCreators =
+  new APIRequestActionCreators<Apis.FetchKubernetesGitKeyParam, Apis.KubernetesGitKey>('FETCH_KUBERNETES_GIT_KEY_BY_ID')
+export const fetchKubernetesGitKeyDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchKubernetesGitKeyParam, Apis.KubernetesGitKey>(
+  fetchKubernetesGitKeyActionCreators,
+  Apis.fetchKubernetesGitKey
+)
+
 export const fetchServiceRoutingActionCreators =
-  new APIRequestActionCreators<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>('FETCH_SERVICE_ROUTE_BY_ID')
+  new APIRequestActionCreators<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>('FETCH_SERVICE_ROUTING_BY_ID')
 export const fetchServiceRoutingDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchServiceRoutingParam, Apis.ServiceRouting>(
   fetchServiceRoutingActionCreators,
   Apis.fetchServiceRouting
@@ -268,6 +317,20 @@ export const deleteModelsActionCreators =
 export const deleteModelsDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam[], boolean[]>(
   deleteModelsActionCreators,
   Apis.deleteModels
+)
+
+export const deleteEvaluationsActionCreators =
+  new APIRequestActionCreators<Apis.IdParam[], boolean[]>('DELETE_EVALUTIONS')
+export const deleteEvaluationsDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam[], boolean[]>(
+  deleteEvaluationsActionCreators,
+  Apis.deleteEvaluations
+)
+
+export const deleteEvaluationResultsActionCreators =
+  new APIRequestActionCreators<Apis.IdParam[], boolean[]>('DELETE_EVALUTION_RESULTS')
+export const deleteEvaluationResultsDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam[], boolean[]>(
+  deleteEvaluationResultsActionCreators,
+  Apis.deleteEvaluationResults
 )
 
 // Login

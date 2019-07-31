@@ -7,6 +7,7 @@ from rekcurd_dashboard.models import ApplicationModel, DataServerModel, DataServ
 from .local_handler import LocalHandler
 from .ceph_handler import CephHandler
 from .aws_s3_handler import AwsS3Handler
+from .gcs_handler import GcsHandler
 
 
 class DataServer(object):
@@ -21,6 +22,8 @@ class DataServer(object):
             return CephHandler()
         elif data_server_model.data_server_mode == DataServerModeEnum.AWS_S3:
             return AwsS3Handler()
+        elif data_server_model.data_server_mode == DataServerModeEnum.GCS:
+            return GcsHandler()
         else:
             raise ValueError("Invalid DataServerModeEnum value.")
 
@@ -37,6 +40,11 @@ class DataServer(object):
         api_handler = self._get_handler(data_server_model)
         api_handler.upload(data_server_model, filepath, local_filepath)
         return filepath
+
+    def download_file(
+            self, data_server_model: DataServerModel, filepath: str, local_filepath: str) -> None:
+        api_handler = self._get_handler(data_server_model)
+        api_handler.download(data_server_model, filepath, local_filepath)
 
     def delete_file(self, data_server_model: DataServerModel, filepath: str) -> None:
         api_handler = self._get_handler(data_server_model)

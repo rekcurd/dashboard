@@ -230,7 +230,6 @@ type ServiceDeploymentFormProps = CustomProps
 
 export const ServiceDeploymentForm = connect(
   (state: any, extraProps: CustomProps) => ({
-    ...state.form,
     ...extraProps,
   })
 )(ServiceDeploymentFormImpl)

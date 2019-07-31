@@ -1,16 +1,15 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
-import { Row, Col } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Model, Application, UserInfo, UserApplicationRole,
-  UpdateModelParam, FetchApplicationByIdParam, FetchModelByIdParam
+  UpdateModelParam, FetchModelByIdParam, Project
 } from '@src/apis'
 import {
   fetchModelByIdDispatcher,
-  fetchApplicationByIdDispatcher,
   updateModelDispatcher,
   addNotification
 } from '@src/actions'
@@ -36,8 +35,6 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
   componentDidMount() {
     const { userInfoStatus, history } = this.props
     const { applicationId } = this.props.match.params
-
-    this.props.fetchApplicationById(this.props.match.params)
 
     const userInfo: UserInfo = isAPISucceeded<UserInfo>(userInfoStatus) && userInfoStatus.result
     if (userInfo) {
@@ -74,27 +71,45 @@ class SaveModel extends React.Component<ModelProps, ModelState> {
   }
 
   render() {
-    const { application } = this.props
+    const { project, application } = this.props
 
     return(
       <APIRequestResultsRenderer
-        APIStatus={{application}}
+        APIStatus={{project, application}}
         render={this.renderForm}
       />
     )
   }
 
-  renderForm(result) {
+  renderForm(result, canEdit) {
+    const { projectId, applicationId } = this.props.match.params
+    const project: Project = result.project
+    const application = result.application
+
+    if (!canEdit) {
+      this.props.history.push(`/projects/${projectId}/applications/${applicationId}`)
+    }
+
     return (
-      <Row className='justify-content-center'>
-        <Col md='10'>
-          <h1 className='mb-3'>
-            <i className='fas fa-box fa-fw mr-2'></i>
-            Edit Model
-          </h1>
-          <ModelDescription />
-        </Col>
-      </Row>
+      <React.Fragment>
+        <Breadcrumb tag="nav" listTag="div">
+          <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications`}>Applications</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications/${application.applicationId}`}>{application.name}</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications/${application.applicationId}/models`}>Models</BreadcrumbItem>
+          <BreadcrumbItem active tag="span">Edit Model</BreadcrumbItem>
+        </Breadcrumb>
+        <Row className='justify-content-center'>
+          <Col md='10'>
+            <h1 className='mb-3'>
+              <i className='fas fa-box fa-fw mr-2'></i>
+              Edit Model
+            </h1>
+            <ModelDescription />
+          </Col>
+        </Row>
+      </React.Fragment>
     )
   }
 }
@@ -110,8 +125,9 @@ interface ModelState {
 }
 
 interface StateProps {
-  model: APIRequest<Model>
+  project: APIRequest<Project>
   application: APIRequest<Application>
+  model: APIRequest<Model>
   updateModelStatus: APIRequest<boolean>
   userInfoStatus: APIRequest<UserInfo>
 }
@@ -120,18 +136,17 @@ interface CustomProps {}
 
 const mapStateToProps = (state: any, extraProps: CustomProps): StateProps => (
   {
-    model: state.fetchModelByIdReducer.fetchModelById,
+    project: state.fetchProjectByIdReducer.fetchProjectById,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
+    model: state.fetchModelByIdReducer.fetchModelById,
     updateModelStatus: state.updateModelReducer.updateModel,
     userInfoStatus: state.userInfoReducer.userInfo,
-    ...state.form,
     ...extraProps
   }
 )
 
 export interface DispatchProps {
   fetchModelById: (params: FetchModelByIdParam) => Promise<void>
-  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   updateModel: (params: UpdateModelParam) => Promise<void>
   addNotification: (params) => Promise<void>
 }
@@ -139,7 +154,6 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     fetchModelById: (params: FetchModelByIdParam) => fetchModelByIdDispatcher(dispatch, params),
-    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     updateModel: (params: UpdateModelParam) => updateModelDispatcher(dispatch, params),
     addNotification: (params) => dispatch(addNotification(params))
   }

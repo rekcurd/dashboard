@@ -1,16 +1,15 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { withRouter, RouteComponentProps } from 'react-router'
-import { Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
+import { Breadcrumb, BreadcrumbItem, Button, Modal, ModalBody, ModalHeader, Row, Col } from 'reactstrap'
 
 import { APIRequest, isAPISucceeded, isAPIFailed } from '@src/apis/Core'
 import {
   Model, Application, UserInfo, Project,
-  FetchApplicationByIdParam, FetchModelByIdParam, IdParam
+  FetchModelByIdParam, IdParam
 } from '@src/apis'
 import {
   addNotification,
-  fetchApplicationByIdDispatcher,
   fetchAllModelsDispatcher,
   deleteModelsDispatcher
 } from '@src/actions'
@@ -51,7 +50,6 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
   }
 
   componentDidMount() {
-    this.props.fetchApplicationById(this.props.match.params)
     this.props.fetchAllModels(this.props.match.params)
   }
 
@@ -91,8 +89,8 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
   // Render methods
 
   render(): JSX.Element {
-    const { fetchProjectByIdStatus, application, models, userInfoStatus, settings } = this.props
-    const statuses: any = { fetchProjectByIdStatus, application, models }
+    const { project, application, models, userInfoStatus, settings } = this.props
+    const statuses: any = { project, application, models }
     if (isAPISucceeded(settings) && settings.result.auth) {
       statuses.userInfoStatus = userInfoStatus
     }
@@ -114,8 +112,8 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
   renderModels(fetchedResults, canEdit) {
     const { onSubmitDelete, onCancel } = this
 
-    const project: Project = fetchedResults.fetchProjectByIdStatus
-    const applicationName = fetchedResults.application.name
+    const project: Project = fetchedResults.project
+    const application = fetchedResults.application
     const { projectId, applicationId } = this.props.match.params
     const models: Model[] = fetchedResults.models
 
@@ -129,17 +127,24 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
           onCancel={onCancel}
           canEdit={canEdit}
         />,
-        applicationName,
-        project.useKubernetes,
+        project,
+        application,
         canEdit
       )
     )
   }
 
-  renderContent = (content: JSX.Element, applicationName, kubernetesMode, canEdit: boolean): JSX.Element => {
+  renderContent = (content: JSX.Element, project: Project, application: Application, canEdit: boolean): JSX.Element => {
     return (
       <div className='pb-5'>
-        {this.renderTitle(applicationName, kubernetesMode, canEdit)}
+        <Breadcrumb tag="nav" listTag="div">
+          <BreadcrumbItem tag="a" href="/">Projects</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}`}>{project.name}</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications`}>Applications</BreadcrumbItem>
+          <BreadcrumbItem tag="a" href={`/projects/${project.projectId}/applications/${application.applicationId}`}>{application.name}</BreadcrumbItem>
+          <BreadcrumbItem active tag="span">Models</BreadcrumbItem>
+        </Breadcrumb>
+        {this.renderTitle(canEdit)}
         <AddModelFileModal
           projectId={this.props.match.params.projectId}
           applicationId={this.props.match.params.applicationId}
@@ -148,8 +153,7 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
           reload={this.complete}
         />
         <h3>
-          <i className='fas fa-database fa-fw mr-2'></i>
-          Models
+          All Models
         </h3>
         <hr />
         {content}
@@ -158,7 +162,7 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
     )
   }
 
-  renderTitle = (applicationName, kubernetesMode, canEdit: boolean): JSX.Element => {
+  renderTitle = (canEdit: boolean): JSX.Element => {
     const button = (
       <Col xs='5' className='text-right'>
         <Button
@@ -175,8 +179,8 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
       <Row className='align-items-center mb-5'>
         <Col xs='7'>
           <h1>
-            <i className='fas fa-ship fa-fw mr-2'></i>
-            {applicationName}
+            <i className='fas fa-database fa-fw mr-2'></i>
+            Models
           </h1>
         </Col>
         {canEdit ? button : null}
@@ -271,13 +275,13 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
           modelId: Number(id)
         }))
 
+    const res = this.props.deleteModels(apiParams)
     this.setState({ submitted: true, notified: false })
-    return this.props.deleteModels(apiParams)
+    return res
   }
 
   complete(param) {
     this.props.addNotification(param)
-    this.props.fetchAllModels(this.props.match.params)
     this.setState({
       submitted: false,
       selectedData: []
@@ -286,7 +290,7 @@ class Models extends React.Component<ModelsStatusProps, ModelsStatusState> {
 }
 
 export interface StateProps {
-  fetchProjectByIdStatus: APIRequest<Project>
+  project: APIRequest<Project>
   application: APIRequest<Application>
   models: APIRequest<Model[]>
   deleteModelsStatus: APIRequest<boolean[]>
@@ -296,7 +300,7 @@ export interface StateProps {
 
 const mapStateToProps = (state): StateProps => {
   const props = {
-    fetchProjectByIdStatus: state.fetchProjectByIdReducer.fetchProjectById,
+    project: state.fetchProjectByIdReducer.fetchProjectById,
     application: state.fetchApplicationByIdReducer.fetchApplicationById,
     models: state.fetchAllModelsReducer.fetchAllModels,
     deleteModelsStatus: state.deleteModelsReducer.deleteModels,
@@ -308,7 +312,6 @@ const mapStateToProps = (state): StateProps => {
 
 export interface DispatchProps {
   addNotification
-  fetchApplicationById: (params: FetchApplicationByIdParam) => Promise<void>
   fetchAllModels: (params: FetchModelByIdParam) => Promise<void>
   deleteModels: (params: IdParam[]) => Promise<void>
 }
@@ -316,7 +319,6 @@ export interface DispatchProps {
 const mapDispatchToProps = (dispatch): DispatchProps => {
   return {
     addNotification: (params) => dispatch(addNotification(params)),
-    fetchApplicationById: (params: FetchApplicationByIdParam) => fetchApplicationByIdDispatcher(dispatch, params),
     fetchAllModels: (params: FetchModelByIdParam) => fetchAllModelsDispatcher(dispatch, params),
     deleteModels: (params: IdParam[]) => deleteModelsDispatcher(dispatch, params),
   }
