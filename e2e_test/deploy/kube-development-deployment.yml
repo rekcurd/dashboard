@@ -68,7 +68,7 @@ spec:
         - name: REKCURD_SERVICE_GIT_URL
           value: https://github.com/rekcurd/rekcurd-example.git
         - name: REKCURD_SERVICE_GIT_BRANCH
-          value: master
+          value: debug/debug
         - name: REKCURD_SERVICE_BOOT_SHELL
           value: start.sh
         image: rekcurd/rekcurd:python-latest
