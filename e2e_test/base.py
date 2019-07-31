@@ -5,7 +5,7 @@ import pathlib
 import numpy as np
 
 from sklearn.dummy import DummyClassifier
-from sklearn.externals import joblib
+import joblib
 
 import shutil
 import subprocess

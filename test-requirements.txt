@@ -6,5 +6,6 @@ py>=1.4.31
 codecov>=1.4.0
 grpcio-testing>=1.13.0
 numpy>=1.14.3
-scikit-learn>=0.19.1
+scikit-learn>=0.21.3
 scipy>=1.1.0
+joblib>=0.13.2
