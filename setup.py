@@ -73,14 +73,14 @@ setup(
     extras_require=EXTRAS,
     packages=['rekcurd_dashboard', 'rekcurd_dashboard.apis',
               'rekcurd_dashboard.auth', 'rekcurd_dashboard.console_scripts',
-              'rekcurd_dashboard.core', 'rekcurd_dashboard.logger',
-              'rekcurd_dashboard.models', 'rekcurd_dashboard.protobuf',
-              'rekcurd_dashboard.utils'],
+              'rekcurd_dashboard.core', 'rekcurd_dashboard.data_servers',
+              'rekcurd_dashboard.logger', 'rekcurd_dashboard.models',
+              'rekcurd_dashboard.protobuf', 'rekcurd_dashboard.utils'],
     package_data={
         'rekcurd_dashboard': [
-            'templates/*',
-            'static/dist/*',
-            'static/dist/js/*'
+            'template/*',
+            'static/**/*',
+            'static/**/**/*'
         ],
     },
     include_package_data=True,
