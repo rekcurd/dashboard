@@ -1,4 +1,4 @@
-rekcurd-client>=1.0.1
+rekcurd-client>=1.0.2a0
 coverage>=4.0.3
 nose>=1.3.7
 pytest
