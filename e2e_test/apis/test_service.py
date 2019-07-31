@@ -57,14 +57,16 @@ class TestApiServiceId(BaseTestCase):
             host=insecure_host, port=insecure_port, application_name=application_name,
             service_level=service_level, rekcurd_grpc_version=rekcurd_grpc_version)
         # Switch to the negative model
-        self.client.put(self.__URL, data={'model_id': TEST_MODEL_ID2})
+        response = self.client.put(self.__URL, data={'model_id': TEST_MODEL_ID2})
+        self.assertEqual(200, response.status_code)
         for _ in range(100):
             y_negative = worker_client.run_predict_arrfloat_string(
                 np.random.rand(np.random.randint(1, 100)).tolist()).output
             self.assertEqual(y_negative, '0', 'Negative model should always 0.')
 
         # Switch to the positive model
-        self.client.put(self.__URL, data={'model_id': TEST_MODEL_ID1})
+        response = self.client.put(self.__URL, data={'model_id': TEST_MODEL_ID1})
+        self.assertEqual(200, response.status_code)
         for _ in range(100):
             y_positive = worker_client.run_predict_arrfloat_string(
                 np.random.rand(np.random.randint(1, 100)).tolist()).output

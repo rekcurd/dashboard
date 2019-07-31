@@ -2,17 +2,20 @@ import datetime
 import tempfile
 from itertools import chain
 import os
+from typing import Optional, Tuple
 
 from flask import abort, send_file
-from flask_restplus import Namespace, fields, Resource, reqparse, inputs
+from flask_restplus import Namespace, fields, Resource, reqparse
 from flask_jwt_simple import get_jwt_identity
 from werkzeug.datastructures import FileStorage
+from werkzeug.exceptions import NotFound
 
 from . import DatetimeToTimestamp, status_model
+from .api_model import model_model_params
 from rekcurd_dashboard.data_servers import DataServer
 from rekcurd_dashboard.models import (db, ApplicationModel, ServiceModel, EvaluationModel,
                                       EvaluationResultModel, DataServerModel, DataServerModeEnum,
-                                      ApplicationRole)
+                                      ApplicationRole, ModelModel)
 from rekcurd_dashboard.core import RekcurdDashboardClient
 from rekcurd_dashboard.utils import HashUtil, RekcurdDashboardException, ApplicationUserRoleException
 from rekcurd_dashboard.auth import auth, fetch_application_role
@@ -20,7 +23,7 @@ from rekcurd_dashboard.auth import auth, fetch_application_role
 
 evaluation_api_namespace = Namespace('evaluation', description='Evaluation API Endpoint.')
 success_or_not = evaluation_api_namespace.model('Success', status_model)
-eval_metrics = evaluation_api_namespace.model('Evaluation result', {
+_eval_metrics = {
     'num': fields.Integer(required=True, description='number of evaluated data'),
     'accuracy': fields.Float(required=True, description='accuracy of evaluation'),
     'fvalue': fields.List(fields.Float, required=True, description='F-value of evaluation'),
@@ -28,9 +31,12 @@ eval_metrics = evaluation_api_namespace.model('Evaluation result', {
     'recall': fields.List(fields.Float, required=True, description='recall of evaluation'),
     'option': fields.Raw(),
     'label': fields.Raw(),
-    'status': fields.Boolean(required=True),
     'result_id': fields.Integer(required=True, description='ID of evaluation result')
-})
+}
+eval_metrics = evaluation_api_namespace.model('EvaluationMetrics', _eval_metrics)
+eval_metrics_params = evaluation_api_namespace.model('EvaluationResultMetrics', dict({
+    'status': fields.Boolean(required=True),
+}, **_eval_metrics))
 eval_data_upload = evaluation_api_namespace.model('Result of uploading evaluation data', {
     'status': fields.Boolean(required=True),
     'message': fields.String(required=False),
@@ -61,6 +67,43 @@ evaluation_params = evaluation_api_namespace.model('Evaluation', {
         readOnly=True,
         description='Register date'
     )
+})
+evaluation_result_params = evaluation_api_namespace.model('EvaluationResult', {
+    'evaluation_result_id': fields.Integer(
+        readOnly=True,
+        description='Evaluation Result ID.'
+    ),
+    'model_id': fields.Integer(
+        readOnly=True,
+        description='Model ID.'
+    ),
+    'data_path': fields.String(
+        readOnly=True,
+        description='Evaluation file path'
+    ),
+    'evaluation_id': fields.Integer(
+        readOnly=True,
+        description='Evaluation ID.'
+    ),
+    'register_date': DatetimeToTimestamp(
+        readOnly=True,
+        description='Register date'
+    ),
+    'result': fields.Nested(eval_metrics, readOnly=True),
+    'evaluation': fields.Nested(evaluation_params, readOnly=True),
+    'model': fields.Nested(model_model_params, readOnly=True)
+})
+evaluation_detail = evaluation_api_namespace.model('EvaluationDetail', {
+    'input': fields.Raw(),
+    'output': fields.Raw(),
+    'label': fields.Raw(),
+    'score': fields.Raw(),
+    'is_correct': fields.Boolean(),
+})
+evaluation_detail_params = evaluation_api_namespace.model('EvaluationResultDetail', {
+    'status': fields.Boolean(required=True),
+    'metrics': fields.Nested(eval_metrics, readOnly=True),
+    'details': fields.List(fields.Nested(evaluation_detail, readOnly=True), readOnly=True)
 })
 
 
@@ -169,16 +212,15 @@ class ApiEvaluationIdDownload(Resource):
         data_server_model: DataServerModel = db.session.query(
             DataServerModel).filter(DataServerModel.project_id == project_id).first_or_404()
         data_server = DataServer()
-        local_filepath = 'tmp.eval'
-        data_server.download_file(data_server_model,
-                                  evaluation_model.data_path,
-                                  local_filepath)
+        with tempfile.NamedTemporaryFile() as fp:
+            data_server.download_file(data_server_model,
+                                      evaluation_model.data_path,
+                                      fp.name)
 
-        response = send_file(local_filepath, as_attachment=True,
-                             attachment_filename='evaluation_{}.txt'.format(evaluation_id),
-                             mimetype='text/plain')
-        os.remove(local_filepath)
-        return response
+            response = send_file(open(fp.name, 'rb'), as_attachment=True,
+                                 attachment_filename='evaluation_{}.txt'.format(evaluation_id),
+                                 mimetype='text/plain')
+            return response
 
 
 @evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluate')
@@ -186,15 +228,58 @@ class ApiEvaluate(Resource):
     eval_parser = reqparse.RequestParser()
     eval_parser.add_argument('model_id', location='form', type=int, required=True)
     eval_parser.add_argument('evaluation_id', location='form', type=int, required=False)
-    eval_parser.add_argument('overwrite', location='form', type=inputs.boolean, required=False)
 
     @evaluation_api_namespace.expect(eval_parser)
-    @evaluation_api_namespace.marshal_with(eval_metrics)
+    @evaluation_api_namespace.marshal_with(eval_metrics_params)
     def post(self, project_id: int, application_id: str):
-        """evaluate"""
+        """evaluate model"""
         args = self.eval_parser.parse_args()
         eval_id = args.get('evaluation_id', None)
         model_id = args.get('model_id')
+        service_model, evaluation_model, evaluation_result_model = self._get_models(application_id, model_id, eval_id)
+        if evaluation_result_model is not None:
+            raise RekcurdDashboardException("The evaluation result already exists")
+
+        response_body, eval_result_path = self._evaluate(application_id, service_model, evaluation_model)
+        if response_body['status']:
+            evaluation_result_model = EvaluationResultModel(
+                model_id=service_model.model_id,
+                data_path=eval_result_path,
+                evaluation_id=evaluation_model.evaluation_id,
+                result=response_body)
+            db.session.add(evaluation_result_model)
+            db.session.flush()
+            response_body = evaluation_result_model.result
+            db.session.commit()
+
+        db.session.close()
+        return response_body
+
+    @evaluation_api_namespace.expect(eval_parser)
+    @evaluation_api_namespace.marshal_with(eval_metrics_params)
+    def put(self, project_id: int, application_id: str):
+        """re-evaluate model"""
+        args = self.eval_parser.parse_args()
+        eval_id = args.get('evaluation_id', None)
+        model_id = args.get('model_id')
+        service_model, evaluation_model, evaluation_result_model = self._get_models(application_id, model_id, eval_id)
+        if evaluation_result_model is None:
+            raise RekcurdDashboardException("The evaluation result does not exist yet")
+
+        response_body, eval_result_path = self._evaluate(application_id, service_model, evaluation_model)
+        if response_body['status']:
+            evaluation_result_model.data_path = eval_result_path
+            evaluation_result_model.result = response_body
+            evaluation_result_model.register_date = datetime.datetime.utcnow()
+            db.session.flush()
+            response_body = evaluation_result_model.result
+            db.session.commit()
+
+        db.session.close()
+        return response_body
+
+    def _get_models(self, application_id: str, model_id: int,
+                    eval_id: Optional[int]) -> Tuple[ServiceModel, EvaluationModel, Optional[EvaluationResultModel]]:
         if eval_id:
             evaluation_model = EvaluationModel.query.filter_by(
                 application_id=application_id,
@@ -215,39 +300,40 @@ class ApiEvaluate(Resource):
         evaluation_result_model = db.session.query(EvaluationResultModel).filter(
             EvaluationResultModel.model_id == service_model.model_id,
             EvaluationResultModel.evaluation_id == evaluation_model.evaluation_id).one_or_none()
-        if evaluation_result_model is not None and args.get('overwrite', False):
-            return evaluation_result_model.result
 
+        return service_model, evaluation_model, evaluation_result_model
+
+    def _evaluate(self, application_id: str, service_model: ServiceModel, evaluation_model: EvaluationModel):
         eval_result_path = "eval-result-{0:%Y%m%d%H%M%S}.pkl".format(datetime.datetime.utcnow())
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
         rekcurd_dashboard_client = RekcurdDashboardClient(
             host=service_model.insecure_host, port=service_model.insecure_port, application_name=application_model.application_name,
             service_level=service_model.service_level, rekcurd_grpc_version=service_model.version)
-        response_body = rekcurd_dashboard_client.run_evaluate_model(evaluation_model.data_path, eval_result_path)
+        return rekcurd_dashboard_client.run_evaluate_model(evaluation_model.data_path, eval_result_path), eval_result_path
 
-        if response_body['status']:
-            if evaluation_result_model is None:
-                evaluation_result_model = EvaluationResultModel(
-                    model_id=service_model.model_id,
-                    data_path=eval_result_path,
-                    evaluation_id=evaluation_model.evaluation_id,
-                    result=response_body)
-                db.session.add(evaluation_result_model)
-            else:
-                evaluation_result_model.data_path = eval_result_path
-                evaluation_result_model.result = response_body
-            db.session.flush()
-            response_body = evaluation_result_model.result
-            db.session.commit()
 
-        db.session.close()
-        return response_body
+@evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluation_results')
+class ApiEvaluationResults(Resource):
+    @evaluation_api_namespace.marshal_list_with(evaluation_result_params)
+    def get(self, project_id: int, application_id: str):
+        """get all evaluation results and belonging models and evaluation data"""
+        rows = db.session.query(EvaluationModel, EvaluationResultModel, ModelModel)\
+            .filter(EvaluationModel.application_id == application_id,
+                    EvaluationResultModel.evaluation_id == EvaluationModel.evaluation_id,
+                    EvaluationResultModel.model_id == ModelModel.model_id).all()
+        results = []
+        for row in rows:
+            result = row.EvaluationResultModel.serialize
+            result['model'] = row.ModelModel.serialize
+            result['evaluation'] = row.EvaluationModel.serialize
+            results.append(result)
+        return results
 
 
 @evaluation_api_namespace.route('/projects/<int:project_id>/applications/<application_id>/evaluation_results/<int:eval_result_id>')
-class ApiEvaluationResults(Resource):
-
+class ApiEvaluationResultId(Resource):
+    @evaluation_api_namespace.marshal_with(evaluation_detail_params)
     def get(self, project_id: int, application_id: str, eval_result_id: int):
         """get detailed evaluation result"""
         eval_with_result = db.session.query(EvaluationModel, EvaluationResultModel)\
@@ -255,7 +341,7 @@ class ApiEvaluationResults(Resource):
                     EvaluationResultModel.evaluation_id == EvaluationModel.evaluation_id,
                     EvaluationResultModel.evaluation_result_id == eval_result_id).one_or_none()
         if eval_with_result is None:
-            return {"status": False, "message": "Not Found."}, 404
+            raise NotFound("Not Found.")
 
         application_model: ApplicationModel = db.session.query(ApplicationModel).filter(
             ApplicationModel.application_id == application_id).first_or_404()
@@ -270,7 +356,7 @@ class ApiEvaluationResults(Resource):
         response_body = list(rekcurd_dashboard_client.run_evaluation_data(
             evaluation_model.data_path, evaluation_result_model.data_path))
         if len(response_body) == 0:
-            return {"status": False, "message": "Result Not Found."}, 404
+            raise NotFound("Result Not Found.")
 
         return {
             'status': all(r['status'] for r in response_body),

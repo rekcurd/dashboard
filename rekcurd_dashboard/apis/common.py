@@ -1,4 +1,5 @@
 from flask_restplus import fields
+from datetime import datetime
 
 
 status_model = {
@@ -13,6 +14,8 @@ status_model = {
 
 class DatetimeToTimestamp(fields.Raw):
     def format(self, value):
+        if isinstance(value, str):
+            value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
         return value.timestamp()
 
 

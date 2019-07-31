@@ -127,6 +127,20 @@ class ApiEvaluationResultTest(BaseTestCase):
     """Tests for ApiEvaluationResult.
     """
     @patch_stub
+    def test_get_all(self):
+        evaluation_model = create_eval_model(TEST_APPLICATION_ID, description='eval desc', save=True)
+        create_eval_result_model(model_id=TEST_MODEL_ID,
+                                 evaluation_id=evaluation_model.evaluation_id,
+                                 save=True)
+        url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluation_results'
+        response = self.client.get(url)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(len(response.json), 1)
+        self.assertEqual(response.json[0]['evaluation_result_id'], 1)
+        self.assertEqual(response.json[0]['evaluation']['description'], 'eval desc')
+        self.assertEqual(response.json[0]['model']['description'], 'rekcurd-test-model')
+
+    @patch_stub
     def test_get(self):
         evaluation_model = create_eval_model(TEST_APPLICATION_ID, save=True)
         eval_result_model = create_eval_result_model(
@@ -155,12 +169,10 @@ class ApiEvaluationResultTest(BaseTestCase):
             f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/'
             f'evaluation_results/{eval_result_model.evaluation_result_id}')
         self.assertEqual(404, response.status_code)
-        self.assertEqual(response.json, {'status': False, 'message': 'Result Not Found.'})
 
         response = self.client.get(
             f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluation_results/101')
         self.assertEqual(404, response.status_code)
-        self.assertEqual(response.json, {'status': False, 'message': 'Not Found.'})
 
     @patch_stub
     def test_delete(self):
@@ -231,18 +243,7 @@ class ApiEvaluateTest(BaseTestCase):
         url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluate'
         data = {'evaluation_id': evaluation_id, 'model_id': TEST_MODEL_ID}
         response = self.client.post(url, data=data)
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json, saved_response)
-
-        # overwrite
-        response = self.client.post(url, data=dict(data, overwrite=True))
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json, self.default_response)
-
-        evaluation_model = db.session.query(EvaluationResultModel).filter(
-            EvaluationResultModel.model_id == TEST_MODEL_ID,
-            EvaluationResultModel.evaluation_id == evaluation_id).one()
-        self.assertEqual(evaluation_model.result, self.default_response)
+        self.assertEqual(400, response.status_code)
 
     @patch_stub
     def test_post_not_found(self):
@@ -252,3 +253,28 @@ class ApiEvaluateTest(BaseTestCase):
             f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluate',
             data={'evaluation_id': evaluation_id, 'model_id': non_exist_model_id})
         self.assertEqual(404, response.status_code)
+
+    @patch_stub
+    def test_put(self):
+        evaluation_id = create_eval_model(TEST_APPLICATION_ID, save=True).evaluation_id
+        create_eval_result_model(
+            model_id=TEST_MODEL_ID, evaluation_id=evaluation_id, result=json.dumps(self.default_response), save=True)
+
+        url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluate'
+        data = {'evaluation_id': evaluation_id, 'model_id': TEST_MODEL_ID}
+        response = self.client.put(url, data=data)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(response.json, self.default_response)
+
+        evaluation_model = db.session.query(EvaluationResultModel).filter(
+            EvaluationResultModel.model_id == TEST_MODEL_ID,
+            EvaluationResultModel.evaluation_id == evaluation_id).one()
+        self.assertEqual(evaluation_model.result, self.default_response)
+
+    @patch_stub
+    def test_put_new(self):
+        evaluation_id = create_eval_model(TEST_APPLICATION_ID, save=True).evaluation_id
+        url = f'/api/projects/{TEST_PROJECT_ID}/applications/{TEST_APPLICATION_ID}/evaluate'
+        data = {'evaluation_id': evaluation_id, 'model_id': TEST_MODEL_ID}
+        response = self.client.put(url, data=data)
+        self.assertEqual(400, response.status_code)

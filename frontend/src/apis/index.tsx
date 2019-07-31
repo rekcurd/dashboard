@@ -311,6 +311,32 @@ export async function uploadEvaluation(params: UploadEvaluationParam) {
   return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluations`, requestBody, convert, 'POST')
 }
 
+export interface EvaluateParam {
+  projectId: number
+  applicationId: string
+  modelId: number
+  evaluationId: number
+}
+export async function evaluate(params: EvaluateParam) {
+  const requestBody = {
+    ...params
+  }
+
+  const convert = (result) => result.status
+
+  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluate`, requestBody, convert, 'POST')
+}
+
+export async function reEvaluate(params: EvaluateParam) {
+  const requestBody = {
+    ...params
+  }
+
+  const convert = (result) => result.status
+
+  return APICore.formDataRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluate`, requestBody, convert, 'PUT')
+}
+
 // GET APIs
 export class Project {
   constructor(
@@ -538,6 +564,34 @@ export async function fetchAllEvaluations(params: FetchEvaluationByIdParam): Pro
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluations`, convert)
 }
 
+export class EvaluationResult {
+  constructor(
+    public evaluationResultId: number,
+    public evaluationId: number,
+    public modelDescription: string = '',
+    public evaluationDescription: string = '',
+    public registerDate: Date = null
+  ) { }
+}
+export interface FetchEvaluationResultByIdParam {
+  evaluationResultId?: number
+  projectId: number
+  applicationId: string
+}
+export async function fetchAllEvaluationResults(params: FetchEvaluationResultByIdParam): Promise<EvaluationResult[]> {
+  const convert =
+    (results) => results.map((result): EvaluationResult => {
+      return {
+        evaluationResultId: result.evaluation_result_id,
+        evaluationId: result.evaluation_id,
+        modelDescription: result.model.description,
+        evaluationDescription: result.evaluation.description,
+        registerDate: new Date(result.register_date * 1000)
+      }
+    })
+  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluation_results`, convert)
+}
+
 export class Service {
   constructor(
     public serviceId: string,
@@ -734,6 +788,7 @@ export interface IdParam {
   serviceId?: string
   modelId?: number
   evaluationId?: number
+  evaluationResultId?: number
 }
 
 export async function deleteKubernetes(params: IdParam): Promise<any> {
@@ -794,6 +849,19 @@ export async function deleteEvaluations(params: IdParam[]): Promise<Array<Promis
   const entryPoints = params.map(
     (param) =>
       `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${param.projectId}/applications/${param.applicationId}/evaluations/${param.evaluationId}`
+  )
+  const requestList = params.map(
+    (param) => ({ options: { method: 'DELETE' } })
+  )
+
+  return APICore.rawMultiRequest<boolean>(entryPoints, convert, requestList)
+}
+
+export async function deleteEvaluationResults(params: IdParam[]): Promise<Array<Promise<boolean>>> {
+  const convert = (result) => result.status
+  const entryPoints = params.map(
+    (param) =>
+      `${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${param.projectId}/applications/${param.applicationId}/evaluation_results/${param.evaluationResultId}`
   )
   const requestList = params.map(
     (param) => ({ options: { method: 'DELETE' } })

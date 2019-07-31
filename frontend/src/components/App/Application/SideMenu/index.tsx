@@ -63,6 +63,11 @@ class SideMenu extends React.Component<SideMenuProps, SideMenuState> {
           path: 'evaluations',
           icon: 'file',
         },
+        {
+          text: 'Result',
+          path: 'evaluation_results',
+          icon: 'diagnoses',
+        },
       ]
     }
 

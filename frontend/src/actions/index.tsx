@@ -151,6 +151,20 @@ export const uploadEvaluationDispatcher = asyncAPIRequestDispatcherCreator<Apis.
   Apis.uploadEvaluation
 )
 
+export const evaluateActionCreators =
+  new APIRequestActionCreators<Apis.EvaluateParam, boolean>('EVALUATE')
+export const evaluateDispatcher = asyncAPIRequestDispatcherCreator<Apis.EvaluateParam, boolean>(
+  evaluateActionCreators,
+  Apis.evaluate
+)
+
+export const reEvaluateActionCreators =
+  new APIRequestActionCreators<Apis.EvaluateParam, boolean>('REEVALUATE')
+export const reEvaluateDispatcher = asyncAPIRequestDispatcherCreator<Apis.EvaluateParam, boolean>(
+  reEvaluateActionCreators,
+  Apis.reEvaluate
+)
+
 export const fetchAllProjectsActionCreators =
   new APIRequestActionCreators<{}, Apis.Project[]>('FETCH_ALL_PROJECTS')
 export const fetchAllProjectsDispatcher = asyncAPIRequestDispatcherCreator<{}, Apis.Project[]>(
@@ -219,6 +233,13 @@ export const fetchAllEvaluationsActionCreators =
 export const fetchAllEvaluationsDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchEvaluationByIdParam, Apis.Evaluation[]>(
   fetchAllEvaluationsActionCreators,
   Apis.fetchAllEvaluations
+)
+
+export const fetchAllEvaluationResultsActionCreators =
+  new APIRequestActionCreators<Apis.FetchEvaluationResultByIdParam, Apis.EvaluationResult[]>('FETCH_ALL_EVALUATION_RESULTS')
+export const fetchAllEvaluationResultsDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchEvaluationResultByIdParam, Apis.EvaluationResult[]>(
+  fetchAllEvaluationResultsActionCreators,
+  Apis.fetchAllEvaluationResults
 )
 
 export const fetchAllServicesActionCreators =
@@ -303,6 +324,13 @@ export const deleteEvaluationsActionCreators =
 export const deleteEvaluationsDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam[], boolean[]>(
   deleteEvaluationsActionCreators,
   Apis.deleteEvaluations
+)
+
+export const deleteEvaluationResultsActionCreators =
+  new APIRequestActionCreators<Apis.IdParam[], boolean[]>('DELETE_EVALUTION_RESULTS')
+export const deleteEvaluationResultsDispatcher = asyncAPIRequestDispatcherCreator<Apis.IdParam[], boolean[]>(
+  deleteEvaluationResultsActionCreators,
+  Apis.deleteEvaluationResults
 )
 
 // Login
