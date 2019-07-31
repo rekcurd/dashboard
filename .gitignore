@@ -104,8 +104,7 @@ ENV/
 .idea/
 
 # sqlite
-db.sqlite3
-db.test.sqlite3
+*.db
 
 # Kube config
 kube-config/
