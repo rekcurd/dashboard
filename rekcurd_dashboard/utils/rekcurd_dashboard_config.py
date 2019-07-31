@@ -56,7 +56,7 @@ class RekcurdDashboardConfig:
             config = dict()
         self.DEBUG_MODE = config.get("debug", False)
         self.SERVICE_PORT = config.get("port", self.SERVICE_PORT)
-        self.DIR_KUBE_CONFIG = config.get("kube_config_dir", "kube-config")
+        self.DIR_KUBE_CONFIG = self.__kubeconfig_default_dir(config.get("kube_config_dir", "kube-config"))
         config_db = config.get("db", dict())
         db_mode = config_db.get("mode", "sqlite")
         config_db_mysql = config_db.get("mysql", dict())
@@ -77,7 +77,7 @@ class RekcurdDashboardConfig:
     def __load_from_env(self):
         self.DEBUG_MODE = os.getenv("DASHBOARD_DEBUG_MODE", "False").lower() == 'true'
         self.SERVICE_PORT = int(os.getenv("DASHBOARD_SERVICE_PORT", "{}".format(self.__SERVICE_DEFAULT_PORT)))
-        self.DIR_KUBE_CONFIG = os.getenv("DASHBOARD_KUBE_DATADIR")
+        self.DIR_KUBE_CONFIG = self.__kubeconfig_default_dir(os.getenv("DASHBOARD_KUBE_DATADIR", "kube-config"))
         db_mode = os.getenv('DASHBOARD_DB_MODE')
         db_host = os.getenv('DASHBOARD_DB_MYSQL_HOST')
         db_port = os.getenv('DASHBOARD_DB_MYSQL_PORT')
@@ -140,6 +140,11 @@ class RekcurdDashboardConfig:
             return f'mysql+pymysql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}?charset=utf8'
         else:
             raise TypeError("Invalid DB configurations.")
+
+    def __kubeconfig_default_dir(self, dirname: str):
+        root = os.path.abspath(
+            os.path.expanduser(os.getenv('REKCURD_DASHBOARD_ROOT', '~/.rekcurd')))
+        return os.path.join(root, dirname)
 
     def __sqlite_default_db_dir(self):
         root = os.path.abspath(

@@ -30,7 +30,7 @@ class ApiSettingsTest(BaseTestCase):
         pass
 
     def test_get_full_config_path(self):
-        self.assertEqual('kube-config/tmp', get_full_config_path('tmp'))
+        self.assertTrue(get_full_config_path('tmp').endswith('kube-config/tmp'))
 
     def test_save_kubernetes_access_file(self):
         with open('test/dummy', 'rb') as fp:
