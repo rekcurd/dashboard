@@ -16,13 +16,13 @@ from rekcurd_dashboard.auth import auth
 def create_app(config_file: str = None, logger_file: str = None, **options) -> (Flask, RekcurdDashboardConfig):
     """create_app."""
 
-    app = Flask(__name__, static_folder='static', template_folder='static/dist')
+    app = Flask(__name__, static_folder='../static', template_folder='../static/dist')
     app.logger.disabled = True
     for h in app.logger.handlers[:]:
         app.logger.removeHandler(h)
 
-    @app.route('/ui/')
-    @app.route('/ui/<path:path>')
+    @app.route('/')
+    @app.route('/<path:path>')
     def root_url(**kwargs):
         return render_template('index.html')
 
