@@ -1,5 +1,33 @@
 # Change Log
 
+## [v1.0.1](https://github.com/rekcurd/dashboard/tree/v1.0.1)
+
+[Full Changelog](https://github.com/rekcurd/dashboard/compare/v1.0.0...v1.0.1)
+
+**Closed issues:**
+
+- Use Secret for private git repository [\#76](https://github.com/rekcurd/dashboard/issues/76)
+- Add storage options for ML models and evaluation data [\#69](https://github.com/rekcurd/dashboard/issues/69)
+
+**Merged pull requests:**
+
+- Specify version [\#113](https://github.com/rekcurd/dashboard/pull/113) ([keigohtr](https://github.com/keigohtr))
+- Specify `long\_description\_content\_type` [\#112](https://github.com/rekcurd/dashboard/pull/112) ([keigohtr](https://github.com/keigohtr))
+- Use `tempfile` to avoid the conflict. [\#111](https://github.com/rekcurd/dashboard/pull/111) ([keigohtr](https://github.com/keigohtr))
+- remove duplicated\_ok [\#109](https://github.com/rekcurd/dashboard/pull/109) ([yuki-mt](https://github.com/yuki-mt))
+- fix order of changing state [\#108](https://github.com/rekcurd/dashboard/pull/108) ([yuki-mt](https://github.com/yuki-mt))
+- LocalHanlder does nothing [\#106](https://github.com/rekcurd/dashboard/pull/106) ([yuki-mt](https://github.com/yuki-mt))
+- evaluation result list page [\#105](https://github.com/rekcurd/dashboard/pull/105) ([yuki-mt](https://github.com/yuki-mt))
+- add evaluation data page [\#103](https://github.com/rekcurd/dashboard/pull/103) ([yuki-mt](https://github.com/yuki-mt))
+- raise exception when adding git secret without k8s [\#102](https://github.com/rekcurd/dashboard/pull/102) ([yuki-mt](https://github.com/yuki-mt))
+- Add breadcrumb [\#100](https://github.com/rekcurd/dashboard/pull/100) ([keigohtr](https://github.com/keigohtr))
+- Add GCS support [\#95](https://github.com/rekcurd/dashboard/pull/95) ([keigohtr](https://github.com/keigohtr))
+- Add secret for private git [\#94](https://github.com/rekcurd/dashboard/pull/94) ([keigohtr](https://github.com/keigohtr))
+- Add `settings.yml` template generation script [\#93](https://github.com/rekcurd/dashboard/pull/93) ([keigohtr](https://github.com/keigohtr))
+- Delete migrations dir [\#92](https://github.com/rekcurd/dashboard/pull/92) ([keigohtr](https://github.com/keigohtr))
+- Disable `Sync` button [\#91](https://github.com/rekcurd/dashboard/pull/91) ([keigohtr](https://github.com/keigohtr))
+- Sync kubernetes when registered [\#90](https://github.com/rekcurd/dashboard/pull/90) ([keigohtr](https://github.com/keigohtr))
+
 ## [v1.0.0](https://github.com/rekcurd/dashboard/tree/v1.0.0) (2019-04-26)
 [Full Changelog](https://github.com/rekcurd/dashboard/compare/v0.4.5...v1.0.0)
 
@@ -131,6 +159,7 @@
 - \[Hotfix\] Add `JWT\_TOKEN\_KEY` when fetch `rawMultiRequest` [\#13](https://github.com/rekcurd/dashboard/pull/13) ([keigohtr](https://github.com/keigohtr))
 - fix invalid datetime [\#12](https://github.com/rekcurd/dashboard/pull/12) ([yuki-mt](https://github.com/yuki-mt))
 - Add Service/Model list view [\#11](https://github.com/rekcurd/dashboard/pull/11) ([keigohtr](https://github.com/keigohtr))
+- Add version info [\#5](https://github.com/rekcurd/dashboard/pull/5) ([keigohtr](https://github.com/keigohtr))
 
 ## [v0.3.1](https://github.com/rekcurd/dashboard/tree/v0.3.1) (2018-08-15)
 [Full Changelog](https://github.com/rekcurd/dashboard/compare/v0.3.0...v0.3.1)
@@ -147,7 +176,6 @@
 
 **Merged pull requests:**
 
-- Add version info [\#5](https://github.com/rekcurd/dashboard/pull/5) ([keigohtr](https://github.com/keigohtr))
 - Add `commit\_message` to be a rolling-update trigger [\#4](https://github.com/rekcurd/dashboard/pull/4) ([keigohtr](https://github.com/keigohtr))
 - Add favicon [\#3](https://github.com/rekcurd/dashboard/pull/3) ([keigohtr](https://github.com/keigohtr))
 - Change text [\#2](https://github.com/rekcurd/dashboard/pull/2) ([keigohtr](https://github.com/keigohtr))
