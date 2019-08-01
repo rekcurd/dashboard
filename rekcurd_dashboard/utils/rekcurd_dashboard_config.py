@@ -4,6 +4,9 @@
 import yaml
 import os
 import json
+
+from pathlib import Path
+
 from rekcurd_dashboard.protobuf import rekcurd_pb2
 
 
@@ -48,12 +51,12 @@ class RekcurdDashboardConfig:
     def __load_from_file(self, config_file: str):
         if config_file is not None:
             with open(config_file, 'r') as f:
-                config = yaml.load(f)
+                config = yaml.safe_load(f)
         else:
             config = dict()
         self.DEBUG_MODE = config.get("debug", False)
         self.SERVICE_PORT = config.get("port", self.SERVICE_PORT)
-        self.DIR_KUBE_CONFIG = config.get("kube_config_dir", "kube-config")
+        self.DIR_KUBE_CONFIG = self.__kubeconfig_default_dir(config.get("kube_config_dir", "kube-config"))
         config_db = config.get("db", dict())
         db_mode = config_db.get("mode", "sqlite")
         config_db_mysql = config_db.get("mysql", dict())
@@ -74,7 +77,7 @@ class RekcurdDashboardConfig:
     def __load_from_env(self):
         self.DEBUG_MODE = os.getenv("DASHBOARD_DEBUG_MODE", "False").lower() == 'true'
         self.SERVICE_PORT = int(os.getenv("DASHBOARD_SERVICE_PORT", "{}".format(self.__SERVICE_DEFAULT_PORT)))
-        self.DIR_KUBE_CONFIG = os.getenv("DASHBOARD_KUBE_DATADIR")
+        self.DIR_KUBE_CONFIG = self.__kubeconfig_default_dir(os.getenv("DASHBOARD_KUBE_DATADIR", "kube-config"))
         db_mode = os.getenv('DASHBOARD_DB_MODE')
         db_host = os.getenv('DASHBOARD_DB_MYSQL_HOST')
         db_port = os.getenv('DASHBOARD_DB_MYSQL_PORT')
@@ -110,7 +113,12 @@ class RekcurdDashboardConfig:
                 cursor = dbapi_connection.cursor()
                 cursor.execute("PRAGMA foreign_keys=ON")
                 cursor.close()
-            return f'sqlite:///db.test.sqlite3'
+
+            db_dir = self.__sqlite_default_db_dir()
+            db_path = Path(db_dir, 'rekcurd_dashboard.test.db')
+            if not db_path.exists():
+                db_path.parent.mkdir(parents=True, exist_ok=True)
+            return f'sqlite:///{db_path}'
         elif db_mode is None:
             return None
         elif db_mode == "sqlite":
@@ -122,8 +130,23 @@ class RekcurdDashboardConfig:
                 cursor = dbapi_connection.cursor()
                 cursor.execute("PRAGMA foreign_keys=ON")
                 cursor.close()
-            return f'sqlite:///db.sqlite3'
+
+            db_dir = self.__sqlite_default_db_dir()
+            db_path = Path(db_dir, 'rekcurd_dashboard.db')
+            if not db_path.exists():
+                db_path.parent.mkdir(parents=True, exist_ok=True)
+            return f'sqlite:///{db_path}'
         elif db_mode == "mysql" and db_host and db_port and db_name and db_username and db_password:
             return f'mysql+pymysql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}?charset=utf8'
         else:
             raise TypeError("Invalid DB configurations.")
+
+    def __kubeconfig_default_dir(self, dirname: str):
+        root = os.path.abspath(
+            os.path.expanduser(os.getenv('REKCURD_DASHBOARD_ROOT', '~/.rekcurd')))
+        return os.path.join(root, dirname)
+
+    def __sqlite_default_db_dir(self):
+        root = os.path.abspath(
+            os.path.expanduser(os.getenv('REKCURD_DASHBOARD_ROOT', '~/.rekcurd')))
+        return os.path.join(root, 'db')
