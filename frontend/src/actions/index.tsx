@@ -242,6 +242,13 @@ export const fetchAllEvaluationResultsDispatcher = asyncAPIRequestDispatcherCrea
   Apis.fetchAllEvaluationResults
 )
 
+export const fetchEvaluationResultByIdActionCreators =
+  new APIRequestActionCreators<Apis.FetchEvaluationResultByIdParam, Apis.EvaluationResultDetail>('FETCH_EVALUATION_RESULT_BY_ID')
+export const fetchEvaluationResultByIdDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchEvaluationResultByIdParam, Apis.EvaluationResultDetail>(
+  fetchEvaluationResultByIdActionCreators,
+  Apis.fetchEvaluationResultById
+)
+
 export const fetchAllServicesActionCreators =
   new APIRequestActionCreators<Apis.FetchServiceParam, Apis.Service[]>('FETCH_ALL_SERVICES')
 export const fetchAllServicesDispatcher = asyncAPIRequestDispatcherCreator<Apis.FetchServiceParam, Apis.Service[]>(

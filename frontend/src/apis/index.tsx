@@ -573,6 +573,30 @@ export class EvaluationResult {
     public registerDate: Date = null
   ) { }
 }
+type eval_io = number | string | number[] | string[]
+export interface EvaluationMetrics {
+  evaluation_result_id: number
+  num: number
+  accuracy: number
+  fvalue: number[]
+  precision: number[]
+  recall: number[]
+  option: any
+  label: eval_io[]
+}
+export interface EvaluationDetail {
+  input: eval_io
+  label: eval_io
+  output: eval_io
+  score: number | number[]
+  is_correct: boolean
+}
+export class EvaluationResultDetail {
+  constructor(
+    public metrics: EvaluationMetrics,
+    public details: EvaluationDetail[]
+  ) { }
+}
 export interface FetchEvaluationResultByIdParam {
   evaluationResultId?: number
   projectId: number
@@ -590,6 +614,15 @@ export async function fetchAllEvaluationResults(params: FetchEvaluationResultByI
       }
     })
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluation_results`, convert)
+}
+export async function fetchEvaluationResultById(params: FetchEvaluationResultByIdParam): Promise<EvaluationResult> {
+  const convert =
+    (result) => (
+      {
+        ...convertKeys(result, camelize)
+      }
+    )
+  return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluation_results/${params.evaluationResultId}`, convert)
 }
 
 export class Service {

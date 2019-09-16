@@ -29,7 +29,8 @@ export class AppState {
     public fetchModelById: APIRequest<Apis.Model> = { status: APIRequestStatusList.notStarted},
     public fetchAllServices: APIRequest<Apis.Service[]> = { status: APIRequestStatusList.notStarted},
     public fetchAllEvaluations: APIRequest<Apis.Evaluation[]> = { status: APIRequestStatusList.notStarted},
-    public fetchAllEvaluationResults: APIRequest<Apis.Evaluation[]> = { status: APIRequestStatusList.notStarted},
+    public fetchAllEvaluationResults: APIRequest<Apis.EvaluationResult[]> = { status: APIRequestStatusList.notStarted},
+    public fetchEvaluationResultById: APIRequest<Apis.EvaluationResultDetail> = { status: APIRequestStatusList.notStarted},
     public fetchServiceById: APIRequest<Apis.Service> = { status: APIRequestStatusList.notStarted},
     public fetchKubernetesGitKey: APIRequest<Apis.KubernetesGitKey> = { status: APIRequestStatusList.notStarted},
     public fetchServiceRouting: APIRequest<Apis.ServiceRouting> = { status: APIRequestStatusList.notStarted},
@@ -142,6 +143,8 @@ export const fetchAllEvaluationsReducer = APIRequestReducerCreator<Apis.FetchEva
   Actions.fetchAllEvaluationsActionCreators, 'fetchAllEvaluations')
 export const fetchAllEvaluationResultsReducer = APIRequestReducerCreator<Apis.FetchEvaluationResultByIdParam, Apis.EvaluationResult[]>(
   Actions.fetchAllEvaluationResultsActionCreators, 'fetchAllEvaluationResults')
+export const fetchEvaluationResultByIdReducer = APIRequestReducerCreator<Apis.FetchEvaluationResultByIdParam, Apis.EvaluationResultDetail>(
+  Actions.fetchEvaluationResultByIdActionCreators, 'fetchEvaluationResultById')
 export const fetchAllServicesReducer = APIRequestReducerCreator<Apis.FetchServiceParam, Apis.Service[]>(
   Actions.fetchAllServicesActionCreators, 'fetchAllServices')
 export const fetchServiceByIdReducer = APIRequestReducerCreator<Apis.FetchServiceByIdParam, Apis.Service>(
