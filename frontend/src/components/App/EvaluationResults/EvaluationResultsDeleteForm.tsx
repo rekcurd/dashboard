@@ -86,7 +86,9 @@ class EvaluationResultsDeleteForm extends React.Component<EvaluationResultsDelet
               value={evaluationResultId.toString()}
               label='' />
             : null }
-          {`${evaluationResultId}: ${modelDescription}`}
+          <Link className='text-info' to={`/projects/${projectId}/applications/${applicationId}/evaluation_results/${evaluationResultId}`}>
+            {`${evaluationResultId}: ${modelDescription}`}
+          </Link>
         </Row>
       )
     }

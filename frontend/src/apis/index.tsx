@@ -573,7 +573,7 @@ export class EvaluationResult {
     public registerDate: Date = null
   ) { }
 }
-type eval_io = number | string | number[] | string[]
+export type evalIO = number | string | number[] | string[]
 export interface EvaluationMetrics {
   evaluation_result_id: number
   num: number
@@ -582,14 +582,14 @@ export interface EvaluationMetrics {
   precision: number[]
   recall: number[]
   option: any
-  label: eval_io[]
+  label: evalIO[]
 }
 export interface EvaluationDetail {
-  input: eval_io
-  label: eval_io
-  output: eval_io
+  input: evalIO
+  label: evalIO
+  output: evalIO
   score: number | number[]
-  is_correct: boolean
+  isCorrect: boolean
 }
 export class EvaluationResultDetail {
   constructor(
@@ -615,7 +615,7 @@ export async function fetchAllEvaluationResults(params: FetchEvaluationResultByI
     })
   return APICore.getRequest(`${process.env.API_HOST}:${process.env.API_PORT}/api/projects/${params.projectId}/applications/${params.applicationId}/evaluation_results`, convert)
 }
-export async function fetchEvaluationResultById(params: FetchEvaluationResultByIdParam): Promise<EvaluationResult> {
+export async function fetchEvaluationResultById(params: FetchEvaluationResultByIdParam): Promise<EvaluationResultDetail> {
   const convert =
     (result) => (
       {
